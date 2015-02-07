@@ -3,7 +3,8 @@ RST Quick Start Tutorial
 ########################
 
 :Authors: Panos Georgiadis
-
+:date: 2015-02-06
+:Title: First
 :Version: 1.0 of 2015-02-06
 
 
