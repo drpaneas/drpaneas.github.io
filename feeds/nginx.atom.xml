@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>L I N U X E D</title><link href="http://linuxed.gr/" rel="alternate"></link><link href="http://linuxed.gr/feeds/nginx.atom.xml" rel="self"></link><id>http://linuxed.gr/</id><updated>2015-02-02T21:34:00+02:00</updated><entry><title>Βασικό configuration του Nginx</title><link href="http://linuxed.gr/nginx/vasiko-configuration-tou-nginx/" rel="alternate"></link><updated>2015-02-02T21:34:00+02:00</updated><author><name>Πανος Γεωργιαδης</name></author><id>tag:linuxed.gr,2015-02-02:nginx/vasiko-configuration-tou-nginx/</id><summary type="html">&lt;p&gt;Σε αυτό το άρθρο θα μιλήσουμε για βασικές ρυθμήσεις που πρέπει να κάνουμε
+στον Nginx. Οι ρυθμήσεις αυτές έχουν περισσότερο την έννοια του 
+optimization, παρά του configuration, καθώς ο Nginx έρχεται &lt;em&gt;pretty much&lt;/em&gt;
+configured, οπότε εδώ θα μιλήσουμε τις &lt;strong&gt;βέλτιστες ρυθμήσεις&lt;/strong&gt;. Για να κάνω μία
+εισαγωγή, θα μιλήσουμε για πράγματα όπως: &lt;em&gt;πόση μνήμη έχουμε διαθέσιμη&lt;/em&gt;,
+&lt;em&gt;πόσους πυρήνες (cpu) θα διαθέσουμε&lt;/em&gt;, και πώς αυτά θα επιδράσουν 
+στον συνολικό αριθμό των &lt;em&gt;processes&lt;/em&gt;, &lt;em&gt;threads&lt;/em&gt;, κ.α. πραγμάτων που σχετίζονται
+με τους πόρους και την λειτουργία του Nginx &lt;strong&gt;στο σύστημά μας&lt;/strong&gt;. Τονίζω το
+"&lt;em&gt;σύστημά μας&lt;/em&gt;" γιατί ο σκοπός μου δεν είναι να σας δώσω ...&lt;/p&gt;</summary><category term="nginx"></category><category term="server"></category></entry><entry><title>Εγκατάσταση του Nginx</title><link href="http://linuxed.gr/nginx/egkatastasi-tou-nginx/" rel="alternate"></link><updated>2015-01-29T23:58:00+02:00</updated><author><name>Πανος Γεωργιαδης</name></author><id>tag:linuxed.gr,2015-01-29:nginx/egkatastasi-tou-nginx/</id><summary type="html">&lt;p&gt;Μετά την εισαγωγή στο προηγούμενο άρθρο, ήρθε η στιγμή να ξεκινήσουμε τις
+νέες μας περιπέτειες με τον Nginx. Για να γίνει όμως αυτό, όπως συμβαίνει
+γενικά με κάθε πρόγραμμα, πρέπει πρώτα από όλα, να εγκατασήσουμε 
+και να ρυθμήσουμε τον Nginx στο σύστημά μας. &lt;em&gt;Truth be told&lt;/em&gt;, σε αυτό τό
+άρθρο θα αναφερθώ περισσότερο στο πώς να τον κάνετε εγκατάσταση, παρά
+στο πώς να τον ρυθμίσετε.&lt;/p&gt;
+&lt;p&gt;Για όσους βαριούνται να διαβάζουν, έχω ετοιμάσει ένα μικρό βιντεάκι
+&lt;a href="http://youtu.be/9EWDZJ0c6Ug?hd=1"&gt;Εγκατάσταση nginx&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Στην συνέχεια του άρθρου θα βρείτε πληροφορίες για κάθε &lt;em&gt;βασική&lt;/em&gt; διανομή.&lt;/p&gt;
+&lt;h4 id="centos-7-red-hat-7"&gt;Centos 7 / Red Hat 7&lt;/h4&gt;
+&lt;p&gt;Για όσους χρησιμοποιούν CentOS, θα χρειαστούν το ...&lt;/p&gt;</summary><category term="nginx"></category><category term="server"></category></entry><entry><title>Εισαγωγή στον Nginx</title><link href="http://linuxed.gr/nginx/eisagogi-ston-nginx/" rel="alternate"></link><updated>2015-01-22T23:19:00+02:00</updated><author><name>Πανος Γεωργιαδης</name></author><id>tag:linuxed.gr,2015-01-22:nginx/eisagogi-ston-nginx/</id><summary type="html">&lt;p&gt;Σε αυτό το άρθρο θα μιλήσουμε για τον Nginx&lt;sup id="fnref:1"&gt;&lt;a class="footnote-ref" href="#fn:1" rel="footnote"&gt;1&lt;/a&gt;&lt;/sup&gt; HTTP Webserver (ω ναι, υπάρχουν κι άλλοι webservers πέρα από τον &lt;em&gt;Apache&lt;/em&gt;). Όταν λέω ότι θα κάνουμε μία εισαγωγή, εννοώ ότι θα ξεκινήσουμε την εξερεύνηση απαντώντας σε κάποια από τα βασικά ερωτήματα, όπως:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Σε τι διαφέρει από τον Apache;&lt;/li&gt;
+&lt;li&gt;Ποια είναι να χαρακτηριστικά του;&lt;/li&gt;
+&lt;li&gt;Γιατί να ασχοληθούμε μαζί του;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Καταρχάς, ο Nginx δεν είναι καινούριος. Υπάρχει εδώ και αρκετό καιρό στην &lt;em&gt;πιάτσα&lt;/em&gt;, συγκεκριμένα το dev ξεκίνησε το 2002 και το 2004 κυκλοφόρισε η πρώτη του έκδοση. Ωστόσο το τελευταίο διάστημα
+βλέπω ότι έχει αρχίζει να τραβάει πάνω του αρκετή προσοχή ...&lt;/p&gt;</summary><category term="nginx"></category><category term="server"></category></entry></feed>

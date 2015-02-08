@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="el"
+>
+<head>
+    <title>Πώς να κάνω encrypt και decrypt αρχεία χρησιμοποιώντας το OpenSSL toolkit - L I N U X E D</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <link href="http://linuxed.gr/images/favicon.png" rel="icon">
+
+<link rel="canonical" href="http://linuxed.gr/how-to/pos-mporo-na-kano-encrypt-kai-decrypt-arxeia-xrismopoiontas-to-openssl-toolkit/">
+
+        <meta name="author" content="Πανος Γεωργιαδης" />
+        <meta name="keywords" content="how-to,openssl" />
+        <meta name="description" content="Ντεμπούτο του Linuxed! Αναρωτιώμουν από πού να ξεκινήσω το άρθρο μου, αλλά σήμερα νιώθω ότι έχω πολλά να πω, και θέλω να αποφύγω να ξεκινάω να σας γράφω για το ένα και για το άλλο και να αφήνω το σημαντικό στο τέλος. Αποφάσισα λοιπόν αντί άλλων καθυστερήσεων να μπω κατευθείαν στο κυρίως κείμενο... με μία μικρή εισαγωγή... Αν είστε fan του LoTR, φαντάζομαι πως θα θυμάστε την σκηνή1 που ο Gandalf μπαίνει μέσα στο Bag End και ρωτάει τον Frodo: &#34;Is it secret? Is it safe?&#34;. Στην συνέχεια, ο Frodo επιβεβαιώνει τα λεγόμενά του, δείχνοτας πως το δαχτυλίδι παραμένει ..." />
+
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="http://linuxed.gr/theme/css/bootstrap.cosmo.min.css" type="text/css"/>
+    <link href="http://linuxed.gr/theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="http://linuxed.gr/theme/css/pygments/monokai.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://linuxed.gr/theme/css/style.css" type="text/css"/>
+        <link href="http://linuxed.gr/static/custom.css" rel="stylesheet">
+
+        <link href="http://linuxed.gr/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="L I N U X E D ATOM Feed"/>
+
+</head>
+<body>
+<!-- <script src="http://linuxed.gr/theme/js/jquery.min.js"></script> -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="http://linuxed.gr/" class="navbar-brand">
+<img src="http://linuxed.gr/images/logo.png" width="32"/> L I N U X E D            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                         <li><a href="http://linuxed.gr/skhetika.html">
+                             Σχετικά
+                          </a></li>
+                        <li >
+                            <a href="http://linuxed.gr/category/editorial.html">Editorial</a>
+                        </li>
+                        <li class="active">
+                            <a href="http://linuxed.gr/category/how-to.html">How-to</a>
+                        </li>
+                        <li >
+                            <a href="http://linuxed.gr/category/nginx.html">Nginx</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="http://linuxed.gr/archives.html"><i class="fa fa-th-list"></i><span class="icon-label">Όλα τα άρθρα</span></a></li>
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+
+    <section id="content">
+        <article>
+            <div class="well well-sm">
+              <!-- <div class="panel-heading"> -->
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2014-12-19T00:01:00+02:00"> Παρ 19 Δεκεμβρίου 2014</time>
+    </span>
+
+        <span class="label label-default">Category</span>
+        <a href="http://linuxed.gr/category/how-to.html">How-to</a>
+
+
+<span class="label label-default">Tags</span>
+	<a href="http://linuxed.gr/tags/how-to.html">how-to</a>
+        /
+	<a href="http://linuxed.gr/tags/openssl.html">openssl</a>
+    
+</footer><!-- /.post-info -->              <!-- </div> -->
+            </div>
+            <h1 class="entry-title">
+                <a href="http://linuxed.gr/how-to/pos-mporo-na-kano-encrypt-kai-decrypt-arxeia-xrismopoiontas-to-openssl-toolkit/"
+                rel="bookmark"
+                title="Permalink to Πώς να κάνω encrypt και decrypt αρχεία χρησιμοποιώντας το OpenSSL toolkit">
+                    Πώς να κάνω encrypt και decrypt αρχεία χρησιμοποιώντας το OpenSSL toolkit
+                </a>
+            </h1>
+
+            <div class="entry-content">
+                <p>Ντεμπούτο του Linuxed! Αναρωτιώμουν από πού να ξεκινήσω το άρθρο μου, αλλά σήμερα νιώθω ότι έχω πολλά να πω, και θέλω να αποφύγω να ξεκινάω να σας γράφω <em>για το ένα και για το άλλο</em> και να αφήνω το σημαντικό στο τέλος. Αποφάσισα λοιπόν αντί άλλων καθυστερήσεων να μπω κατευθείαν στο κυρίως κείμενο... <em>με μία μικρή εισαγωγή</em>... </p>
+<p>Αν είστε <em>fan</em> του <a href="http://el.wikipedia.org/wiki/%CE%9F_%CE%86%CF%81%CF%87%CE%BF%CE%BD%CF%84%CE%B1%CF%82_%CF%84%CF%89%CE%BD_%CE%94%CE%B1%CF%87%CF%84%CF%85%CE%BB%CE%B9%CE%B4%CE%B9%CF%8E%CE%BD">LoTR</a>, φαντάζομαι πως θα θυμάστε την σκηνή<sup id="fnref:1"><a class="footnote-ref" href="#fn:1" rel="footnote">1</a></sup> που ο Gandalf μπαίνει μέσα στο Bag End και ρωτάει τον Frodo: "<em>Is it secret? Is it safe?</em>". Στην συνέχεια, ο Frodo επιβεβαιώνει τα λεγόμενά του, δείχνοτας πως το δαχτυλίδι παραμένει σφραγισμένο μέσα στον φάκελο. Προφανώς, για όλους εμάς, ένας φάκελος και μια σφραγίδα, δεν καλύπτουν τα σημερινα security standards. Οπότε, για όλους εμάς, το <em>δαχτυλίδι</em> δεν είναι <strong>ούτε secret</strong>, <strong>ούτε safe</strong>, αλλά βλέπετε, εκείνη την <em>μυθική</em> εποχή της <em>Μέσης Γης</em>, οι μάγοι και άλλα πλάσματα του Eru Ilúvatar, δεν είχαν PC ή Internet. Αντίθετα σήμερα, οι μάγοι της εποχής μας έχουν τα δικά τους εργαλεία και είναι γνωστοί ως Hackers.</p>
+<blockquote>
+<p>Αυτό όμως είναι μία ιστορία, θα πούμε άλλη φορά!</p>
+</blockquote>
+<h2 id="keep-it-secret-keep-it-safe">Keep it secret, Keep it Safe</h2>
+<p>Το βασικό μου πρόβλημα ξεκίνησε όταν θέλησα να στείλω ένα αρχείο <em>από</em> τον server μου στην Ελλάδα <em>στο</em> macbook μου εδώ στην Γερμανία. Λοιπόν, για να πούμε τα πράγματα με το όνομά τους: Δεν ήταν ένα οποιοδήποτε αρχείο. Δεν μπορώ να σας πω "τι είναι" και "τι δεν είναι", καθώς η κρυφή του ταυτότητα θαρρώ πως δίνει ένα "μυστικό τόνο" στο άρθρο. Αυτό δε σημαίνει ότι είναι μυστικό και σ'εμένα, μια χαρά ξέρω "περί" ποιου αρχείου πρόκειται. Κατά μία έννοια θα μπορούσε να πει κανείς ότι κ εσείς ξέρετε, ακόμα κι αν δεν έχετε άμεση πρόσβαση στο μυαλό μου ή τον υπολογιστή μου, μπορείτε να κάνετε εικασίες. </p>
+<p>Καταλαβαίνετε που το πάω; Μπορεί να (μην) ξέρετε για ποιο αρχείο σας μιλάω, αλλά για όσους με ξέρουν και "το μυαλό τους πηγαίνει κατά κει", να ξέρουν οτι δεν θα το βρουν. Unsurprisingly, την ίδια μοίρα μ'εσάς, θα έχει και η Deutsche Telekom και η NSA που έχουν"έχει στήσει αφτί" αμφότεροι στο τέλος της γραμμής. Όχι, δεν μπορεί και δεν θα μπορέσει ποτέ <strong>κανείς</strong> να μάθει για ποιο αρχείο σας μιλάω. Μπα. Με τίποτα<sup id="fnref:2"><a class="footnote-ref" href="#fn:2" rel="footnote">2</a></sup>.</p>
+<p>Αν προσπαθείσετε να δείτε τα περιεχόμενα του αρχείου:</p>
+<div class="highlight"><pre><span class="nv">$ </span>cat file 
+</pre></div>
+
+
+<p>θα δείτε κάτι τέτοιο:</p>
+<div class="highlight"><pre>Salted__???~?B?<span class="s1">&#39;?`c?g&lt;?)/g&amp;??????[?&lt;???O?d?S??~?q???Ѫi??C??</span>
+<span class="s1">                                                           &quot;?Fz@????\pg????2?i|?f??L?&gt;?d{?:*???????v??K?&quot;?Y?̷?p?Z???(?Q???????*dme???Fgۦ?   ??</span>
+<span class="s1"> c??n?[Bo?r?^?;L+!?</span>
+<span class="s1">                   %7?L?*?Qr?Plb?b{Y    /?1[?=,﹯?}8K?rP?Ņ??U????f&quot;{Ǒ?</span>
+<span class="s1">                                                                     ?-?&amp;??O[????m?Qw$???҈R?(?] ??6;yQ??Wy)?FO?K?*I??URZ?l2)Xʓ????N?%??Q-??d??{??U?o</span>
+<span class="s1">     ?ڎ?;U&#39;</span>?i?eR?/?R~???<span class="sb">`</span>???NM&lt;?ԡ<span class="p">|</span><span class="nv">0o</span><span class="o">=</span>?P??9?̢j?/??
+?3?v?S?o<span class="s1">&#39;?????۬?GM?X϶?^??OVr?&quot;????\&amp;L.?V8\|??b??????ՉJ?)????9;+??SC?c?㱶?]??\$?7G6??W??j??!l??$?_UO?i??H?H???</span>
+<span class="s1">??IHq??:?M ?G??I(4??/??S:Ӷ???Z?z??????E?9&#39;</span>?a?<span class="o">(</span>U߃D?Ny5???hD????@Z2U&lt;?ɽ?
+sx?ϴ#??????W1?<span class="s1">&#39;?T??|=ы?5?d?$?}?쪯YX(J/?}2?&#39;</span>xx?t??Q#?@?&gt;c<span class="o">{{</span>????Dd5??<span class="p">&amp;</span>?~?lBmR?
+?jf?????@n?R??թG???T?I_W??<span class="o">(</span>??????wQ?<span class="o">)</span>q,?6M?<span class="o">(</span>?w<span class="nv">$?</span>??ᬥ???1??uxc,9<span class="o">(</span>??*t1??yh??+U?? ?d??NL?8?ȴ?/?<span class="s1">&#39;?OLa??z?&amp;J9DR\c??f?%??sÒu????</span>
+<span class="s1">                                                                                                                        )s?9?f?x??E???\q???l??;?9</span>
+<span class="s1">???!L?z?%?})?(??a?}?&gt;_?-?_?????&amp;???R?XQ?x??U?C7?Z?:`F)@[?W5u??je??$??$`&amp;??3?[jF</span>
+<span class="s1">                                                                               ¡?R??#??a??w?@ q|y6??5??*&amp;??Vw?9}???om?a?_8??M0?!???c??h?}};گ?#?G?ĩ? ??BVJ^Ґ?V9</span>
+<span class="s1">                  H???*W6?kE??????Ơ</span>
+<span class="s1">                                   Zp]F86?b?8?5?8?N?,?N???1&#39;</span>.??1???:??%@<span class="o">=</span>?I@???????<span class="s1">&#39;?OW?s?u?O?ꨯm??s?Mwzq???????????*?ƾx1V4???.?Ր???87??e</span>
+<span class="s1">??ܢO?r???DՁZ?1????Y7?WQE?ְ?X?Ps??Gseݍ</span>
+<span class="s1">8?wP?)??/%????}?`?Has?I?B?l&#39;</span>????+
+?ۖF
+   ?L? ?F?rT?<span class="o">)</span>?e<span class="o">{</span>?#^m!IO??0P?3????_4Kgϗ,<span class="se">\?</span>??D???????8<span class="p">;</span>???H?q
+????nTdZS???_???<span class="p">|</span><span class="se">\߷</span>?t???P?
+                          ?.???t?0c:<span class="o">=</span>?3yney#E??D?~?5????؅????أ8% .?U?l!6<span class="p">&amp;</span>
+q4<span class="nv">$i</span>???8?ЕP7F<span class="p">|</span>Ԃ0Q????:??C???B?y??Ә*WW?j&gt;V貺???Vi5uwyc??7%<span class="o">[</span>?
+???s<span class="nv">$?</span>N???p??<span class="se">\r</span>i5xza???<span class="p">&amp;</span>l?<span class="s2">&quot;o@?T?몜??o#u?</span><span class="nv">$H</span><span class="s2">???</span>
+<span class="s2">/O?F?&quot;</span>?R@n??6?o??8?:??Άf?.<span class="p">|</span>?????9P??n
+                                     &gt;?<span class="sb">`</span>?O<span class="nv">$*</span>?????x????ã??<span class="o">)</span>??5?D?<span class="o">{</span>v???Q<span class="p">&amp;</span>?Q??????9??j *-
+                                                                                          ?Zxߚ?A?U?O?v&gt;j?g??-?&gt;<span class="p">&amp;</span>:??i?<span class="o">]</span>??????5<span class="nv">$a</span>?9?U+????셴&lt;+???k??r<span class="nv">$O</span>?<span class="p">;</span>x:???l<span class="o">=</span>?B4arp?
+??B??4?@??<span class="o">[</span>?3N?q??!h???g<span class="sb">`</span>?pJ6???뭁????N??#??q??/???&gt;?Q??#??ҧ?Q?W?????L??5xVnلΐ
+??<span class="o">(</span>?<span class="s2">&quot;t?7???ň=?MH?O??c?sbF?@a??#?aK,?Q?q??b??Z ͊?F??g%܅??1v??</span><span class="err">$</span><span class="s2"></span>
+</pre></div>
+
+
+<p>Οι παραπάνω "<em>ασυναρτησίες</em>" οφείλονται στο γεγονός ότι το αρχείο είναι κρυπτογραφημένο (<em>encrypted</em>). Και ένα αρχείο, μη προσπελάσιμο, είναι τελείως άχρηστο. Για να το αποκρυπτογραφίσετε, θα πρέπει να γνωρίζετε την τέχνη του OpenSSL, καθώς και κάποια άλλα πράγματα, όπως: τον <strong>Cipher</strong> και το <strong>passphrase</strong>.</p>
+<hr />
+<h2 id="openssl">Κρυπτογράφιση με το OpenSSL</h2>
+<p><img alt="Keep it secret keep it safe" src="/images/gandalfopenssl.png" title="Keep it Secret, Keep it Safe" /></p>
+<h3 id="1">Βήμα 1: Ενεργοποιήστε την κατάσταση κωδικοποίησης αρχείου</h3>
+<p>The openssl program is a command line tool for using the various cryptography functions of OpenSSL’s crypto library from the shell. It can be also used for file encryption and decryption with Ciphers<sup id="fnref:3"><a class="footnote-ref" href="#fn:3" rel="footnote">3</a></sup>. Για να χρησιμοποιήσουμε αυτή την λειτουργία, αρκεί να δώσουμε την παράμετρο <code>enc</code>.</p>
+<ul>
+<li><code>enc</code> – Encoding with Ciphers.</li>
+</ul>
+<h3 id="2">Βήμα 2: Επιλέξτε το αρχείο που θέλετε να κρυπτογραφίσετε</h3>
+<p>Στην συνέχεια θα επιλέξουμε το αρχείο που θέλουμε να κρυπτογραφίσουμε (<strong>για λόγους ευκολίας, ας ονομάσουμε το αρχείο με το προτώτυπο όνομα που είμαι σίγουρος ότι δεν έχετε ξαναδει ποτέ μπροστά σας</strong> <code>foo.bar</code>). Αυτό λοιπόν πρόκειται να παίξει τον ρόλο του <code>input file</code>, γεγονός που δηλώνεται με την παράμετρο <code>-in</code>. Με την ευκαιρία, ας δούμε μερικές από τις επιλογές που μπορείτε να συνδυάσετε παρέα με την παράμετρο <code>enc</code>:</p>
+<ul>
+<li><code>-in</code> input file</li>
+<li><code>-out</code> output file</li>
+<li><code>-pass</code> pass phrase source</li>
+<li><code>-e</code> encrypt (by default)</li>
+<li><code>-d</code> decrypt</li>
+<li><code>-k</code> passphrase is the next argument</li>
+</ul>
+<h3 id="3">Βήμα 3: Κρυπτογράφιση ή Αποκρυπτογράφιση;</h3>
+<p>Το επόμενο βήμα είναι να ορίσουμε τι θέλουμε να κάνουμε με το αρχείο: 
++ Encryption <code>-e</code> ή
++ Decryption <code>-d</code>. </p>
+<p>Κάπου διάβασα, ότι η μεγαλύτερη παγίδα της σκέψης είναι αυτή του αυτονόητου, αλλά εδώ δεν χρίζει λόγος ανησυχίας. By default λοιπόν, χρησιμοποίεται η σημαία <code>-e</code>, την οποία δεν δείτε να την χρησιμοποιούν ιδιαίτερα  (<em>όσο λιγότερα, τόσο το καλύτερο</em>). Οπότε, η επιλογή <code>-e</code> είναι optional με την προϋπόθεση ότι η πρόθεσή σας είναι να κρυπτογραφίσετε το αρχείο. Για να ολοκληρώσετε την <em>κρυπτογράφιση</em> του αρχείου, το μόνο που μένει είναι να δηλώσετε άλλα δύο πράγματα:</p>
+<ol>
+<li>Cipher (δηλαδή τον αλγόριθμο)</li>
+<li>Passphrase<sup id="fnref:4"><a class="footnote-ref" href="#fn:4" rel="footnote">4</a></sup> (κλειδί)</li>
+</ol>
+<h3 id="4">Βήμα 4: Επιλογή αλγορίθμου</h3>
+<p>Για να κρυπτογραφίσουμε ένα αρχείο,  <strong>χρειαζόμαστε έναν Cipher</strong>. Χωρίς να θέλω να πρωτοτυπήσω θα χρησιμοποιήσω τον: <strong>aes-256-cbc</strong>.</p>
+<h3 id="5">Βήμα 5: Επιλογή κλειδιού</h3>
+<p>Για passphrase (symmetric key) θα χρησιμοποιήσουμε την επιλογή <code>-k</code>. Χμμμ, για να σκεφτώ... ok I figured out, το passphrase μου θα είναι <code>darthvader666</code>.</p>
+<p>Αν και σας είπα ότι έχουμε μόνο δύο πράγματα (τον αλγόριθμο και το passphrase), η αλήθεια είναι ότι μένει κάτι ακόμα. Υποθέτω, ότι δεν φαντάζει λογικώς ορθό να κάνουμε edit ένα αρχείο και -- <em>at the same time</em> -- να το κάνουμε replace. Συνεπώς, χρειαζόμαστε ένα <code>output file</code> το οποίο θα είναι το τελικό αποτέλεσμα (δηλ. <em>το κρυπτογραφημένο αρχείο</em>). Για να το πω πιο απλά, είναι το αντίστοιχο του "<strong>save as</strong>". Για να το κάνουμε αυτό από γραμμή εντολών, το OpenSSL διαθέτει στο ρεπερτόριο εντολών του την επιλογή <code>-out</code>. </p>
+<p>Για να δούμε λίγο ολόκληρη την εντολή:</p>
+<div class="highlight"><pre>openssl enc -in foo.bar -e -aes-256-cbc -k darthvader666 -out foo.bar.enc
+</pre></div>
+
+
+<p>Οπότε, ακόμα κι αν κάποιος υποκλέψει το αρχείο foo.bar.enc (το <code>enc</code> απλά δηλώνει ότι το αρχείο είναι κρυπτογραφημένο. Ο λόγος που το βάζουμε είναι για να ξέρουμε εκ των πρωτέρων ότι το αρχείο είναι encrypted και τίποτε άλλο). Διαφορετικά, αν προσπαθήσει να το ανοίξει κάποιος τρίτος, θα δει "<em>ασυναρτησίες</em>".</p>
+<blockquote>
+<p>Παρατηρήστε το <code>salted</code> στην αρχή της πρότασης. Σημαίνει ότι το αρχείο είναι encrypted.</p>
+</blockquote>
+<h2 id="openssl_1">Αποκρυπτογράφιση με το OpenSSL</h2>
+<p>Η λύση για να αποκαλυφθούν τα περιεχόμενα του αρχείου βρίσκεται στην αντίστροφη λειτουργία της κρυπτογράφισης ή αλλιώς: <strong>απο</strong>κρυπτογράφισης (<em>decryption</em>). Αν δεν υπάρχει <em>κρυπτογραφημένο αρχείο</em>, δεν υπάρχει λόγος για <em>αποκρυπτογράφιση</em>. Αν δεν υπάρχει λόγος για αποκτυπρογράφιση, τότε γιατί ταλαιπωρούμαστε; Να σας πω γιατί ταλαιπωρούμαστε: Ταλαιπωρούμαστε, αγαπητοί μου, γιατί ως άνθρωποι του Internet, είμαστε εκτεθημένοι σε ξένα μάτια. Μάτια που βλέπουν μέσα από τα καλώδια. Αν λοιπόν, έρθει μία στιγμή στην ζωή σας (πχ δουλειά) όπου θέλετε να κρατήσετε τα <em>μάτια των άλλων</em> μακρυά από ένα συγκεκριμένο αρχείο, τότε θα χρειαστείτε όλα αυτά για τα οποία σας μιλάω σ'αυτό το άρθρο. Καλύτερα τώρα; </p>
+<p>Αλλα πείτε μου, ποιός ο λόγος να κρυπτογραφίσω ένα αρχείο αν δεν μπορώ να το διαβάσω <em>ούτε εγώ ο ίδιος</em> (;). Για να κάνουμε decrypt λοιπόν, αρχικά θα χρησιμοποιήσουμε τα ίδια filenames <strong>αντίστροφα</strong> (είσοδος -&gt; έξοδος) καθώς επίσης και την παράμετρο <code>-d</code>. </p>
+<p>Για να δούμε ολόκληρη την εντολή:</p>
+<div class="highlight"><pre>openssl enc -in foo.bar.enc -d -aes-256-cbc -k darthvader666 -out foo.bar
+</pre></div>
+
+
+<p>Και τώρα, αν προσπαθείσετε να δείτε τα περιεχόμενα του αρχείου:</p>
+<div class="highlight"><pre>cat foo.bar
+</pre></div>
+
+
+<p>Θα δείτε <strong>επιτέλους</strong> τα περιεχόμενα και τις πληροφορίες που έκρυβε όσο ήταν κρυπτογραφημένο:</p>
+<div class="highlight"><pre>This file contatins super important stuff. Use it wisely:
+
+* FBI Password: paok
+* CIA Password: mpaok
+</pre></div>
+
+
+<h2 id="_1">Συνοψίζοντας</h2>
+<p>Αν το όλο άρθρο σας κέντρισε το ενδιαφέρον με την κρυπτογράφιση, θα σας πρότεινα να μελετήσετε το concept των <strong>public &amp; private keys</strong>. Καθώς και το αντίστοιχο course στο Coursera. Όχι, δεν σας δίνω το link<sup id="fnref:5"><a class="footnote-ref" href="#fn:5" rel="footnote">5</a></sup> γιατί βαριέμαι, αλλά γιατί περιμένω να ενεργοποιήθειτε και να ψάξετε! Run Forest! Run!<sup id="fnref:6"><a class="footnote-ref" href="#fn:6" rel="footnote">6</a></sup></p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p>Δείτε το <a href="https://www.youtube.com/watch?v=E5jdaolDq7A">βίντεο</a> στο youtube ώστε να καταλάβετε για ποια σκηνή σας μιλάω.&#160;<a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p>Κάτι <a href="http://arstechnica.com/security/2012/12/25-gpu-cluster-cracks-every-standard-windows-password-in-6-hours/">τέτοια</a> διαβάζω, και σκέφτομαι αν η χρήση του χρονικού επιρρήματος "<em>ποτέ</em>" ήταν σωστή σ'αυτή την περίπτωση. Υπερβολές!&#160;<a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:3">
+<p>Για την ώρα SSLv3 και v2 θεωρούνται vulnerable (βλ. <a href="https://www.openssl.org/~bodo/ssl-poodle.pdf"><em>Exploiting Poodle SSLv3</em></a>) οπότε γενικά προτείνουμε TLS 1. Ωστόσο, η πλήρης λίστα βρίσκεται <a href="https://www.openssl.org/docs/apps/ciphers.html#cipher_suite_names">εδώ</a>&#160;<a class="footnote-backref" href="#fnref:3" rev="footnote" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+<li id="fn:4">
+<p>Μάθετε σχετικά με το <a href="http://en.wikipedia.org/wiki/Symmetric-key_algorithm">Συμμετρικό κλειδί</a>&#160;<a class="footnote-backref" href="#fnref:4" rev="footnote" title="Jump back to footnote 4 in the text">&#8617;</a></p>
+</li>
+<li id="fn:5">
+<p>ή πιο απλά, <a href="http://lmgtfy.com/?q=Coursera+Cryptography#">let me google that for you</a>&#160;<a class="footnote-backref" href="#fnref:5" rev="footnote" title="Jump back to footnote 5 in the text">&#8617;</a></p>
+</li>
+<li id="fn:6">
+<p>Ε, μη μου πείτε ότι δεν έχετε δει την <a href="https://www.youtube.com/watch?v=x2-MCPa_3rU">συγκεκριμένη σκηνή</a> από την ταινία Forest Gump&#160;<a class="footnote-backref" href="#fnref:6" rev="footnote" title="Jump back to footnote 6 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+            </div>
+            <!-- /.entry-content -->
+    <hr />
+    <!-- AddThis Button BEGIN -->
+    <!--<div class="addthis_toolbox addthis_default_style">
+            <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+            <a class="addthis_button_tweet"></a>
+            <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+    </div>-->
+
+
+
+   <!-- Go to www.addthis.com/dashboard to customize your tools -->
+    <!-- <div class="addthis_sharing_toolbox"></div> -->
+    <div class="addthis_toolbox addthis_default_style addthis_32x32_style">
+        <a class="addthis_counter_facebook"></a>
+        <a class="addthis_counter_twitter"></a>
+        <a class="addthis_button_google_plusone_share"></a>
+        <a class="addthis_button_email"></a>
+        <a class="addthis_button_linkedin"></a>
+        <a class="addthis_button_compact"></a>
+        <a class="addthis_counter addthis_bubble_style"></a>
+    </div>
+
+
+    <!-- AddThis Button END -->
+    <!-- Go to www.addthis.com/dashboard to customize your tools -->
+
+    <hr/>
+    <section class="comments" id="comments">
+        <h2>Πες την γνώμη σου</h2>
+
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+            var disqus_shortname = 'linuxedgr'; // required: replace example with your forum shortname
+
+                    var disqus_identifier = 'pos-mporo-na-kano-encrypt-kai-decrypt-arxeia-xrismopoiontas-to-openssl-toolkit';
+                var disqus_url = 'http://linuxed.gr/how-to/pos-mporo-na-kano-encrypt-kai-decrypt-arxeia-xrismopoiontas-to-openssl-toolkit/';
+
+            var disqus_config = function () {
+                this.language = "el";
+            };
+
+            /* * * DON'T EDIT BELOW THIS LINE * * */
+            (function () {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    </section>
+
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+
+<section class="well well-sm">
+    <ul class="list-group list-group-flush">
+            <li class="list-group-item"><h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Κρατήστε Επαφή</span></h4>
+              <ul class="list-group" id="social">
+                <li class="list-group-item"><a href="https://github.com/drpaneas/linuxed.gr"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+                <li class="list-group-item"><a href="https://twitter.com/PanosGeorgiadis/"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+                <li class="list-group-item"><a href="https://gr.linkedin.com/in/panosgeorgiadis/"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+                <li class="list-group-item"><a href="https://plus.google.com/+PanosGeorgiadis/posts"><i class="fa fa-google-plus-square fa-lg"></i> google+</a></li>
+                <li class="list-group-item"><a href="http://panosgeorgiadis.com/cv-resume-about"><i class="fa fa-user fa-lg"></i> professional site</a></li>
+                <li class="list-group-item"><a href="http://linuxed.gr/feeds/all.atom.xml"><i class="fa fa-rss-square fa-lg"></i> rss</a></li>
+              </ul>
+            </li>
+
+            <li class="list-group-item"><h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Πρόσφατα Άρθρα</span></h4>
+                <ul class="list-group" id="recentposts">
+                    <li class="list-group-item">
+                        <a href="http://linuxed.gr/nginx/vasiko-configuration-tou-nginx/">
+                            Βασικό configuration του Nginx
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="http://linuxed.gr/nginx/egkatastasi-tou-nginx/">
+                            Εγκατάσταση του Nginx
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="http://linuxed.gr/nginx/eisagogi-ston-nginx/">
+                            Εισαγωγή στον Nginx
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="http://linuxed.gr/how-to/pos-sindeo-ena-domain-apo-tin-IPHost-me-tin-ip-tou-server-mou/">
+                            Πώς συνδέω ένα domain (IPHost) με τον server μου
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="http://linuxed.gr/editorial/o-epimenon-nika/">
+                            Ο επιμένων νικά!
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+
+            <li class="list-group-item"><a href="http://linuxed.gr/tags.html"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+                <ul class="list-group " id="tags">
+                    <li class="list-group-item tag-1">
+                        <a href="http://linuxed.gr/tags/server.html">
+                            server
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="http://linuxed.gr/tags/nginx.html">
+                            nginx
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-4">
+                        <a href="http://linuxed.gr/tags/domain.html">
+                            domain
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-4">
+                        <a href="http://linuxed.gr/tags/dns.html">
+                            dns
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-4">
+                        <a href="http://linuxed.gr/tags/fritz-box.html">
+                            fritz-box
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-4">
+                        <a href="http://linuxed.gr/tags/iphost.html">
+                            iphost
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-4">
+                        <a href="http://linuxed.gr/tags/openssl.html">
+                            openssl
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-4">
+                        <a href="http://linuxed.gr/tags/how-to.html">
+                            how-to
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        <!--     <li class="list-group-item"><h4><i class="fa fa-external-link-square fa-lg"></i><span class="icon-label">Links</span></h4>
+      <ul class="list-group" id="links">
+        <li class="list-group-item">
+            <a href="http://unix.stackexchange.com/" target="_blank">
+                unix stack exchange
+            </a>
+        </li>
+        <li class="list-group-item">
+            <a href="http://www.cyberciti.biz/faq/" target="_blank">
+                nixCraft Tutorials
+            </a>
+        </li>
+        <li class="list-group-item">
+            <a href="https://nixsrv.com/llthw" target="_blank">
+                nixsrv
+            </a>
+        </li>
+        <li class="list-group-item">
+            <a href="https://sysadmincasts.com/" target="_blank">
+                sysadmin casts
+            </a>
+        </li>
+        <li class="list-group-item">
+            <a href="http://doctorandroid.gr/" target="_blank">
+                doctor android
+            </a>
+        </li>
+        <li class="list-group-item">
+            <a href="http://deltahacker.gr/" target="_blank">
+                deltahacker
+            </a>
+        </li>
+      </ul>
+    </li>
+ -->
+    </ul>
+</section>
+            </aside>
+        </div>
+    </div>
+</div>
+<footer>
+   <div class="well well-lg" id="footer-well">
+      <div class="container">
+      <div class="row">
+           <div class="col-sm-4">
+               <div id="RecentComments" class="dsq-widget">
+                <h3 style="margin-bottom:0.5px;">Πρόσφατα Σχόλια</h3>
+                <script type="text/javascript" src="http://linuxedgr.disqus.com/recent_comments_widget.js?num_items=5&hide_mods=0&hide_avatars=0&avatar_size=32&excerpt_length=100"></script>
+               </div>
+
+           </div>
+           <div class="col-sm-4">
+               <h3 style="margin-bottom:0.5px;">Ενδιαφέροντα links</h3>
+               </br>
+               <ul style="list-style-type:circle">
+                <div style="margin-bottom: 10.5px; margin-top: 10.5px; font-size: 19px;">
+                  <li>
+                    <a href="http://unix.stackexchange.com/" target="_blank">
+                        unix stack exchange
+                    </a>
+                  </li>
+                <div>
+                <div style="margin-bottom: 10.5px; margin-top: 10.5px; font-size: 19px;">
+                  <li>
+                    <a href="http://www.cyberciti.biz/faq/" target="_blank">
+                        nixCraft Tutorials
+                    </a>
+                  </li>
+                <div>
+                <div style="margin-bottom: 10.5px; margin-top: 10.5px; font-size: 19px;">
+                  <li>
+                    <a href="https://nixsrv.com/llthw" target="_blank">
+                        nixsrv
+                    </a>
+                  </li>
+                <div>
+                <div style="margin-bottom: 10.5px; margin-top: 10.5px; font-size: 19px;">
+                  <li>
+                    <a href="https://sysadmincasts.com/" target="_blank">
+                        sysadmin casts
+                    </a>
+                  </li>
+                <div>
+                <div style="margin-bottom: 10.5px; margin-top: 10.5px; font-size: 19px;">
+                  <li>
+                    <a href="http://doctorandroid.gr/" target="_blank">
+                        doctor android
+                    </a>
+                  </li>
+                <div>
+                <div style="margin-bottom: 10.5px; margin-top: 10.5px; font-size: 19px;">
+                  <li>
+                    <a href="http://deltahacker.gr/" target="_blank">
+                        deltahacker
+                    </a>
+                  </li>
+                <div>
+              </ul>
+
+             <!-- // <script src="https://apis.google.com/js/platform.js" async defer></script> -->
+              <!-- <g:plusone size="standard(bubble)" data-href="http://the-data-show.com"></g:plusone> -->
+              <br>
+      <h3>Κοινοποιήστε το Linuxed</h3>
+                <div class="addthis_toolbox addthis_default_style addthis_32x32_style" addthis:url="http://linuxed.gr" addthis:title="Check out L I N U X E D!">
+                  <a class="addthis_button_facebook"></a>
+                  <a class="addthis_button_twitter"></a>
+                  <a class="addthis_button_google_plusone_share"></a>
+                  <a class="addthis_button_email"></a>
+                  <a class="addthis_button_linkedin"></a>
+                  <a class="addthis_button_rss_follow" addthis:userid="http://linuxed.gr/feeds/all.atom.xml"></a>
+                  <a class="addthis_button_compact"></a>
+                </div>
+                <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-548e3c553a19ddf3"></script>
+           </div>
+           <div class="col-sm-4">
+<div id="aboutme" align="center">
+	<h3 style="margin-bottom:0.5px;"> Panos Georgiadis</h3><br/>
+        <p>
+            <img width="60%" class="img-thumbnail" src="/images/headshot.png"/>
+        </p>
+    <p> 
+        Είμαι μηχανικός αυτοματισμού, δικτύων και προγραμματιστής. Ζω στην Νυρεμβέργη, και εργάζομαι στην <a href="https://www.suse.com">SUSE Linux</a> <p>Περισσότερα  <strong><a href="http://panosgeorgiadis.com" title="προσωπικό website">panosgeorgiadis.com</a></strong></p><p>Στείλε μου <a href="http://www.google.com/recaptcha/mailhide/d?k=01LH1gOAhxE28Ox7OsdvErgw==&amp;c=BSpEioonKQfn4LENsgaUuuynPzcSun1HlW9Pc0_-B3c=" onclick="window.open('http://www.google.com/recaptcha/mailhide/d?k=01LH1gOAhxE28Ox7OsdvErgw==&c=BSpEioonKQfn4LENsgaUuuynPzcSun1HlW9Pc0_-B3c=', '', 'toolbar=0,scrollbars=0,location=0,statusbar=0,menubar=0,resizable=0,width=500,height=300'); return false;" title="Εμφάνισε την δίευθυνση e-mail"><strong>mail</strong></a></p>
+    </p>
+</div>
+           </div>
+      </div>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2015 Panos Georgiadis
+            &middot; Με την βοήθεια της <a href="http://python.org/" target="_blank">Python</a> και του
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            βασισμένο στο <a href="https://github.com/DandyDev/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            και στο <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+   </div>
+</footer>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://linuxed.gr/theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="http://linuxed.gr/theme/js/respond.min.js"></script>
+
+<!-- Fix scrolling issues to internal HREFs that get positioned behind navbar -->
+<!-- http://stackoverflow.com/questions/10732690/offsetting-an-html-anchor-to-adjust-for-fixed-header -->
+<script src="http://linuxed.gr/theme/js/href_scroll.js"></script>
+
+    <!-- Disqus -->
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'linuxedgr'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function () {
+            var s = document.createElement('script');
+            s.async = true;
+            s.type = 'text/javascript';
+            s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+            (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+        }());
+    </script>
+    <!-- End Disqus Code -->
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-57661864-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+
+</body>
+</html>
