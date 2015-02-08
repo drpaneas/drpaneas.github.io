@@ -5,3 +5,9 @@ build:
         version: 0.12
         theme: redlounge
         flags: --disableSitemap=true
+deploy:
+  steps:
+    - lukevivier/gh-pages@0.2.1:
+        token: $GIT_TOKEN
+        domain: drpaneas.github.io
+        basedir: public
