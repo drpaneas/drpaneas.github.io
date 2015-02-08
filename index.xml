@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>my new hugo site</title>
+    <link>http://localhost:1313/</link>
+    <description>Recent content on my new hugo site</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 08 Jan 2015 08:36:54 -0700</lastBuildDate>
+    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>about</title>
+      <link>http://localhost:1313/about/</link>
+      <pubDate>Thu, 08 Jan 2015 08:36:54 -0700</pubDate>
+      
+      <guid>http://localhost:1313/about/</guid>
+      <description>&lt;div class=&#34;document&#34;&gt;
+
+
+&lt;div class=&#34;section&#34; id=&#34;overview&#34;&gt;
+&lt;h1&gt;Overview&lt;/h1&gt;
+&lt;p&gt;Here&#39;s a list of plugins we are going to install and configure&lt;/p&gt;
+&lt;ol class=&#34;arabic simple&#34;&gt;
+&lt;li&gt;Vundle            - &lt;a class=&#34;reference external&#34; href=&#34;https://github.com/gmarik/Vundle.vim&#34;&gt;https://github.com/gmarik/Vundle.vim&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;RIV               - &lt;a class=&#34;reference external&#34; href=&#34;https://github.com/Rykka/riv.vim&#34;&gt;https://github.com/Rykka/riv.vim&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;InstantRST        - &lt;a class=&#34;reference external&#34; href=&#34;https://github.com/Rykka/InstantRst&#34;&gt;https://github.com/Rykka/InstantRst&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;InstantRST Server - &lt;a class=&#34;reference external&#34; href=&#34;https://github.com/rykka/instantrst.py&#34;&gt;https://github.com/rykka/instantrst.py&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Rhythm css        - &lt;a class=&#34;reference external&#34; href=&#34;https://github.com/Rykka/rhythm.css&#34;&gt;https://github.com/Rykka/rhythm.css&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;NerdTREE          - &lt;a class=&#34;reference external&#34; href=&#34;https://github.com/scrooloose/nerdtree&#34;&gt;https://github.com/scrooloose/nerdtree&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;PowerLine         - &lt;a class=&#34;reference external&#34; href=&#34;https://github.com/powerline/powerline&#34;&gt;https://github.com/powerline/powerline&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;ctrlp             - &lt;a class=&#34;reference external&#34; href=&#34;http://kien.github.io/ctrlp.vim/&#34;&gt;http://kien.github.io/ctrlp.vim/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;tabular           - &lt;a class=&#34;reference external&#34; href=&#34;https://github.com/godlygeek/tabular&#34;&gt;https://github.com/godlygeek/tabular&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;table class=&#34;docutils field-list&#34; frame=&#34;void&#34; rules=&#34;none&#34;&gt;
+&lt;col class=&#34;field-name&#34; /&gt;
+&lt;col class=&#34;field-body&#34; /&gt;
+&lt;tbody valign=&#34;top&#34;&gt;
+&lt;tr class=&#34;field&#34;&gt;&lt;th class=&#34;field-name&#34;&gt;Note:&lt;/th&gt;&lt;td class=&#34;field-body&#34;&gt;Note that this will replace your &lt;cite&gt;.vimrc&lt;/cite&gt; file
+so in case you need your old configuration
+please make sure you have a backup.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class=&#34;section&#34; id=&#34;installation&#34;&gt;
+&lt;h2&gt;Installation&lt;/h2&gt;
+&lt;p&gt;I use &lt;strong&gt;Vundle&lt;/strong&gt; as the tool that helps me to install all the plugins I need
+in a very simple way.&lt;/p&gt;
+&lt;p&gt;1a. &lt;strong&gt;Requirements for SLE-12&lt;/strong&gt;&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
+sudo zypper install python-devel curl git python-pip python-docutils
+sudo pip install instant-rst
+&lt;/pre&gt;
+&lt;table class=&#34;docutils field-list&#34; frame=&#34;void&#34; rules=&#34;none&#34;&gt;
+&lt;col class=&#34;field-name&#34; /&gt;
+&lt;col class=&#34;field-body&#34; /&gt;
+&lt;tbody valign=&#34;top&#34;&gt;
+&lt;tr class=&#34;field&#34;&gt;&lt;th class=&#34;field-name&#34;&gt;Tip:&lt;/th&gt;&lt;td class=&#34;field-body&#34;&gt;I would be better if you create a &lt;em&gt;virtualenv&lt;/em&gt; rather than installing
+pip stuff globally.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;1b. &lt;strong&gt;Requirements for Ubuntu 12.04 or later&lt;/strong&gt;&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
+sudo apt-get install vim python-dev curl git python-pip python-docutils
+sudo pip install instant-rst
+&lt;/pre&gt;
+&lt;ol class=&#34;arabic&#34; start=&#34;2&#34;&gt;
+&lt;li&gt;&lt;p class=&#34;first&#34;&gt;&lt;strong&gt;Installation&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Just copy and paste the following command in your terminal
+and it will do all the work for you.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
+curl http://bit.ly/1DCKEn6 -L -o - &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt; sh
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&#34;section&#34; id=&#34;configuration&#34;&gt;
+&lt;h2&gt;Configuration&lt;/h2&gt;
+&lt;p&gt;You can do all your configuration in &lt;cite&gt;~/.vimrc&lt;/cite&gt; file&lt;/p&gt;
+&lt;div class=&#34;section&#34; id=&#34;themes&#34;&gt;
+&lt;h3&gt;Themes&lt;/h3&gt;
+&lt;p&gt;By default &lt;cite&gt;wombat256mod&lt;/cite&gt; is enabled, which is a &lt;em&gt;dark&lt;/em&gt; theme.
+If you prefer white background, go to &lt;tt class=&#34;docutils literal&#34;&gt;&lt;span class=&#34;pre&#34;&gt;~/.vimrc&lt;/span&gt;&lt;/tt&gt; and change
+the from &lt;tt class=&#34;docutils literal&#34;&gt;color wombat256mod&lt;/tt&gt; to &lt;tt class=&#34;docutils literal&#34;&gt;color proton&lt;/tt&gt;.&lt;/p&gt;
+&lt;p&gt;More themes can be found at
+&lt;a class=&#34;reference external&#34; href=&#34;https://github.com/flazz/vim-colorschemes/tree/master/colors&#34;&gt;https://github.com/flazz/vim-colorschemes/tree/master/colors&lt;/a&gt;
+while you can put them into &lt;tt class=&#34;docutils literal&#34;&gt;&lt;span class=&#34;pre&#34;&gt;~/.vim/colors/&lt;/span&gt;&lt;/tt&gt; folder and later
+enable them via your &lt;tt class=&#34;docutils literal&#34;&gt;&lt;span class=&#34;pre&#34;&gt;~/.vimrc&lt;/span&gt;&lt;/tt&gt; file.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&#34;section&#34; id=&#34;instant-preview&#34;&gt;
+&lt;h2&gt;Instant Preview&lt;/h2&gt;
+&lt;p&gt;The InstantRST plugin allows you to write &lt;cite&gt;RST&lt;/cite&gt; and preview in on the fly using
+your browser. The good thing is that it also catches potential errors
+on real time. &lt;em&gt;For example&lt;/em&gt;:&lt;/p&gt;
+&lt;table class=&#34;docutils field-list&#34; frame=&#34;void&#34; rules=&#34;none&#34;&gt;
+&lt;col class=&#34;field-name&#34; /&gt;
+&lt;col class=&#34;field-body&#34; /&gt;
+&lt;tbody valign=&#34;top&#34;&gt;
+&lt;tr class=&#34;field&#34;&gt;&lt;th class=&#34;field-name&#34;&gt;example:&lt;/th&gt;&lt;td class=&#34;field-body&#34;&gt;&lt;ol class=&#34;first last arabic simple&#34;&gt;
+&lt;li&gt;Open the server &lt;tt class=&#34;docutils literal&#34;&gt;instantRst &lt;span class=&#34;pre&#34;&gt;-f&lt;/span&gt; &lt;span class=&#34;pre&#34;&gt;&amp;lt;yourfile&amp;gt;.rst&lt;/span&gt;&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;From another terminal, open the file with vim &lt;tt class=&#34;docutils literal&#34;&gt;vim &amp;lt;yourfile.rst&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;Type &lt;tt class=&#34;docutils literal&#34;&gt;:InstantRst!&lt;/tt&gt; in vim normal mode&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class=&#34;section&#34; id=&#34;basic-notation&#34;&gt;
+&lt;h3&gt;Basic notation&lt;/h3&gt;
+&lt;ul class=&#34;simple&#34;&gt;
+&lt;li&gt;&lt;strong&gt;Bold&lt;/strong&gt; = &lt;tt class=&#34;docutils literal&#34;&gt;**Strong**&lt;/tt&gt; &lt;em&gt;e.g.&lt;/em&gt; &lt;strong&gt;this text is bold&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Italic&lt;/strong&gt; = &lt;tt class=&#34;docutils literal&#34;&gt;*Italic*&lt;/tt&gt; &lt;em&gt;e.g.&lt;/em&gt; &lt;em&gt;this text is italic&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Inline Code&lt;/strong&gt; = &lt;tt class=&#34;docutils literal&#34;&gt;``some code``&lt;/tt&gt; &lt;em&gt;e.g.&lt;/em&gt; &lt;tt class=&#34;docutils literal&#34;&gt;$this&lt;/tt&gt; variable&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Link&lt;/strong&gt; = &lt;tt class=&#34;docutils literal&#34;&gt;&lt;span class=&#34;pre&#34;&gt;http://suse.com/&lt;/span&gt;&lt;/tt&gt; &lt;em&gt;e.g.&lt;/em&gt; &lt;a class=&#34;reference external&#34; href=&#34;http://suse.com/&#34;&gt;http://suse.com/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Hyperlink&lt;/strong&gt; = &lt;tt class=&#34;docutils literal&#34;&gt;`Bugzilla &lt;span class=&#34;pre&#34;&gt;&amp;lt;https://www.bugzilla.org/&amp;gt;`_&lt;/span&gt;&lt;/tt&gt; &lt;em&gt;e.g&lt;/em&gt; &lt;a class=&#34;reference external&#34; href=&#34;https://www.bugzilla.org/&#34;&gt;Bugzilla&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&#34;section&#34; id=&#34;header&#34;&gt;
+&lt;h3&gt;Header&lt;/h3&gt;
+&lt;p&gt;Many times we need to structure our document using some kind of section
+similar to HTML Headers. If you are not sure what kind of character
+corresponds to each header (from 1 to 6), you can use &lt;tt class=&#34;docutils literal&#34;&gt;&lt;span class=&#34;pre&#34;&gt;:RivTitle[1-6]&lt;/span&gt;&lt;/tt&gt;
+or &lt;cite&gt;ctrl+e&lt;/cite&gt; + &lt;cite&gt;s[1-6]&lt;/cite&gt; to create a level title.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&#34;section&#34; id=&#34;level-1&#34;&gt;
+&lt;h1&gt;Level 1&lt;/h1&gt;
+&lt;div class=&#34;section&#34; id=&#34;level-2&#34;&gt;
+&lt;h2&gt;Level 2&lt;/h2&gt;
+&lt;div class=&#34;section&#34; id=&#34;level-3&#34;&gt;
+&lt;h3&gt;Level 3&lt;/h3&gt;
+&lt;div class=&#34;section&#34; id=&#34;level-4&#34;&gt;
+&lt;h4&gt;Level 4&lt;/h4&gt;
+&lt;div class=&#34;section&#34; id=&#34;level-5&#34;&gt;
+&lt;h5&gt;Level 5&lt;/h5&gt;
+&lt;div class=&#34;section&#34; id=&#34;level-6&#34;&gt;
+&lt;h6&gt;Level 6&lt;/h6&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&#34;section&#34; id=&#34;code-highlighting&#34;&gt;
+&lt;h3&gt;Code Highlighting&lt;/h3&gt;
+&lt;p&gt;For the &lt;tt class=&#34;docutils literal&#34;&gt;code&lt;/tt&gt; directives (also &lt;tt class=&#34;docutils literal&#34;&gt;sourcecode&lt;/tt&gt; and &lt;tt class=&#34;docutils literal&#34;&gt;&lt;span class=&#34;pre&#34;&gt;code-block&lt;/span&gt;&lt;/tt&gt;).
+Syntax highlighting of Specified languages are on.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;e.g.&lt;/em&gt;&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
+.. code:: bash
+
+    &lt;span class=&#34;comment&#34;&gt;#!\bin\bash
+&lt;/span&gt;    &lt;span class=&#34;name builtin&#34;&gt;echo&lt;/span&gt; &lt;span class=&#34;literal string double&#34;&gt;&amp;quot;The date is &lt;/span&gt;&lt;span class=&#34;keyword&#34;&gt;$(&lt;/span&gt;date&lt;span class=&#34;keyword&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;literal string double&#34;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;
+&lt;p&gt;is going to be generated into:&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
+&lt;span class=&#34;comment&#34;&gt;#/bin/bash
+&lt;/span&gt;&lt;span class=&#34;name builtin&#34;&gt;echo&lt;/span&gt; &lt;span class=&#34;literal string double&#34;&gt;&amp;quot;The date is &lt;/span&gt;&lt;span class=&#34;keyword&#34;&gt;$(&lt;/span&gt;date&lt;span class=&#34;keyword&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;literal string double&#34;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&#34;section&#34; id=&#34;tables&#34;&gt;
+&lt;h3&gt;Tables&lt;/h3&gt;
+&lt;p&gt;It&#39;s very easy to create table and you should use this functionality. There are
+two way to create a table using.&lt;/p&gt;
+&lt;div class=&#34;section&#34; id=&#34;normal-mode&#34;&gt;
+&lt;h4&gt;Normal Mode&lt;/h4&gt;
+&lt;p&gt;Type: &lt;tt class=&#34;docutils literal&#34;&gt;:RivTableCreate&lt;/tt&gt; or &lt;tt class=&#34;docutils literal&#34;&gt;ctrl+e&lt;/tt&gt; + &lt;tt class=&#34;docutils literal&#34;&gt;tc&lt;/tt&gt;&lt;/p&gt;
+&lt;dl class=&#34;docutils&#34;&gt;
+&lt;dt&gt;and it will ask you:&lt;/dt&gt;
+&lt;dd&gt;&lt;ul class=&#34;first last simple&#34;&gt;
+&lt;li&gt;Input row number of table: 2&lt;/li&gt;
+&lt;li&gt;Input column number of table: 4&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/dd&gt;
+&lt;/dl&gt;
+&lt;p&gt;and it will automatically generate a table:&lt;/p&gt;
+&lt;table border=&#34;1&#34; class=&#34;docutils&#34;&gt;
+&lt;colgroup&gt;
+&lt;col width=&#34;26%&#34; /&gt;
+&lt;col width=&#34;29%&#34; /&gt;
+&lt;col width=&#34;17%&#34; /&gt;
+&lt;col width=&#34;29%&#34; /&gt;
+&lt;/colgroup&gt;
+&lt;tbody valign=&#34;top&#34;&gt;
+&lt;tr&gt;&lt;td&gt;34&lt;/td&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;sdf&lt;/td&gt;
+&lt;td&gt;sdf&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;sdfddf&lt;/td&gt;
+&lt;td&gt;dfsdfsdf&lt;/td&gt;
+&lt;td&gt;dd&lt;/td&gt;
+&lt;td&gt;dfsdfsdf&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&#34;section&#34; id=&#34;insert-mode&#34;&gt;
+&lt;h4&gt;Insert Mode&lt;/h4&gt;
+&lt;p&gt;In &lt;em&gt;Insert Mode&lt;/em&gt; you are building by hand. Just write something like:&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
++--+
+&lt;/pre&gt;
+&lt;p&gt;and press &lt;tt class=&#34;docutils literal&#34;&gt;Enter&lt;/tt&gt; to create a new line:&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
++--+
+&lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;
+&lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;
+&lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;
++--+
+&lt;/pre&gt;
+&lt;p&gt;and press &lt;tt class=&#34;docutils literal&#34;&gt;|&lt;/tt&gt; + &lt;tt class=&#34;docutils literal&#34;&gt;Enter&lt;/tt&gt; in order to create a new column&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
++--+--+
+&lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;
+&lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;
+&lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;
++--+--+
+&lt;/pre&gt;
+&lt;p&gt;then press &lt;tt class=&#34;docutils literal&#34;&gt;ctrl+c&lt;/tt&gt; + &lt;tt class=&#34;docutils literal&#34;&gt;Enter&lt;/tt&gt; in order to move your cursor to the last
+left corner of the table. Then go into &lt;cite&gt;Insert&lt;/cite&gt; mode and press
+&lt;tt class=&#34;docutils literal&#34;&gt;Enter&lt;/tt&gt; to create a new row:&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
++--+--+
+&lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;
+&lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;
+&lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;
+&lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;
++--+--+
+&lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;  &lt;span class=&#34;punctuation&#34;&gt;|&lt;/span&gt;
++--+--+
+&lt;/pre&gt;
+&lt;table class=&#34;docutils field-list&#34; frame=&#34;void&#34; rules=&#34;none&#34;&gt;
+&lt;col class=&#34;field-name&#34; /&gt;
+&lt;col class=&#34;field-body&#34; /&gt;
+&lt;tbody valign=&#34;top&#34;&gt;
+&lt;tr class=&#34;field&#34;&gt;&lt;th class=&#34;field-name&#34;&gt;Notice:&lt;/th&gt;&lt;td class=&#34;field-body&#34;&gt;After you have finished writing inside the cells, remember to &lt;strong&gt;use
+intendetation&lt;/strong&gt; by pressing either &lt;tt class=&#34;docutils literal&#34;&gt;&amp;lt;&lt;/tt&gt; or &lt;tt class=&#34;docutils literal&#34;&gt;&amp;gt;&lt;/tt&gt; keys.
+In that way, your table&#39;s &lt;strong&gt;structure&lt;/strong&gt; will be &lt;strong&gt;auto-fixed&lt;/strong&gt;
+by shifting the cells to their content properly.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&#34;section&#34; id=&#34;links&#34;&gt;
+&lt;h3&gt;Links&lt;/h3&gt;
+&lt;p&gt;This is how you can create links. Just type &lt;tt class=&#34;docutils literal&#34;&gt;:RivCreateLink&lt;/tt&gt; or &lt;cite&gt;ctrl+c&lt;/cite&gt; + &lt;cite&gt;ck&lt;/cite&gt;
+and it will ask you for two things: name of the link and the URL of the link:&lt;/p&gt;
+&lt;ul class=&#34;simple&#34;&gt;
+&lt;li&gt;&lt;cite&gt;Input link name:&lt;/cite&gt; &amp;lt;type &#39;suse&#39; and press &amp;lt;Enter&amp;gt;&lt;ul&gt;
+&lt;li&gt;&lt;cite&gt;suse&lt;/cite&gt;: &amp;lt;type &#39;suse.com&#39; and press &amp;lt;Enter&amp;gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;and then, the plugin will automatically create this code:&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
+suse_
+
+.. _suse: suse.com &lt;span class=&#34;comment&#34;&gt;# placed in the end of the file&lt;/span&gt;
+&lt;/pre&gt;
+&lt;p&gt;So, in that way you can have you links, and they will look like that: &lt;a class=&#34;reference external&#34; href=&#34;suse.com&#34;&gt;suse&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&#34;section&#34; id=&#34;tricks-in-riv-plugin&#34;&gt;
+&lt;h3&gt;Tricks in RIV Plugin&lt;/h3&gt;
+&lt;ul class=&#34;simple&#34;&gt;
+&lt;li&gt;&lt;strong&gt;Date&lt;/strong&gt; &lt;tt class=&#34;docutils literal&#34;&gt;:RivCreateDate&lt;/tt&gt; or &lt;tt class=&#34;docutils literal&#34;&gt;ctrl + e&lt;/tt&gt; + &lt;tt class=&#34;docutils literal&#34;&gt;cdd&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Table of Contents&lt;/strong&gt; &lt;tt class=&#34;docutils literal&#34;&gt;:RivCreateContent&lt;/tt&gt; or &lt;tt class=&#34;docutils literal&#34;&gt;ctrl+e&lt;/tt&gt; + &lt;tt class=&#34;docutils literal&#34;&gt;cc&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;View sections&lt;/strong&gt; &lt;tt class=&#34;docutils literal&#34;&gt;:RivHelpSection&lt;/tt&gt; or &lt;cite&gt;ctrl+e&lt;/cite&gt; + &lt;cite&gt;hs&lt;/cite&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Select 2 lines&lt;/strong&gt; &lt;cite&gt;V&lt;/cite&gt; + &lt;cite&gt;j&lt;/cite&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Select 3 lines&lt;/strong&gt; &lt;cite&gt;V&lt;/cite&gt; + &lt;cite&gt;j&lt;/cite&gt; + &lt;cite&gt;j&lt;/cite&gt; and you can indent using &lt;tt class=&#34;docutils literal&#34;&gt;&amp;lt;&lt;/tt&gt; or &lt;tt class=&#34;docutils literal&#34;&gt;&amp;gt;&lt;/tt&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&#34;section&#34; id=&#34;export-in-formats&#34;&gt;
+&lt;h3&gt;Export in formats&lt;/h3&gt;
+&lt;p&gt;You can export your RST document while you are working on it. The only thing
+you have to do is to decide in what format you want to save your file as.&lt;/p&gt;
+&lt;ul class=&#34;simple&#34;&gt;
+&lt;li&gt;&lt;tt class=&#34;docutils literal&#34;&gt;:Riv2HtmlAndBrowse&lt;/tt&gt; or &lt;cite&gt;ctrl+e&lt;/cite&gt; + &lt;cite&gt;2hh&lt;/cite&gt; html file.&lt;/li&gt;
+&lt;li&gt;&lt;tt class=&#34;docutils literal&#34;&gt;:Riv2Odt&lt;/tt&gt; or &lt;cite&gt;ctrl+e&lt;/cite&gt; + &lt;cite&gt;2oo&lt;/cite&gt; to convert to odt file.&lt;/li&gt;
+&lt;li&gt;&lt;tt class=&#34;docutils literal&#34;&gt;:Riv2Xml&lt;/tt&gt; or &lt;cite&gt;ctrl+e&lt;/cite&gt; + &lt;cite&gt;2xx&lt;/cite&gt; to convert to xml file.&lt;/li&gt;
+&lt;li&gt;&lt;tt class=&#34;docutils literal&#34;&gt;:Riv2Latex&lt;/tt&gt; or &lt;cite&gt;ctrl+e&lt;/cite&gt; + &lt;cite&gt;2ss&lt;/cite&gt; to convert to latex file.&lt;/li&gt;
+&lt;li&gt;&lt;tt class=&#34;docutils literal&#34;&gt;:Riv2Pdf&lt;/tt&gt; or &lt;cite&gt;ctrl+e&lt;/cite&gt; + &lt;cite&gt;2pp&lt;/cite&gt; to convert to pdf file.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&#34;section&#34; id=&#34;nerdtree-plugin&#34;&gt;
+&lt;h3&gt;NERDTree Plugin&lt;/h3&gt;
+&lt;p&gt;Enable it by typing: &lt;cite&gt;ctrl+f&lt;/cite&gt; or &lt;tt class=&#34;docutils literal&#34;&gt;:NERDTreeToggle&lt;/tt&gt; or just &lt;tt class=&#34;docutils literal&#34;&gt;:NERDTree&lt;/tt&gt;.
+Once it has been enabled thenm you will see the directory structure of your
+computer in the left of the terminal. To disable it, type &lt;cite&gt;q&lt;/cite&gt;.&lt;/p&gt;
+&lt;ul class=&#34;simple&#34;&gt;
+&lt;li&gt;&lt;strong&gt;Toggle NERDTree&lt;/strong&gt;&lt;ul&gt;
+&lt;li&gt;Open  : &lt;tt class=&#34;docutils literal&#34;&gt;ctrl+f&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;Close : &lt;tt class=&#34;docutils literal&#34;&gt;q&lt;/tt&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Edit Files&lt;/strong&gt;&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;Open the file in the right window&lt;/em&gt;: &lt;tt class=&#34;docutils literal&#34;&gt;o&lt;/tt&gt; or preview &lt;tt class=&#34;docutils literal&#34;&gt;go&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Open the file by splitting the window vertically&lt;/em&gt;: &lt;tt class=&#34;docutils literal&#34;&gt;s&lt;/tt&gt; or preview &lt;tt class=&#34;docutils literal&#34;&gt;gs&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Open the file by splitting the window horizontally&lt;/em&gt;: &lt;tt class=&#34;docutils literal&#34;&gt;i&lt;/tt&gt; or preview &lt;tt class=&#34;docutils literal&#34;&gt;gi&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Open the file in a new tab and go to that tab&lt;/em&gt;: &lt;tt class=&#34;docutils literal&#34;&gt;t&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Open the file in a new tab, but don&#39;t go there yet&lt;/em&gt;: &lt;tt class=&#34;docutils literal&#34;&gt;T&lt;/tt&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Speaking of splitting and tabbing, I have made special configuration based on
+PyCon 2012 Talk. All the changes are into the &lt;cite&gt;~/.vimrc&lt;/cite&gt; file.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Split Navigation&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p class=&#34;first&#34;&gt;Hold down &lt;tt class=&#34;docutils literal&#34;&gt;ctrl&lt;/tt&gt; and press repeatidly &lt;tt class=&#34;docutils literal&#34;&gt;w&lt;/tt&gt;. As a result, your cursor will
+move from one split screen to another. It doesn&#39;t matter if you have 2
+splitted screens or more. Well, if you have just 2, then each quite handy.
+For example, this is how I switch between the &lt;cite&gt;NERDTree&lt;/cite&gt; and the open file on
+the right.&lt;/p&gt;
+&lt;p&gt;Otherwise, if you have splitted your screen on 4 or 6 parts, feel free to use
+the standard VIM navigation:&lt;/p&gt;
+&lt;ul class=&#34;simple&#34;&gt;
+&lt;li&gt;&lt;tt class=&#34;docutils literal&#34;&gt;ctrl + w&lt;/tt&gt; and &lt;tt class=&#34;docutils literal&#34;&gt;h&lt;/tt&gt; for left&lt;/li&gt;
+&lt;li&gt;&lt;tt class=&#34;docutils literal&#34;&gt;ctrl + w&lt;/tt&gt; and &lt;tt class=&#34;docutils literal&#34;&gt;l&lt;/tt&gt; for right&lt;/li&gt;
+&lt;li&gt;&lt;tt class=&#34;docutils literal&#34;&gt;ctrl + w&lt;/tt&gt; and &lt;tt class=&#34;docutils literal&#34;&gt;j&lt;/tt&gt; for down&lt;/li&gt;
+&lt;li&gt;&lt;tt class=&#34;docutils literal&#34;&gt;ctrl + w&lt;/tt&gt; and &lt;tt class=&#34;docutils literal&#34;&gt;k&lt;/tt&gt; for up&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p class=&#34;first&#34;&gt;&lt;strong&gt;Tab Navigation&lt;/strong&gt;&lt;/p&gt;
+&lt;ul class=&#34;simple&#34;&gt;
+&lt;li&gt;&lt;em&gt;move to the left tab&lt;/em&gt;: &lt;tt class=&#34;docutils literal&#34;&gt;,&lt;/tt&gt; + &lt;tt class=&#34;docutils literal&#34;&gt;n&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;move to the right tab&lt;/em&gt;: &lt;tt class=&#34;docutils literal&#34;&gt;,&lt;/tt&gt; + &lt;tt class=&#34;docutils literal&#34;&gt;m&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;open new tab on the right&lt;/em&gt;: &lt;tt class=&#34;docutils literal&#34;&gt;,&lt;/tt&gt; + &lt;tt class=&#34;docutils literal&#34;&gt;b&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;close current tab&lt;/em&gt;: &lt;tt class=&#34;docutils literal&#34;&gt;,&lt;/tt&gt; + &lt;tt class=&#34;docutils literal&#34;&gt;e&lt;/tt&gt; or &lt;tt class=&#34;docutils literal&#34;&gt;E&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;save the current tab&lt;/em&gt;: &lt;tt class=&#34;docutils literal&#34;&gt;ctrl&lt;/tt&gt; + &lt;tt class=&#34;docutils literal&#34;&gt;z&lt;/tt&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p class=&#34;first&#34;&gt;&lt;strong&gt;Bookmarks&lt;/strong&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;It&#39;s a neat feature, since you can quickly go to the folder you want. Some bookmarks of mine would be the HOME directory and others which I usually have my scripts or downloads or my git repositories. In order to create a bookmark, go to the folder you
+want to book and type  &lt;tt class=&#34;docutils literal&#34;&gt;:Bookmark &lt;span class=&#34;pre&#34;&gt;&amp;lt;name-of-the-bookmark&amp;gt;&lt;/span&gt;&lt;/tt&gt;. Then, everytime
+you want to see all your bookmark, just type: &lt;tt class=&#34;docutils literal&#34;&gt;B&lt;/tt&gt;.&lt;/p&gt;
+&lt;ul class=&#34;simple&#34;&gt;
+&lt;li&gt;&lt;strong&gt;Change Working Directory&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Sometimes, while I work on a particular repository I usually get lost among
+other files I open in the process. So, instead of going again (and again)
+back to same repo, I can simply &lt;em&gt;mark&lt;/em&gt; it the &lt;cite&gt;pwd&lt;/cite&gt;. Go to the folder you want
+to mark as pwd and press &lt;tt class=&#34;docutils literal&#34;&gt;cd&lt;/tt&gt;. After that, change directory, go wherever you
+want and go back to your pwd by just pressing &lt;tt class=&#34;docutils literal&#34;&gt;C&lt;/tt&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&#34;section&#34; id=&#34;ctrlp-plugin&#34;&gt;
+&lt;h3&gt;CtrlP Plugin&lt;/h3&gt;
+&lt;p&gt;Enable it by typing: &lt;cite&gt;ctrl+p&lt;/cite&gt; or &lt;tt class=&#34;docutils literal&#34;&gt;:CtrlP&lt;/tt&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&#34;section&#34; id=&#34;tabularize-plugin&#34;&gt;
+&lt;h3&gt;Tabularize Plugin&lt;/h3&gt;
+&lt;p&gt;Select the lines in Visual Mode (&lt;tt class=&#34;docutils literal&#34;&gt;Vj&lt;/tt&gt;) and the press color &lt;tt class=&#34;docutils literal&#34;&gt;:&lt;/tt&gt;. There
+you will see something like: &lt;tt class=&#34;docutils literal&#34;&gt;&lt;span class=&#34;pre&#34;&gt;&#39;&amp;lt;,&#39;&amp;gt;&lt;/span&gt;&lt;/tt&gt; so, next to that you can call Tabularize
+plugin by typing &lt;tt class=&#34;docutils literal&#34;&gt;Tabularize /{pattern}&lt;/tt&gt;. It will looks like:&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
+&lt;span class=&#34;literal string single&#34;&gt;&#39;&amp;lt;,&#39;&lt;/span&gt;&amp;gt;Tabularize /&lt;span class=&#34;operator&#34;&gt;{&lt;/span&gt;pattern&lt;span class=&#34;operator&#34;&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
