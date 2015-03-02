@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>Πώς να κάνω encrypt και decrypt αρχεία χρησιμοποιώντας το OpenSSL toolkit &middot; Panos Georgiadis</title>
+
+  
+  <link rel="stylesheet" href="http://drpaneas.github.io//css/poole.css">
+  <link rel="stylesheet" href="http://drpaneas.github.io//css/hyde.css">
+  <link rel="stylesheet" href="http://drpaneas.github.io//css/poole-overrides.css">
+  <link rel="stylesheet" href="http://drpaneas.github.io//css/hyde-overrides.css">
+  <link rel="stylesheet" href="http://drpaneas.github.io//css/hyde-x.css">
+  <link rel="stylesheet" href="http://drpaneas.github.io//css/highlight/arta.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link href="/favicon.png" rel="icon">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="Panos Blog &middot; Panos Georgiadis" />
+
+  <meta name="description" content="Μερικές χρήσιμες εντολές για να κρυπτογραφίσετε τα αρχεία σας">
+  <meta name="keywords" content="how-to,openssl">
+  <link rel="author" href="http://plus.google.com/PanosGeorgiadis">
+</head>
+<body class="theme-base-08">
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <img src="http://www.gravatar.com/avatar/a98d3abef556df10b9dfd4710e368f0e?s=200" alt="gravatar">
+      <h1>Panos Georgiadis</h1>
+      <p class="lead">It&#39;s the questions we can&#39;t answer that teach us the most</p>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li class="sidebar-nav-item"><a href="http://drpaneas.github.io//">Blog</a></li>
+      
+      <li class="sidebar-nav-item"><a href="/about/">About Me</a></li>
+      
+    </ul>
+
+    <ul class="sidebar-nav">
+      <li class="sidebar-nav-item"><a href="https://github.com/drpaneas/">GitHub</a></li>
+      <li class="sidebar-nav-item"><a href="https://gr.linkedin.com/in/panosgeorgiadis/">LinkedIn</a></li>
+      <li class="sidebar-nav-item"><a href="https://plus.google.com/&#43;PanosGeorgiadis/posts">Google+</a></li>
+      <li class="sidebar-nav-item"><a href="https://www.facebook.com/paneas">Facebook</a></li>
+      <li class="sidebar-nav-item"><a href="https://twitter.com/PanosGeorgiadis">Twitter</a></li>
+    </ul>
+
+    <p>Copyright &copy; 2015 <a href="http://drpaneas.github.io//license">License</a><br/>
+       Powered by <a href="http://hugo.spf13.com">Hugo</a> and <a href="https://github.com/zyro/hyde-x">Hyde-X</a></p>
+  </div>
+</div>
+
+<div class="content container">
+  <div class="post">
+    <h1>Πώς να κάνω encrypt και decrypt αρχεία χρησιμοποιώντας το OpenSSL toolkit</h1>
+    <span class="post-date">Dec 17, 2014 &middot; 6 minute read
+    
+    <br/>
+    
+    <a class="label" href="http://drpaneas.github.io//categories/how-to">How-to</a>
+    </span>
+    
+
+<p>Ντεμπούτο του Linuxed! Αναρωτιώμουν από πού να ξεκινήσω το άρθρο μου, αλλά σήμερα νιώθω ότι έχω πολλά να πω, και θέλω να αποφύγω να ξεκινάω να σας γράφω <em>για το ένα και για το άλλο</em> και να αφήνω το σημαντικό στο τέλος. Αποφάσισα λοιπόν αντί άλλων καθυστερήσεων να μπω κατευθείαν στο κυρίως κείμενο&hellip; <em>με μία μικρή εισαγωγή</em>&hellip;</p>
+
+<p>Αν είστε <em>fan</em> του <a href="http://el.wikipedia.org/wiki/%CE%9F_%CE%86%CF%81%CF%87%CE%BF%CE%BD%CF%84%CE%B1%CF%82_%CF%84%CF%89%CE%BD_%CE%94%CE%B1%CF%87%CF%84%CF%85%CE%BB%CE%B9%CE%B4%CE%B9%CF%8E%CE%BD">LoTR</a>, φαντάζομαι πως θα θυμάστε την σκηνή<sup class="footnote-ref" id="fnref:39c8742cbee75c5a9a7304b83f8e4ff6:1"><a rel="footnote" href="#fn:39c8742cbee75c5a9a7304b83f8e4ff6:1">1</a></sup> που ο Gandalf μπαίνει μέσα στο Bag End και ρωτάει τον Frodo: &ldquo;<em>Is it secret? Is it safe?</em>&rdquo;. Στην συνέχεια, ο Frodo επιβεβαιώνει τα λεγόμενά του, δείχνοτας πως το δαχτυλίδι παραμένει σφραγισμένο μέσα στον φάκελο. Προφανώς, για όλους εμάς, ένας φάκελος και μια σφραγίδα, δεν καλύπτουν τα σημερινα security standards. Οπότε, για όλους εμάς, το <em>δαχτυλίδι</em> δεν είναι <strong>ούτε secret</strong>, <strong>ούτε safe</strong>, αλλά βλέπετε, εκείνη την <em>μυθική</em> εποχή της <em>Μέσης Γης</em>, οι μάγοι και άλλα πλάσματα του Eru Ilúvatar, δεν είχαν PC ή Internet. Αντίθετα σήμερα, οι μάγοι της εποχής μας έχουν τα δικά τους εργαλεία και είναι γνωστοί ως Hackers.</p>
+
+<blockquote>
+<p>Αυτό όμως είναι μία ιστορία, θα πούμε άλλη φορά!</p>
+</blockquote>
+
+<h2 id="keep-it-secret-keep-it-safe:39c8742cbee75c5a9a7304b83f8e4ff6">Keep it secret, Keep it Safe</h2>
+
+<p>Το βασικό μου πρόβλημα ξεκίνησε όταν θέλησα να στείλω ένα αρχείο <em>από</em> τον server μου στην Ελλάδα <em>στο</em> macbook μου εδώ στην Γερμανία. Λοιπόν, για να πούμε τα πράγματα με το όνομά τους: Δεν ήταν ένα οποιοδήποτε αρχείο. Δεν μπορώ να σας πω &ldquo;τι είναι&rdquo; και &ldquo;τι δεν είναι&rdquo;, καθώς η κρυφή του ταυτότητα θαρρώ πως δίνει ένα &ldquo;μυστικό τόνο&rdquo; στο άρθρο. Αυτό δε σημαίνει ότι είναι μυστικό και σ&rsquo;εμένα, μια χαρά ξέρω &ldquo;περί&rdquo; ποιου αρχείου πρόκειται. Κατά μία έννοια θα μπορούσε να πει κανείς ότι κ εσείς ξέρετε, ακόμα κι αν δεν έχετε άμεση πρόσβαση στο μυαλό μου ή τον υπολογιστή μου, μπορείτε να κάνετε εικασίες.</p>
+
+<p>Καταλαβαίνετε που το πάω; Μπορεί να (μην) ξέρετε για ποιο αρχείο σας μιλάω, αλλά για όσους με ξέρουν και &ldquo;το μυαλό τους πηγαίνει κατά κει&rdquo;, να ξέρουν οτι δεν θα το βρουν. Unsurprisingly, την ίδια μοίρα μ&rsquo;εσάς, θα έχει και η Deutsche Telekom και η NSA που έχουν&rdquo;έχει στήσει αφτί&rdquo; αμφότεροι στο τέλος της γραμμής. Όχι, δεν μπορεί και δεν θα μπορέσει ποτέ <strong>κανείς</strong> να μάθει για ποιο αρχείο σας μιλάω. Μπα. Με τίποτα<sup class="footnote-ref" id="fnref:39c8742cbee75c5a9a7304b83f8e4ff6:2"><a rel="footnote" href="#fn:39c8742cbee75c5a9a7304b83f8e4ff6:2">2</a></sup>.</p>
+
+<p>Αν προσπαθείσετε να δείτε τα περιεχόμενα του αρχείου:</p>
+
+<pre><code class="language-bash">$ cat file 
+</code></pre>
+
+<p>θα δείτε κάτι τέτοιο:</p>
+
+<pre><code class="language-bash">Salted__???~?B?'?`c?g&lt;?)/g&amp;??????[?&lt;???O?d?S??~?q???Ѫi??C??
+                                                           &quot;?Fz@????\pg????2?i|?f??L?&gt;?d{?:*???????v??K?&quot;?Y?̷?p?Z???(?Q???????*dme???Fgۦ?	??
+ c??n?[Bo?r?^?;L+!?
+                   %7?L?*?Qr?Plb?b{Y	/?1[?=,﹯?}8K?rP?Ņ??U????f&quot;{Ǒ?
+                                                                     ?-?&amp;??O[????m?Qw$???҈R?(?]	??6;yQ??Wy)?FO?K?*I??URZ?l2)Xʓ????N?%??Q-??d??{??U?o
+     ?ڎ?;U'?i?eR?/?R~???`???NM&lt;?ԡ|0o=?P??9?̢j?/??
+?3?v?S?o'?????۬?GM?X϶?^??OVr?&quot;????\&amp;L.?V8\|??b??????ՉJ?)????9;+??SC?c?㱶?]??\$?7G6??W??j??!l??$?_UO?i??H?H???
+??IHq??:?M ?G??I(4??/??S:Ӷ???Z?z??????E?9'?a?(U߃D?Ny5???hD????@Z2U&lt;?ɽ?
+sx?ϴ#??????W1?'?T??|=ы?5?d?$?}?쪯YX(J/?}2?'xx?t??Q#?@?&gt;c{{????Dd5??&amp;?~?lBmR?
+?jf?????@n?R??թG???T?I_W??(??????wQ?)q,?6M?(?w$???ᬥ???1??uxc,9(??*t1??yh??+U?? ?d??NL?8?ȴ?/?'?OLa??z?&amp;J9DR\c??f?%??sÒu????
+                                                                                                                        )s?9?f?x??E???\q???l??;?9
+???!L?z?%?})?(??a?}?&gt;_?-?_?????&amp;???R?XQ?x??U?C7?Z?:`F)@[?W5u??je??$??$`&amp;??3?[jF
+                                                                               ¡?R??#??a??w?@ q|y6??5??*&amp;??Vw?9}???om?a?_8??M0?!???c??h?}};گ?#?G?ĩ?	??BVJ^Ґ?V9
+                  H???*W6?kE??????Ơ
+                                   Zp]F86?b?8?5?8?N?,?N???1'.??1???:??%@=?I@???????'?OW?s?u?O?ꨯm??s?Mwzq???????????*?ƾx1V4???.?Ր???87??e
+??ܢO?r???DՁZ?1????Y7?WQE?ְ?X?Ps??Gseݍ
+8?wP?)??/%????}?`?Has?I?B?l'????+
+?ۖF
+   ?L? ?F?rT?)?e{?#^m!IO??0P?3????_4Kgϗ,\???D???????8;???H?q
+????nTdZS???_???|\߷?t???P?
+                          ?.???t?0c:=?3yney#E??D?~?5????؅????أ8% .?U?l!6&amp;
+q4$i???8?ЕP7F|Ԃ0Q????:??C???B?y??Ә*WW?j&gt;V貺???Vi5uwyc??7%[?
+???s$?N???p??\ri5xza???&amp;l?&quot;o@?T?몜??o#u?$H???
+/O?F?&quot;?R@n??6?o??8?:??Άf?.|?????9P??n
+                                     &gt;?`?O$*?????x????ã??)??5?D?{v???Q&amp;?Q??????9??j	*-
+                                                                                          ?Zxߚ?A?U?O?v&gt;j?g??-?&gt;&amp;:??i?]??????5$a?9?U+????셴&lt;+???k??r$O?;x:???l=?B4arp?
+??B??4?@??[?3N?q??!h???g`?pJ6???뭁????N??#??q??/???&gt;?Q??#??ҧ?Q?W?????L??5xVnلΐ
+??(?&quot;t?7???ň=?MH?O??c?sbF?@a??#?aK,?Q?q??b??Z ͊?F??g%܅??1v??$
+</code></pre>
+
+<p>Οι παραπάνω &ldquo;<em>ασυναρτησίες</em>&rdquo; οφείλονται στο γεγονός ότι το αρχείο είναι κρυπτογραφημένο (<em>encrypted</em>). Και ένα αρχείο, μη προσπελάσιμο, είναι τελείως άχρηστο. Για να το αποκρυπτογραφίσετε, θα πρέπει να γνωρίζετε την τέχνη του OpenSSL, καθώς και κάποια άλλα πράγματα, όπως: τον <strong>Cipher</strong> και το <strong>passphrase</strong>.</p>
+
+<hr />
+
+<h2 id="κρυπτογράφιση-με-το-openssl:39c8742cbee75c5a9a7304b83f8e4ff6">Κρυπτογράφιση με το OpenSSL</h2>
+
+<p><img src="/images/gandalfopenssl.png" alt="Keep it secret keep it safe" title="Keep it Secret, Keep it Safe" />
+</p>
+
+<h3 id="βήμα-1-ενεργοποιήστε-την-κατάσταση-κωδικοποίησης-αρχείου:39c8742cbee75c5a9a7304b83f8e4ff6">Βήμα 1: Ενεργοποιήστε την κατάσταση κωδικοποίησης αρχείου</h3>
+
+<p>The openssl program is a command line tool for using the various cryptography functions of OpenSSL’s crypto library from the shell. It can be also used for file encryption and decryption with Ciphers<sup class="footnote-ref" id="fnref:39c8742cbee75c5a9a7304b83f8e4ff6:3"><a rel="footnote" href="#fn:39c8742cbee75c5a9a7304b83f8e4ff6:3">3</a></sup>. Για να χρησιμοποιήσουμε αυτή την λειτουργία, αρκεί να δώσουμε την παράμετρο <code>enc</code>.</p>
+
+<ul>
+<li><code>enc</code> – Encoding with Ciphers.</li>
+</ul>
+
+<h3 id="βήμα-2-επιλέξτε-το-αρχείο-που-θέλετε-να-κρυπτογραφίσετε:39c8742cbee75c5a9a7304b83f8e4ff6">Βήμα 2: Επιλέξτε το αρχείο που θέλετε να κρυπτογραφίσετε</h3>
+
+<p>Στην συνέχεια θα επιλέξουμε το αρχείο που θέλουμε να κρυπτογραφίσουμε (<strong>για λόγους ευκολίας, ας ονομάσουμε το αρχείο με το προτώτυπο όνομα που είμαι σίγουρος ότι δεν έχετε ξαναδει ποτέ μπροστά σας</strong> <code>foo.bar</code>). Αυτό λοιπόν πρόκειται να παίξει τον ρόλο του <code>input file</code>, γεγονός που δηλώνεται με την παράμετρο <code>-in</code>. Με την ευκαιρία, ας δούμε μερικές από τις επιλογές που μπορείτε να συνδυάσετε παρέα με την παράμετρο <code>enc</code>:</p>
+
+<ul>
+<li><code>-in</code> input file</li>
+<li><code>-out</code> output file</li>
+<li><code>-pass</code> pass phrase source</li>
+<li><code>-e</code> encrypt (by default)</li>
+<li><code>-d</code> decrypt</li>
+<li><code>-k</code> passphrase is the next argument</li>
+</ul>
+
+<h3 id="βήμα-3-κρυπτογράφιση-ή-αποκρυπτογράφιση:39c8742cbee75c5a9a7304b83f8e4ff6">Βήμα 3: Κρυπτογράφιση ή Αποκρυπτογράφιση;</h3>
+
+<p>Το επόμενο βήμα είναι να ορίσουμε τι θέλουμε να κάνουμε με το αρχείο:
++ Encryption <code>-e</code> ή
++ Decryption <code>-d</code>.</p>
+
+<p>Κάπου διάβασα, ότι η μεγαλύτερη παγίδα της σκέψης είναι αυτή του αυτονόητου, αλλά εδώ δεν χρίζει λόγος ανησυχίας. By default λοιπόν, χρησιμοποίεται η σημαία <code>-e</code>, την οποία δεν δείτε να την χρησιμοποιούν ιδιαίτερα  (<em>όσο λιγότερα, τόσο το καλύτερο</em>). Οπότε, η επιλογή <code>-e</code> είναι optional με την προϋπόθεση ότι η πρόθεσή σας είναι να κρυπτογραφίσετε το αρχείο. Για να ολοκληρώσετε την <em>κρυπτογράφιση</em> του αρχείου, το μόνο που μένει είναι να δηλώσετε άλλα δύο πράγματα:</p>
+
+<ol>
+<li>Cipher (δηλαδή τον αλγόριθμο)</li>
+<li>Passphrase<sup class="footnote-ref" id="fnref:39c8742cbee75c5a9a7304b83f8e4ff6:-"><a rel="footnote" href="#fn:39c8742cbee75c5a9a7304b83f8e4ff6:-">0</a></sup></li>
+</ol>
+
+<h3 id="βήμα-4-επιλογή-αλγορίθμου:39c8742cbee75c5a9a7304b83f8e4ff6">Βήμα 4: Επιλογή αλγορίθμου</h3>
+
+<p>Για να κρυπτογραφίσουμε ένα αρχείο,  <strong>χρειαζόμαστε έναν Cipher</strong>. Χωρίς να θέλω να πρωτοτυπήσω θα χρησιμοποιήσω τον: <strong>aes-256-cbc</strong>.</p>
+
+<h3 id="βήμα-5-επιλογή-κλειδιού:39c8742cbee75c5a9a7304b83f8e4ff6">Βήμα 5: Επιλογή κλειδιού</h3>
+
+<p>Για passphrase (symmetric key) θα χρησιμοποιήσουμε την επιλογή <code>-k</code>. Χμμμ, για να σκεφτώ&hellip; ok I figured out, το passphrase μου θα είναι <code>darthvader666</code>.</p>
+
+<p>Αν και σας είπα ότι έχουμε μόνο δύο πράγματα (τον αλγόριθμο και το passphrase), η αλήθεια είναι ότι μένει κάτι ακόμα. Υποθέτω, ότι δεν φαντάζει λογικώς ορθό να κάνουμε edit ένα αρχείο και &ndash; <em>at the same time</em> &ndash; να το κάνουμε replace. Συνεπώς, χρειαζόμαστε ένα <code>output file</code> το οποίο θα είναι το τελικό αποτέλεσμα (δηλ. <em>το κρυπτογραφημένο αρχείο</em>). Για να το πω πιο απλά, είναι το αντίστοιχο του &ldquo;<strong>save as</strong>&rdquo;. Για να το κάνουμε αυτό από γραμμή εντολών, το OpenSSL διαθέτει στο ρεπερτόριο εντολών του την επιλογή <code>-out</code>.</p>
+
+<p>Για να δούμε λίγο ολόκληρη την εντολή:</p>
+
+<pre><code class="language-bash">openssl enc -in foo.bar -e -aes-256-cbc -k darthvader666 -out foo.bar.enc
+</code></pre>
+
+<p>Οπότε, ακόμα κι αν κάποιος υποκλέψει το αρχείο foo.bar.enc (το <code>enc</code> απλά δηλώνει ότι το αρχείο είναι κρυπτογραφημένο. Ο λόγος που το βάζουμε είναι για να ξέρουμε εκ των πρωτέρων ότι το αρχείο είναι encrypted και τίποτε άλλο). Διαφορετικά, αν προσπαθήσει να το ανοίξει κάποιος τρίτος, θα δει &ldquo;<em>ασυναρτησίες</em>&rdquo;.</p>
+
+<blockquote>
+<p>Παρατηρήστε το <code>salted</code> στην αρχή της πρότασης. Σημαίνει ότι το αρχείο είναι encrypted.</p>
+</blockquote>
+
+<h2 id="αποκρυπτογράφιση-με-το-openssl:39c8742cbee75c5a9a7304b83f8e4ff6">Αποκρυπτογράφιση με το OpenSSL</h2>
+
+<p>Η λύση για να αποκαλυφθούν τα περιεχόμενα του αρχείου βρίσκεται στην αντίστροφη λειτουργία της κρυπτογράφισης ή αλλιώς: <strong>απο</strong>κρυπτογράφισης (<em>decryption</em>). Αν δεν υπάρχει <em>κρυπτογραφημένο αρχείο</em>, δεν υπάρχει λόγος για <em>αποκρυπτογράφιση</em>. Αν δεν υπάρχει λόγος για αποκτυπρογράφιση, τότε γιατί ταλαιπωρούμαστε; Να σας πω γιατί ταλαιπωρούμαστε: Ταλαιπωρούμαστε, αγαπητοί μου, γιατί ως άνθρωποι του Internet, είμαστε εκτεθημένοι σε ξένα μάτια. Μάτια που βλέπουν μέσα από τα καλώδια. Αν λοιπόν, έρθει μία στιγμή στην ζωή σας (πχ δουλειά) όπου θέλετε να κρατήσετε τα <em>μάτια των άλλων</em> μακρυά από ένα συγκεκριμένο αρχείο, τότε θα χρειαστείτε όλα αυτά για τα οποία σας μιλάω σ&rsquo;αυτό το άρθρο. Καλύτερα τώρα;</p>
+
+<p>Αλλα πείτε μου, ποιός ο λόγος να κρυπτογραφίσω ένα αρχείο αν δεν μπορώ να το διαβάσω <em>ούτε εγώ ο ίδιος</em> (;). Για να κάνουμε decrypt λοιπόν, αρχικά θα χρησιμοποιήσουμε τα ίδια filenames <strong>αντίστροφα</strong> (είσοδος -&gt; έξοδος) καθώς επίσης και την παράμετρο <code>-d</code>.</p>
+
+<p>Για να δούμε ολόκληρη την εντολή:</p>
+
+<pre><code class="language-bash">openssl enc -in foo.bar.enc -d -aes-256-cbc -k darthvader666 -out foo.bar
+</code></pre>
+
+<p>Και τώρα, αν προσπαθείσετε να δείτε τα περιεχόμενα του αρχείου:</p>
+
+<pre><code class="language-bash">cat foo.bar
+</code></pre>
+
+<p>Θα δείτε <strong>επιτέλους</strong> τα περιεχόμενα και τις πληροφορίες που έκρυβε όσο ήταν κρυπτογραφημένο:</p>
+
+<pre><code class="language-bash">This file contatins super important stuff. Use it wisely:
+
+* FBI Password: paok
+* CIA Password: mpaok
+</code></pre>
+
+<h2 id="συνοψίζοντας:39c8742cbee75c5a9a7304b83f8e4ff6">Συνοψίζοντας</h2>
+
+<p>Αν το όλο άρθρο σας κέντρισε το ενδιαφέρον με την κρυπτογράφιση, θα σας πρότεινα να μελετήσετε το concept των <strong>public &amp; private keys</strong>. Καθώς και το αντίστοιχο course στο Coursera. Όχι, δεν σας δίνω το link<sup class="footnote-ref" id="fnref:39c8742cbee75c5a9a7304b83f8e4ff6:5"><a rel="footnote" href="#fn:39c8742cbee75c5a9a7304b83f8e4ff6:5">4</a></sup> γιατί βαριέμαι, αλλά γιατί περιμένω να ενεργοποιήθειτε και να ψάξετε! Run Forest! Run![^6]</p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:39c8742cbee75c5a9a7304b83f8e4ff6:1">Δείτε το <a href="https://www.youtube.com/watch?v=E5jdaolDq7A">βίντεο</a> στο youtube ώστε να καταλάβετε για ποια σκηνή σας μιλάω.
+ <a class="footnote-return" href="#fnref:39c8742cbee75c5a9a7304b83f8e4ff6:1"><sup>[return]</sup></a></li>
+<li id="fn:39c8742cbee75c5a9a7304b83f8e4ff6:2">Κάτι <a href="http://arstechnica.com/security/2012/12/25-gpu-cluster-cracks-every-standard-windows-password-in-6-hours/">τέτοια</a> διαβάζω, και σκέφτομαι αν η χρήση του χρονικού επιρρήματος &ldquo;<em>ποτέ</em>&rdquo; ήταν σωστή σ&rsquo;αυτή την περίπτωση. Υπερβολές!
+ <a class="footnote-return" href="#fnref:39c8742cbee75c5a9a7304b83f8e4ff6:2"><sup>[return]</sup></a></li>
+<li id="fn:39c8742cbee75c5a9a7304b83f8e4ff6:3">Για την ώρα SSLv3 και v2 θεωρούνται vulnerable (βλ. <a href="https://www.openssl.org/~bodo/ssl-poodle.pdf"><em>Exploiting Poodle SSLv3</em></a>) οπότε γενικά προτείνουμε TLS 1. Ωστόσο, η πλήρης λίστα βρίσκεται <a href="https://www.openssl.org/docs/apps/ciphers.html#cipher_suite_names">εδώ</a>
+ <a class="footnote-return" href="#fnref:39c8742cbee75c5a9a7304b83f8e4ff6:3"><sup>[return]</sup></a></li>
+<li id="fn:39c8742cbee75c5a9a7304b83f8e4ff6:5">ή πιο απλά, <a href="http://lmgtfy.com/?q=Coursera+Cryptography#">let me google that for you</a>
+ <a class="footnote-return" href="#fnref:39c8742cbee75c5a9a7304b83f8e4ff6:5"><sup>[return]</sup></a></li>
+</ol>
+</div>
+
+  </div>
+  
+</div>
+
+
+
+
+<script src="http://drpaneas.github.io//js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+</body>
+</html>
