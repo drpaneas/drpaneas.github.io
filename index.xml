@@ -2,19 +2,19 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Panos Blog</title>
-    <link>http://drpaneas.github.io/</link>
+    <link>http://localhost:1313/</link>
     <description>Recent content on Panos Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sun, 01 Mar 2015 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://drpaneas.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>License</title>
-      <link>http://drpaneas.github.io/license/</link>
+      <link>http://localhost:1313/license/</link>
       <pubDate>Sun, 01 Mar 2015 00:00:00 +0000</pubDate>
       
-      <guid>http://drpaneas.github.io/license/</guid>
+      <guid>http://localhost:1313/license/</guid>
       <description>
 
 &lt;h3 id=&#34;content-license:53e892b8b41cc4caece1cfd5ef21d6e7&#34;&gt;Content license&lt;/h3&gt;
@@ -37,26 +37,26 @@
     </item>
     
     <item>
-      <title>Πώς να κάνω encrypt και decrypt αρχεία χρησιμοποιώντας το OpenSSL toolkit</title>
-      <link>http://drpaneas.github.io/blog/2014/12/17/%CF%80%CF%8E%CF%82-%CE%BD%CE%B1-%CE%BA%CE%AC%CE%BD%CF%89-encrypt-%CE%BA%CE%B1%CE%B9-decrypt-%CE%B1%CF%81%CF%87%CE%B5%CE%AF%CE%B1-%CF%87%CF%81%CE%B7%CF%83%CE%B9%CE%BC%CE%BF%CF%80%CE%BF%CE%B9%CF%8E%CE%BD%CF%84%CE%B1%CF%82-%CF%84%CE%BF-openssl-toolkit/</link>
+      <title>Decreypt OpenSSL file</title>
+      <link>http://localhost:1313/blog/2014/12/17/decreypt-openssl-file/</link>
       <pubDate>Wed, 17 Dec 2014 00:00:00 +0000</pubDate>
       
-      <guid>http://drpaneas.github.io/blog/2014/12/17/%CF%80%CF%8E%CF%82-%CE%BD%CE%B1-%CE%BA%CE%AC%CE%BD%CF%89-encrypt-%CE%BA%CE%B1%CE%B9-decrypt-%CE%B1%CF%81%CF%87%CE%B5%CE%AF%CE%B1-%CF%87%CF%81%CE%B7%CF%83%CE%B9%CE%BC%CE%BF%CF%80%CE%BF%CE%B9%CF%8E%CE%BD%CF%84%CE%B1%CF%82-%CF%84%CE%BF-openssl-toolkit/</guid>
+      <guid>http://localhost:1313/blog/2014/12/17/decreypt-openssl-file/</guid>
       <description>
 
 &lt;p&gt;Ντεμπούτο του Linuxed! Αναρωτιώμουν από πού να ξεκινήσω το άρθρο μου, αλλά σήμερα νιώθω ότι έχω πολλά να πω, και θέλω να αποφύγω να ξεκινάω να σας γράφω &lt;em&gt;για το ένα και για το άλλο&lt;/em&gt; και να αφήνω το σημαντικό στο τέλος. Αποφάσισα λοιπόν αντί άλλων καθυστερήσεων να μπω κατευθείαν στο κυρίως κείμενο&amp;hellip; &lt;em&gt;με μία μικρή εισαγωγή&lt;/em&gt;&amp;hellip;&lt;/p&gt;
 
-&lt;p&gt;Αν είστε &lt;em&gt;fan&lt;/em&gt; του &lt;a href=&#34;http://el.wikipedia.org/wiki/%CE%9F_%CE%86%CF%81%CF%87%CE%BF%CE%BD%CF%84%CE%B1%CF%82_%CF%84%CF%89%CE%BD_%CE%94%CE%B1%CF%87%CF%84%CF%85%CE%BB%CE%B9%CE%B4%CE%B9%CF%8E%CE%BD&#34;&gt;LoTR&lt;/a&gt;, φαντάζομαι πως θα θυμάστε την σκηνή&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:39c8742cbee75c5a9a7304b83f8e4ff6:1&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:39c8742cbee75c5a9a7304b83f8e4ff6:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; που ο Gandalf μπαίνει μέσα στο Bag End και ρωτάει τον Frodo: &amp;ldquo;&lt;em&gt;Is it secret? Is it safe?&lt;/em&gt;&amp;rdquo;. Στην συνέχεια, ο Frodo επιβεβαιώνει τα λεγόμενά του, δείχνοτας πως το δαχτυλίδι παραμένει σφραγισμένο μέσα στον φάκελο. Προφανώς, για όλους εμάς, ένας φάκελος και μια σφραγίδα, δεν καλύπτουν τα σημερινα security standards. Οπότε, για όλους εμάς, το &lt;em&gt;δαχτυλίδι&lt;/em&gt; δεν είναι &lt;strong&gt;ούτε secret&lt;/strong&gt;, &lt;strong&gt;ούτε safe&lt;/strong&gt;, αλλά βλέπετε, εκείνη την &lt;em&gt;μυθική&lt;/em&gt; εποχή της &lt;em&gt;Μέσης Γης&lt;/em&gt;, οι μάγοι και άλλα πλάσματα του Eru Ilúvatar, δεν είχαν PC ή Internet. Αντίθετα σήμερα, οι μάγοι της εποχής μας έχουν τα δικά τους εργαλεία και είναι γνωστοί ως Hackers.&lt;/p&gt;
+&lt;p&gt;Αν είστε &lt;em&gt;fan&lt;/em&gt; του &lt;a href=&#34;http://el.wikipedia.org/wiki/%CE%9F_%CE%86%CF%81%CF%87%CE%BF%CE%BD%CF%84%CE%B1%CF%82_%CF%84%CF%89%CE%BD_%CE%94%CE%B1%CF%87%CF%84%CF%85%CE%BB%CE%B9%CE%B4%CE%B9%CF%8E%CE%BD&#34;&gt;LoTR&lt;/a&gt;, φαντάζομαι πως θα θυμάστε την σκηνή&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:ef6c1e81a6cb1460145443492c6e3cfa:1&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:ef6c1e81a6cb1460145443492c6e3cfa:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; που ο Gandalf μπαίνει μέσα στο Bag End και ρωτάει τον Frodo: &amp;ldquo;&lt;em&gt;Is it secret? Is it safe?&lt;/em&gt;&amp;rdquo;. Στην συνέχεια, ο Frodo επιβεβαιώνει τα λεγόμενά του, δείχνοτας πως το δαχτυλίδι παραμένει σφραγισμένο μέσα στον φάκελο. Προφανώς, για όλους εμάς, ένας φάκελος και μια σφραγίδα, δεν καλύπτουν τα σημερινα security standards. Οπότε, για όλους εμάς, το &lt;em&gt;δαχτυλίδι&lt;/em&gt; δεν είναι &lt;strong&gt;ούτε secret&lt;/strong&gt;, &lt;strong&gt;ούτε safe&lt;/strong&gt;, αλλά βλέπετε, εκείνη την &lt;em&gt;μυθική&lt;/em&gt; εποχή της &lt;em&gt;Μέσης Γης&lt;/em&gt;, οι μάγοι και άλλα πλάσματα του Eru Ilúvatar, δεν είχαν PC ή Internet. Αντίθετα σήμερα, οι μάγοι της εποχής μας έχουν τα δικά τους εργαλεία και είναι γνωστοί ως Hackers.&lt;/p&gt;
 
 &lt;blockquote&gt;
 &lt;p&gt;Αυτό όμως είναι μία ιστορία, θα πούμε άλλη φορά!&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;h2 id=&#34;keep-it-secret-keep-it-safe:39c8742cbee75c5a9a7304b83f8e4ff6&#34;&gt;Keep it secret, Keep it Safe&lt;/h2&gt;
+&lt;h2 id=&#34;keep-it-secret-keep-it-safe:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Keep it secret, Keep it Safe&lt;/h2&gt;
 
 &lt;p&gt;Το βασικό μου πρόβλημα ξεκίνησε όταν θέλησα να στείλω ένα αρχείο &lt;em&gt;από&lt;/em&gt; τον server μου στην Ελλάδα &lt;em&gt;στο&lt;/em&gt; macbook μου εδώ στην Γερμανία. Λοιπόν, για να πούμε τα πράγματα με το όνομά τους: Δεν ήταν ένα οποιοδήποτε αρχείο. Δεν μπορώ να σας πω &amp;ldquo;τι είναι&amp;rdquo; και &amp;ldquo;τι δεν είναι&amp;rdquo;, καθώς η κρυφή του ταυτότητα θαρρώ πως δίνει ένα &amp;ldquo;μυστικό τόνο&amp;rdquo; στο άρθρο. Αυτό δε σημαίνει ότι είναι μυστικό και σ&amp;rsquo;εμένα, μια χαρά ξέρω &amp;ldquo;περί&amp;rdquo; ποιου αρχείου πρόκειται. Κατά μία έννοια θα μπορούσε να πει κανείς ότι κ εσείς ξέρετε, ακόμα κι αν δεν έχετε άμεση πρόσβαση στο μυαλό μου ή τον υπολογιστή μου, μπορείτε να κάνετε εικασίες.&lt;/p&gt;
 
-&lt;p&gt;Καταλαβαίνετε που το πάω; Μπορεί να (μην) ξέρετε για ποιο αρχείο σας μιλάω, αλλά για όσους με ξέρουν και &amp;ldquo;το μυαλό τους πηγαίνει κατά κει&amp;rdquo;, να ξέρουν οτι δεν θα το βρουν. Unsurprisingly, την ίδια μοίρα μ&amp;rsquo;εσάς, θα έχει και η Deutsche Telekom και η NSA που έχουν&amp;rdquo;έχει στήσει αφτί&amp;rdquo; αμφότεροι στο τέλος της γραμμής. Όχι, δεν μπορεί και δεν θα μπορέσει ποτέ &lt;strong&gt;κανείς&lt;/strong&gt; να μάθει για ποιο αρχείο σας μιλάω. Μπα. Με τίποτα&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:39c8742cbee75c5a9a7304b83f8e4ff6:2&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:39c8742cbee75c5a9a7304b83f8e4ff6:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+&lt;p&gt;Καταλαβαίνετε που το πάω; Μπορεί να (μην) ξέρετε για ποιο αρχείο σας μιλάω, αλλά για όσους με ξέρουν και &amp;ldquo;το μυαλό τους πηγαίνει κατά κει&amp;rdquo;, να ξέρουν οτι δεν θα το βρουν. Unsurprisingly, την ίδια μοίρα μ&amp;rsquo;εσάς, θα έχει και η Deutsche Telekom και η NSA που έχουν&amp;rdquo;έχει στήσει αφτί&amp;rdquo; αμφότεροι στο τέλος της γραμμής. Όχι, δεν μπορεί και δεν θα μπορέσει ποτέ &lt;strong&gt;κανείς&lt;/strong&gt; να μάθει για ποιο αρχείο σας μιλάω. Μπα. Με τίποτα&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:ef6c1e81a6cb1460145443492c6e3cfa:2&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:ef6c1e81a6cb1460145443492c6e3cfa:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
 
 &lt;p&gt;Αν προσπαθείσετε να δείτε τα περιεχόμενα του αρχείου:&lt;/p&gt;
 
@@ -99,20 +99,20 @@ q4$i???8?ЕP7F|Ԃ0Q????:??C???B?y??Ә*WW?j&amp;gt;V貺???Vi5uwyc??7%[?
 
 &lt;hr /&gt;
 
-&lt;h2 id=&#34;κρυπτογράφιση-με-το-openssl:39c8742cbee75c5a9a7304b83f8e4ff6&#34;&gt;Κρυπτογράφιση με το OpenSSL&lt;/h2&gt;
+&lt;h2 id=&#34;κρυπτογράφιση-με-το-openssl:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Κρυπτογράφιση με το OpenSSL&lt;/h2&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/images/gandalfopenssl.png&#34; alt=&#34;Keep it secret keep it safe&#34; title=&#34;Keep it Secret, Keep it Safe&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/gandalfopenssl.png&#34; alt=&#34;Keep it secret keep it safe&#34; title=&#34;Keep it Secret, Keep it Safe&#34; /&gt;
 &lt;/p&gt;
 
-&lt;h3 id=&#34;βήμα-1-ενεργοποιήστε-την-κατάσταση-κωδικοποίησης-αρχείου:39c8742cbee75c5a9a7304b83f8e4ff6&#34;&gt;Βήμα 1: Ενεργοποιήστε την κατάσταση κωδικοποίησης αρχείου&lt;/h3&gt;
+&lt;h3 id=&#34;βήμα-1-ενεργοποιήστε-την-κατάσταση-κωδικοποίησης-αρχείου:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Βήμα 1: Ενεργοποιήστε την κατάσταση κωδικοποίησης αρχείου&lt;/h3&gt;
 
-&lt;p&gt;The openssl program is a command line tool for using the various cryptography functions of OpenSSL’s crypto library from the shell. It can be also used for file encryption and decryption with Ciphers&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:39c8742cbee75c5a9a7304b83f8e4ff6:3&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:39c8742cbee75c5a9a7304b83f8e4ff6:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;. Για να χρησιμοποιήσουμε αυτή την λειτουργία, αρκεί να δώσουμε την παράμετρο &lt;code&gt;enc&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The openssl program is a command line tool for using the various cryptography functions of OpenSSL’s crypto library from the shell. It can be also used for file encryption and decryption with Ciphers&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:ef6c1e81a6cb1460145443492c6e3cfa:3&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:ef6c1e81a6cb1460145443492c6e3cfa:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;. Για να χρησιμοποιήσουμε αυτή την λειτουργία, αρκεί να δώσουμε την παράμετρο &lt;code&gt;enc&lt;/code&gt;.&lt;/p&gt;
 
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;enc&lt;/code&gt; – Encoding with Ciphers.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id=&#34;βήμα-2-επιλέξτε-το-αρχείο-που-θέλετε-να-κρυπτογραφίσετε:39c8742cbee75c5a9a7304b83f8e4ff6&#34;&gt;Βήμα 2: Επιλέξτε το αρχείο που θέλετε να κρυπτογραφίσετε&lt;/h3&gt;
+&lt;h3 id=&#34;βήμα-2-επιλέξτε-το-αρχείο-που-θέλετε-να-κρυπτογραφίσετε:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Βήμα 2: Επιλέξτε το αρχείο που θέλετε να κρυπτογραφίσετε&lt;/h3&gt;
 
 &lt;p&gt;Στην συνέχεια θα επιλέξουμε το αρχείο που θέλουμε να κρυπτογραφίσουμε (&lt;strong&gt;για λόγους ευκολίας, ας ονομάσουμε το αρχείο με το προτώτυπο όνομα που είμαι σίγουρος ότι δεν έχετε ξαναδει ποτέ μπροστά σας&lt;/strong&gt; &lt;code&gt;foo.bar&lt;/code&gt;). Αυτό λοιπόν πρόκειται να παίξει τον ρόλο του &lt;code&gt;input file&lt;/code&gt;, γεγονός που δηλώνεται με την παράμετρο &lt;code&gt;-in&lt;/code&gt;. Με την ευκαιρία, ας δούμε μερικές από τις επιλογές που μπορείτε να συνδυάσετε παρέα με την παράμετρο &lt;code&gt;enc&lt;/code&gt;:&lt;/p&gt;
 
@@ -125,7 +125,7 @@ q4$i???8?ЕP7F|Ԃ0Q????:??C???B?y??Ә*WW?j&amp;gt;V貺???Vi5uwyc??7%[?
 &lt;li&gt;&lt;code&gt;-k&lt;/code&gt; passphrase is the next argument&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id=&#34;βήμα-3-κρυπτογράφιση-ή-αποκρυπτογράφιση:39c8742cbee75c5a9a7304b83f8e4ff6&#34;&gt;Βήμα 3: Κρυπτογράφιση ή Αποκρυπτογράφιση;&lt;/h3&gt;
+&lt;h3 id=&#34;βήμα-3-κρυπτογράφιση-ή-αποκρυπτογράφιση:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Βήμα 3: Κρυπτογράφιση ή Αποκρυπτογράφιση;&lt;/h3&gt;
 
 &lt;p&gt;Το επόμενο βήμα είναι να ορίσουμε τι θέλουμε να κάνουμε με το αρχείο:
 + Encryption &lt;code&gt;-e&lt;/code&gt; ή
@@ -135,14 +135,14 @@ q4$i???8?ЕP7F|Ԃ0Q????:??C???B?y??Ә*WW?j&amp;gt;V貺???Vi5uwyc??7%[?
 
 &lt;ol&gt;
 &lt;li&gt;Cipher (δηλαδή τον αλγόριθμο)&lt;/li&gt;
-&lt;li&gt;Passphrase&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:39c8742cbee75c5a9a7304b83f8e4ff6:-&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:39c8742cbee75c5a9a7304b83f8e4ff6:-&#34;&gt;0&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;li&gt;Passphrase&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:ef6c1e81a6cb1460145443492c6e3cfa:-&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:ef6c1e81a6cb1460145443492c6e3cfa:-&#34;&gt;0&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;h3 id=&#34;βήμα-4-επιλογή-αλγορίθμου:39c8742cbee75c5a9a7304b83f8e4ff6&#34;&gt;Βήμα 4: Επιλογή αλγορίθμου&lt;/h3&gt;
+&lt;h3 id=&#34;βήμα-4-επιλογή-αλγορίθμου:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Βήμα 4: Επιλογή αλγορίθμου&lt;/h3&gt;
 
 &lt;p&gt;Για να κρυπτογραφίσουμε ένα αρχείο,  &lt;strong&gt;χρειαζόμαστε έναν Cipher&lt;/strong&gt;. Χωρίς να θέλω να πρωτοτυπήσω θα χρησιμοποιήσω τον: &lt;strong&gt;aes-256-cbc&lt;/strong&gt;.&lt;/p&gt;
 
-&lt;h3 id=&#34;βήμα-5-επιλογή-κλειδιού:39c8742cbee75c5a9a7304b83f8e4ff6&#34;&gt;Βήμα 5: Επιλογή κλειδιού&lt;/h3&gt;
+&lt;h3 id=&#34;βήμα-5-επιλογή-κλειδιού:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Βήμα 5: Επιλογή κλειδιού&lt;/h3&gt;
 
 &lt;p&gt;Για passphrase (symmetric key) θα χρησιμοποιήσουμε την επιλογή &lt;code&gt;-k&lt;/code&gt;. Χμμμ, για να σκεφτώ&amp;hellip; ok I figured out, το passphrase μου θα είναι &lt;code&gt;darthvader666&lt;/code&gt;.&lt;/p&gt;
 
@@ -159,7 +159,7 @@ q4$i???8?ЕP7F|Ԃ0Q????:??C???B?y??Ә*WW?j&amp;gt;V貺???Vi5uwyc??7%[?
 &lt;p&gt;Παρατηρήστε το &lt;code&gt;salted&lt;/code&gt; στην αρχή της πρότασης. Σημαίνει ότι το αρχείο είναι encrypted.&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;h2 id=&#34;αποκρυπτογράφιση-με-το-openssl:39c8742cbee75c5a9a7304b83f8e4ff6&#34;&gt;Αποκρυπτογράφιση με το OpenSSL&lt;/h2&gt;
+&lt;h2 id=&#34;αποκρυπτογράφιση-με-το-openssl:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Αποκρυπτογράφιση με το OpenSSL&lt;/h2&gt;
 
 &lt;p&gt;Η λύση για να αποκαλυφθούν τα περιεχόμενα του αρχείου βρίσκεται στην αντίστροφη λειτουργία της κρυπτογράφισης ή αλλιώς: &lt;strong&gt;απο&lt;/strong&gt;κρυπτογράφισης (&lt;em&gt;decryption&lt;/em&gt;). Αν δεν υπάρχει &lt;em&gt;κρυπτογραφημένο αρχείο&lt;/em&gt;, δεν υπάρχει λόγος για &lt;em&gt;αποκρυπτογράφιση&lt;/em&gt;. Αν δεν υπάρχει λόγος για αποκτυπρογράφιση, τότε γιατί ταλαιπωρούμαστε; Να σας πω γιατί ταλαιπωρούμαστε: Ταλαιπωρούμαστε, αγαπητοί μου, γιατί ως άνθρωποι του Internet, είμαστε εκτεθημένοι σε ξένα μάτια. Μάτια που βλέπουν μέσα από τα καλώδια. Αν λοιπόν, έρθει μία στιγμή στην ζωή σας (πχ δουλειά) όπου θέλετε να κρατήσετε τα &lt;em&gt;μάτια των άλλων&lt;/em&gt; μακρυά από ένα συγκεκριμένο αρχείο, τότε θα χρειαστείτε όλα αυτά για τα οποία σας μιλάω σ&amp;rsquo;αυτό το άρθρο. Καλύτερα τώρα;&lt;/p&gt;
 
@@ -183,22 +183,22 @@ q4$i???8?ЕP7F|Ԃ0Q????:??C???B?y??Ә*WW?j&amp;gt;V貺???Vi5uwyc??7%[?
 * CIA Password: mpaok
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h2 id=&#34;συνοψίζοντας:39c8742cbee75c5a9a7304b83f8e4ff6&#34;&gt;Συνοψίζοντας&lt;/h2&gt;
+&lt;h2 id=&#34;συνοψίζοντας:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Συνοψίζοντας&lt;/h2&gt;
 
-&lt;p&gt;Αν το όλο άρθρο σας κέντρισε το ενδιαφέρον με την κρυπτογράφιση, θα σας πρότεινα να μελετήσετε το concept των &lt;strong&gt;public &amp;amp; private keys&lt;/strong&gt;. Καθώς και το αντίστοιχο course στο Coursera. Όχι, δεν σας δίνω το link&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:39c8742cbee75c5a9a7304b83f8e4ff6:5&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:39c8742cbee75c5a9a7304b83f8e4ff6:5&#34;&gt;4&lt;/a&gt;&lt;/sup&gt; γιατί βαριέμαι, αλλά γιατί περιμένω να ενεργοποιήθειτε και να ψάξετε! Run Forest! Run![^6]&lt;/p&gt;
+&lt;p&gt;Αν το όλο άρθρο σας κέντρισε το ενδιαφέρον με την κρυπτογράφιση, θα σας πρότεινα να μελετήσετε το concept των &lt;strong&gt;public &amp;amp; private keys&lt;/strong&gt;. Καθώς και το αντίστοιχο course στο Coursera. Όχι, δεν σας δίνω το link&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:ef6c1e81a6cb1460145443492c6e3cfa:5&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:ef6c1e81a6cb1460145443492c6e3cfa:5&#34;&gt;4&lt;/a&gt;&lt;/sup&gt; γιατί βαριέμαι, αλλά γιατί περιμένω να ενεργοποιήθειτε και να ψάξετε! Run Forest! Run![^6]&lt;/p&gt;
 &lt;div class=&#34;footnotes&#34;&gt;
 
 &lt;hr /&gt;
 
 &lt;ol&gt;
-&lt;li id=&#34;fn:39c8742cbee75c5a9a7304b83f8e4ff6:1&#34;&gt;Δείτε το &lt;a href=&#34;https://www.youtube.com/watch?v=E5jdaolDq7A&#34;&gt;βίντεο&lt;/a&gt; στο youtube ώστε να καταλάβετε για ποια σκηνή σας μιλάω.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:39c8742cbee75c5a9a7304b83f8e4ff6:1&#34;&gt;&lt;sup&gt;[return]&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:39c8742cbee75c5a9a7304b83f8e4ff6:2&#34;&gt;Κάτι &lt;a href=&#34;http://arstechnica.com/security/2012/12/25-gpu-cluster-cracks-every-standard-windows-password-in-6-hours/&#34;&gt;τέτοια&lt;/a&gt; διαβάζω, και σκέφτομαι αν η χρήση του χρονικού επιρρήματος &amp;ldquo;&lt;em&gt;ποτέ&lt;/em&gt;&amp;rdquo; ήταν σωστή σ&amp;rsquo;αυτή την περίπτωση. Υπερβολές!
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:39c8742cbee75c5a9a7304b83f8e4ff6:2&#34;&gt;&lt;sup&gt;[return]&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:39c8742cbee75c5a9a7304b83f8e4ff6:3&#34;&gt;Για την ώρα SSLv3 και v2 θεωρούνται vulnerable (βλ. &lt;a href=&#34;https://www.openssl.org/~bodo/ssl-poodle.pdf&#34;&gt;&lt;em&gt;Exploiting Poodle SSLv3&lt;/em&gt;&lt;/a&gt;) οπότε γενικά προτείνουμε TLS 1. Ωστόσο, η πλήρης λίστα βρίσκεται &lt;a href=&#34;https://www.openssl.org/docs/apps/ciphers.html#cipher_suite_names&#34;&gt;εδώ&lt;/a&gt;
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:39c8742cbee75c5a9a7304b83f8e4ff6:3&#34;&gt;&lt;sup&gt;[return]&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:39c8742cbee75c5a9a7304b83f8e4ff6:5&#34;&gt;ή πιο απλά, &lt;a href=&#34;http://lmgtfy.com/?q=Coursera+Cryptography#&#34;&gt;let me google that for you&lt;/a&gt;
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:39c8742cbee75c5a9a7304b83f8e4ff6:5&#34;&gt;&lt;sup&gt;[return]&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:ef6c1e81a6cb1460145443492c6e3cfa:1&#34;&gt;Δείτε το &lt;a href=&#34;https://www.youtube.com/watch?v=E5jdaolDq7A&#34;&gt;βίντεο&lt;/a&gt; στο youtube ώστε να καταλάβετε για ποια σκηνή σας μιλάω.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:ef6c1e81a6cb1460145443492c6e3cfa:1&#34;&gt;&lt;sup&gt;[return]&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:ef6c1e81a6cb1460145443492c6e3cfa:2&#34;&gt;Κάτι &lt;a href=&#34;http://arstechnica.com/security/2012/12/25-gpu-cluster-cracks-every-standard-windows-password-in-6-hours/&#34;&gt;τέτοια&lt;/a&gt; διαβάζω, και σκέφτομαι αν η χρήση του χρονικού επιρρήματος &amp;ldquo;&lt;em&gt;ποτέ&lt;/em&gt;&amp;rdquo; ήταν σωστή σ&amp;rsquo;αυτή την περίπτωση. Υπερβολές!
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:ef6c1e81a6cb1460145443492c6e3cfa:2&#34;&gt;&lt;sup&gt;[return]&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:ef6c1e81a6cb1460145443492c6e3cfa:3&#34;&gt;Για την ώρα SSLv3 και v2 θεωρούνται vulnerable (βλ. &lt;a href=&#34;https://www.openssl.org/~bodo/ssl-poodle.pdf&#34;&gt;&lt;em&gt;Exploiting Poodle SSLv3&lt;/em&gt;&lt;/a&gt;) οπότε γενικά προτείνουμε TLS 1. Ωστόσο, η πλήρης λίστα βρίσκεται &lt;a href=&#34;https://www.openssl.org/docs/apps/ciphers.html#cipher_suite_names&#34;&gt;εδώ&lt;/a&gt;
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:ef6c1e81a6cb1460145443492c6e3cfa:3&#34;&gt;&lt;sup&gt;[return]&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:ef6c1e81a6cb1460145443492c6e3cfa:5&#34;&gt;ή πιο απλά, &lt;a href=&#34;http://lmgtfy.com/?q=Coursera+Cryptography#&#34;&gt;let me google that for you&lt;/a&gt;
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:ef6c1e81a6cb1460145443492c6e3cfa:5&#34;&gt;&lt;sup&gt;[return]&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/div&gt;
 </description>
@@ -206,10 +206,10 @@ q4$i???8?ЕP7F|Ԃ0Q????:??C???B?y??Ә*WW?j&amp;gt;V貺???Vi5uwyc??7%[?
     
     <item>
       <title>About Me</title>
-      <link>http://drpaneas.github.io/about/</link>
+      <link>http://localhost:1313/about/</link>
       <pubDate>Sun, 21 Sep 2014 00:00:00 +0000</pubDate>
       
-      <guid>http://drpaneas.github.io/about/</guid>
+      <guid>http://localhost:1313/about/</guid>
       <description>
 
 &lt;h3 id=&#34;με-τον-συντάκτη:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;με τον συντάκτη&lt;/h3&gt;
