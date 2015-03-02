@@ -2,29 +2,29 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Panos Blog</title>
-    <link>http://localhost:1313/</link>
+    <link>http://drpaneas.github.io/</link>
     <description>Recent content on Panos Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sun, 01 Mar 2015 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://drpaneas.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>About Me</title>
-      <link>http://localhost:1313/blog/2015/03/01/about-me/</link>
+      <link>http://drpaneas.github.io/blog/2015/03/01/about-me/</link>
       <pubDate>Sun, 01 Mar 2015 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/blog/2015/03/01/about-me/</guid>
+      <guid>http://drpaneas.github.io/blog/2015/03/01/about-me/</guid>
       <description>&lt;p&gt;Nia&lt;/p&gt;
 </description>
     </item>
     
     <item>
       <title>New Dedicated Server</title>
-      <link>http://localhost:1313/blog/2015/02/12/new-dedicated-server/</link>
+      <link>http://drpaneas.github.io/blog/2015/02/12/new-dedicated-server/</link>
       <pubDate>Thu, 12 Feb 2015 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/blog/2015/02/12/new-dedicated-server/</guid>
+      <guid>http://drpaneas.github.io/blog/2015/02/12/new-dedicated-server/</guid>
       <description>
 
 &lt;p&gt;&lt;strong&gt;Καλή Χρονιά&lt;/strong&gt; και &lt;strong&gt;Χρόνια Πολλά&lt;/strong&gt; φίλοι μου! Πρώτο άρθρο για το &lt;strong&gt;2015&lt;/strong&gt;, και σκέφτηκα να ξεκινήσω με κάτι που με χαροποίησε ιδιαίτερα τις προυηγούμενες μέρες. Προφανώς και δεν αναφέρομαι στην άδεια των Χριστουγέννων (&lt;em&gt;ψέμματα&lt;/em&gt;), ούτε στα Χριστουγεννιάτικα δώρα (&lt;em&gt;πάλι ψέμματα&lt;/em&gt;), αλλά στον νέο μου dedicated server, τον οποίο νοικιάζω μόλις 5 Ευρώ τον μήνα!!!&lt;/p&gt;
@@ -85,7 +85,7 @@
 
 &lt;p&gt;Κάνοντας &amp;ldquo;&lt;em&gt;Δεξί κλικ&lt;/em&gt;&amp;rdquo; στον Google Chrome (&lt;em&gt;αλλά και σε άλλους browsers&lt;/em&gt;), υπάρχει μία επιλογή που λέει &lt;code&gt;Inspect Element&lt;/code&gt;. Παίζοντας λοιπόν τον &lt;em&gt;Sherlock Holmes&lt;/em&gt;, άρχισα να εξερευνώ το HTML template της σελίδα του Kimsufi. Μιας λοιπόν που ο server των 5 ευρώ δεν ήταν διαθέσιμος, η προσοχή μου στράφηκε σ&amp;rsquo;εναν άλλον, πιο ακριβό,που όμως ήταν διαθέσιμος: Με άλλα λόγια, υπήρχε &amp;ldquo;Buy Button&amp;rdquo;!&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/inspect.jpg&#34; alt=&#34;Buy Button&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/images/inspect.jpg&#34; alt=&#34;Buy Button&#34; /&gt;
 &lt;/p&gt;
 
 &lt;p&gt;Συγκεκριμένα, με ενδιέφερε να δω αυτό ακριβώς:&lt;/p&gt;
@@ -100,7 +100,7 @@
 
 &lt;p&gt;Το πρώτο πράγμα που έκανα είναι να επισκεφτώ την &lt;a href=&#34;https://www.kimsufi.com/en/order/kimsufi.cgi?hard=150sk10&#34;&gt;παραπάνω σελίδα&lt;/a&gt;. Εκεί είδα ότι ο server δεν είναι διαθέσιμος, και συγκεκριμένα παρατήρησα ότι γράφει &lt;strong&gt;Error&lt;/strong&gt;.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/errorpage.jpg&#34; alt=&#34;Kimsufi error page&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/images/errorpage.jpg&#34; alt=&#34;Kimsufi error page&#34; /&gt;
 &lt;/p&gt;
 
 &lt;p&gt;Θαυμασια νέα! Οπότε το μόνο που είχα να κάνω είναι να βάλω ένα script να κατεβάζει τον HTML κώδικα αυτής της σελίδας και να ψάχνει να βρει αν υπάρχει το &lt;strong&gt;string&lt;/strong&gt; &lt;code&gt;error&lt;/code&gt;.&lt;/p&gt;
@@ -172,7 +172,7 @@ done
 
 &lt;p&gt;Μετά από 7 περίπου ώρες, η εταιρία επαλήθευσε τα στοιχεία μου και μου έστειλε τα credentials για login. Υπάρχει μία τεράστια λίστα από Linux distro και FreeBSD προς εγκατάσταση (&lt;em&gt;one click install&lt;/em&gt;) καθώς και ένας πολύ απλός Panel για Monitoring.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/kimsufipanel.jpg&#34; alt=&#34;Kimsufi Manager Panel&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/images/kimsufipanel.jpg&#34; alt=&#34;Kimsufi Manager Panel&#34; /&gt;
 &lt;/p&gt;
 
 &lt;p&gt;Για τα 5 Ευρώ, η Kimsufi δεν σου βάζει κάποιο bandwidth limit, αλλά προφανώς αν αρχίσεις να επιβαρύνεις το δίκτυο θα σου πει &amp;ldquo;κανά δύο λογάκια&amp;rdquo;. Δεν παρέχει κανενός είδος support, κάτι που είναι λογικό για την τιμή.&lt;/p&gt;
@@ -183,7 +183,7 @@ done
 
 &lt;p&gt;Για όσους έχετε δει την ταινία, φανταστείτε να πάρω τηλέφωνω στην &lt;em&gt;τεχνική υποστήριξη&lt;/em&gt; και να αρχίσουν να μου μιλάνε &lt;em&gt;Σετεμί&lt;/em&gt;!&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/setemi.jpg&#34; alt=&#34;Στην χώρα τον Σετεμι&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/images/setemi.jpg&#34; alt=&#34;Στην χώρα τον Σετεμι&#34; /&gt;
 &lt;/p&gt;
 
 &lt;p&gt;Σε περίπτωση που περάσουν οι 30 μέρες και ξεχάσετε να ανανεώσετε την συνδρομή σας, τότε γίνεται αυτόματα format. Ω ναι, δεν σας ρωτάνε ξανά και ξανά όπως κάνουν στο GoDaddy. Δεν τους ενδιαφέρει, δεν ασχολούνται! Οπότε, μην ξεχάσετε να ανανεώσετε την συνδρομή σας, διαφορετικά ο server σας θα βγει άμεσα στο σφυρί στην επόμενη κλήρωση, και θα γίνει άμεσα sold out :)&lt;/p&gt;
@@ -203,10 +203,10 @@ done
     
     <item>
       <title>Automated deployments with Wercker</title>
-      <link>http://localhost:1313/blog/2015/01/12/automated-deployments-with-wercker/</link>
+      <link>http://drpaneas.github.io/blog/2015/01/12/automated-deployments-with-wercker/</link>
       <pubDate>Mon, 12 Jan 2015 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/blog/2015/01/12/automated-deployments-with-wercker/</guid>
+      <guid>http://drpaneas.github.io/blog/2015/01/12/automated-deployments-with-wercker/</guid>
       <description>
 
 &lt;h1 id=&#34;automated-deployments-with-wercker:b122a196014951ebab85fff56cc6436b&#34;&gt;Automated deployments with Wercker&lt;/h1&gt;
@@ -249,7 +249,7 @@ git clone https://github.com/spf13/herring-cove.git
 
 &lt;p&gt;If everything is fine, you should be able to see something similar to the image below when you go to localhost:1313 in your browser.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/creating-a-basic-hugo-site.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/creating-a-basic-hugo-site.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;setting-up-version-control:b122a196014951ebab85fff56cc6436b&#34;&gt;Setting up version control&lt;/h2&gt;
@@ -285,77 +285,77 @@ git commit -m &amp;quot;Initial commit&amp;quot;
 git push -u origin master
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/adding-the-project-to-github.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/adding-the-project-to-github.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;welcome-to-wercker:b122a196014951ebab85fff56cc6436b&#34;&gt;Welcome to wercker&lt;/h2&gt;
 
 &lt;p&gt;Let&amp;rsquo;s start by setting up an account for Wercker. To do so we&amp;rsquo;ll go to &lt;a href=&#34;http://wercker.com&#34;&gt;http://wercker.com&lt;/a&gt; and click on the &lt;strong&gt;register&lt;/strong&gt; link at the top-right corner.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/welcome-to-wercker.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/welcome-to-wercker.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;register:b122a196014951ebab85fff56cc6436b&#34;&gt;Register&lt;/h2&gt;
 
 &lt;p&gt;To make life easier for ourselves, we will then register using GitHub. If you don&amp;rsquo;t have a GitHub account, or don&amp;rsquo;t want to use it for your account, you can of course register with a username and password as well.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/register.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/register.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;connect-github-bitbucket:b122a196014951ebab85fff56cc6436b&#34;&gt;Connect GitHub/Bitbucket&lt;/h2&gt;
 
 &lt;p&gt;After you are registered, you will need to link your GitHub and/or Bitbucket account to Wercker. You do this by going to your profile settings, and then &amp;ldquo;Git connections&amp;rdquo; If you registered using GitHub it will most likely look like the below. To connect a missing service, simply click on the connect button which will then send you to either GitHub or Bitbucket where you might need to log in and approve their access to your account.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/connect-github-bitbucket.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/connect-github-bitbucket.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;add-your-project:b122a196014951ebab85fff56cc6436b&#34;&gt;Add your project&lt;/h2&gt;
 
 &lt;p&gt;Now that we&amp;rsquo;ve got all the preliminaries out of the way, it&amp;rsquo;s time to set up our application. For this we click on the &lt;strong&gt;+ Add&lt;/strong&gt; button next to Apps, and then we&amp;rsquo;ll choose to use GitHub as our provider.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/add-your-project.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/add-your-project.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;select-a-repository:b122a196014951ebab85fff56cc6436b&#34;&gt;Select a repository&lt;/h2&gt;
 
 &lt;p&gt;Clicking this will make Wercker show you all the repositories you have on GitHub, but you can easily filter them as well. So we search for our repository, select it, and then click on &amp;ldquo;Use selected repo&amp;rdquo;.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/select-a-repository.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/select-a-repository.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;configure-access:b122a196014951ebab85fff56cc6436b&#34;&gt;Configure access&lt;/h2&gt;
 
 &lt;p&gt;This step can be slightly tricky. As Wercker doesn&amp;rsquo;t access to check out your private projects by default it will ask you what you want to do. When your project is public, as needs to be the case if you wish to use GitHub Pages, the top choice is recommended. When you use this it will simply check out the code in the same way anybody visiting the project on GitHub can do.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/configure-access.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/configure-access.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;wercker-yml:b122a196014951ebab85fff56cc6436b&#34;&gt;Wercker.yml&lt;/h2&gt;
 
 &lt;p&gt;Wercker will now attempt to create an initial wercker.yml file for you. Or rather, it will create the code you can copy into it yourself. Because there is nothing special about our project according to Wercker, we will simply get the &lt;code&gt;wercker/default&lt;/code&gt; box. So what we do now is create a wercker.yml file in the root of our project that contains the provided configuration, and after we finish setting up the app we will expand this file to make it actually do something.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/werckeryml.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/werckeryml.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;public-or-not:b122a196014951ebab85fff56cc6436b&#34;&gt;Public or not&lt;/h2&gt;
 
 &lt;p&gt;This is a personal choice, you can make an app public so that everyone can see more details about it. This doesn&amp;rsquo;t give you any real benefits either way in general, although as part of the tutorial I have of course made this app public so you can see it in action &lt;a href=&#34;https://app.wercker.com/#applications/54b1e45eda3a4af76406ece6&#34;&gt;yourself&lt;/a&gt;.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/public-or-not.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/public-or-not.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;and-we-ve-got-an-app:b122a196014951ebab85fff56cc6436b&#34;&gt;And we&amp;rsquo;ve got an app&lt;/h2&gt;
 
 &lt;p&gt;The application is added now, and Wercker will be offering you the chance to trigger a build. As we haven&amp;rsquo;t pushed up the &lt;strong&gt;wercker.yml&lt;/strong&gt; file however, we will politely decline this option.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/and-we-ve-got-an-app.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/and-we-ve-got-an-app.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;adding-steps:b122a196014951ebab85fff56cc6436b&#34;&gt;Adding steps&lt;/h2&gt;
 
 &lt;p&gt;And now we&amp;rsquo;re going to add the steps themselves. First, we go to the &amp;ldquo;Steps&amp;rdquo; action in the sidebar and then search for hugo. The first result is the &lt;strong&gt;Hugo-Build&lt;/strong&gt; task, which we select.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/adding-steps.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/adding-steps.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;using-hugo-build:b122a196014951ebab85fff56cc6436b&#34;&gt;Using Hugo-Build&lt;/h2&gt;
@@ -380,7 +380,7 @@ git push origin master
 
 &lt;p&gt;Once completed a nice tick should have appeared in front of your first build, and if you want you can look at the details by clicking on it. However, we&amp;rsquo;re not done yet as we still need to deploy it to GitHub Pages.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/using-hugo-build.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/using-hugo-build.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;adding-a-github-pages-step:b122a196014951ebab85fff56cc6436b&#34;&gt;Adding a GitHub Pages step&lt;/h2&gt;
@@ -408,14 +408,14 @@ deploy:
 
 &lt;p&gt;And lastly, you can see here that this has a &lt;strong&gt;$GIT_TOKEN&lt;/strong&gt; variable. This is used for pushing our changes up to GitHub and we will need to configure this before we can do that. We do this by going to our app&amp;rsquo;s settings and clicking on &lt;strong&gt;Deploy targets&lt;/strong&gt;. Now, we &lt;strong&gt;Add deploy target&lt;/strong&gt; and select &lt;strong&gt;Custom deploy&lt;/strong&gt;.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/adding-a-github-pages-step.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/adding-a-github-pages-step.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;configure-the-deploy-step:b122a196014951ebab85fff56cc6436b&#34;&gt;Configure the deploy step&lt;/h2&gt;
 
 &lt;p&gt;Simply fill in the name, and make sure you enable &lt;strong&gt;auto deploy&lt;/strong&gt; from the &lt;strong&gt;master&lt;/strong&gt; branch. Next you add a variable for the &lt;strong&gt;GIT_TOKEN&lt;/strong&gt;, for this you&amp;rsquo;ll need to create an access token in GitHub. How to do that is described on a &lt;a href=&#34;https://help.github.com/articles/creating-an-access-token-for-command-line-use/&#34;&gt;GitHub help page&lt;/a&gt;. With the deploy step configured in Wercker, we can push the updated wercker.yml file to GitHub and it will create the GitHub pages site for us. The example site we used here is accessible under hugo-wercker.ig.nore.me&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/tutorials/configure-the-deploy-step.png&#34; alt=&#34;&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/img/tutorials/configure-the-deploy-step.png&#34; alt=&#34;&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h2 id=&#34;conclusion:b122a196014951ebab85fff56cc6436b&#34;&gt;Conclusion&lt;/h2&gt;
