@@ -1,7 +1,7 @@
-baseurl = "drpaneas.github.io"
+baseurl = "http://drpaneas.github.io"
 title = "Panos Blog"
 languageCode = "en-us"
-disqusShortname = "panosblog"
+#disqusShortname = "panosblog"
 #disqusShortname = "PanosGeorgiadis"
 MetaDataFormat = "toml"
 
