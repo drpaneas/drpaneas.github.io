@@ -83,12 +83,14 @@ html {
 .sidebar-about h1 {
   color: #ffcc33;
   margin-top: 0;
-  font-family: serif;
-  font-size: 3.25rem;
+  font-family: inherit;
+  font-size: 1.5rem;
 }
 
 /* Sidebar nav */
 .sidebar-nav {
+  padding-left: 0;
+  list-style: none;
   margin-bottom: 1rem;
 }
 .sidebar-nav-item {
