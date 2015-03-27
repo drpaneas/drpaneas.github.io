@@ -14,3 +14,11 @@ Header append Cache-Control "public"
 ExpiresDefault A1209600
 Header append Cache-Control "private, must-revalidate"
 </FilesMatch>
+
+# Browser Caching
+FileETag MTime Size
+
+<IfModule expires_module>
+    ExpiresActive on
+    ExpiresDefault "access plus 1 week"
+</IfModule>
