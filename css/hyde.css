@@ -203,42 +203,6 @@ a.sidebar-nav-item:focus {
 
 
 
-/* From bootstrap.css 3.3.0 - start */
-.label {
-  display: inline;
-  padding: .2em .6em .3em;
-  font-size: 75%;
-  font-weight: bold;
-  line-height: 1;
-  color: #fff;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: baseline;
-  border-radius: .25em;
-}
-a.label:hover,
-a.label:focus {
-  color: #fff;
-  text-decoration: none;
-  cursor: pointer;
-}
-.label:empty {
-  display: none;
-}
-/* From bootstrap.css 3.3.0 - end */
-
-.label {
-  margin: 0 .25em;
-  background-color: #313131;
-}
-
-.posts a.label,
-.post-date a.label {
-  color: #fff;
-  text-decoration: none;
-  cursor: pointer;
-}
-
 /*
  * Themes
  *
@@ -318,4 +282,41 @@ a.label:focus {
 .theme-base-0f .content a,
 .theme-base-0f .related-posts li a:hover {
   color: #8f5536;
+}
+
+
+/* From bootstrap.css 3.3.0 - start */
+.label {
+  display: inline;
+  padding: .2em .6em .3em;
+  font-size: 75%;
+  font-weight: bold;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: .25em;
+}
+a.label:hover,
+a.label:focus {
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+.label:empty {
+  display: none;
+}
+/* From bootstrap.css 3.3.0 - end */
+
+.label {
+  margin: 0 .25em;
+  background-color: #313131;
+}
+
+.posts a.label,
+.post-date a.label {
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
 }
