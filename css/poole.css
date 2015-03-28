@@ -2296,3 +2296,255 @@ i.freebsd-19px:before {
     width: 100%;
     height: 100%;    
 }
+
+
+/*
+ * Additional CSS for Hyde-X
+ */
+
+.posts {
+  list-style: none;
+}
+
+.posts li {
+  margin: 0 0 .5em 0;
+}
+
+.sidebar-about img {
+  margin: 0 auto 0.5rem auto;
+  width: 150px;
+  height: 150px;
+}
+@media (min-width: 48em) {
+  .sidebar-about img {
+    margin: 0 0 0.75rem 0;
+    width: 175px;
+    height: 175px;
+  }
+}
+@media (min-width: 58em) {
+  .sidebar-about img {
+    margin: 0 0 1rem 0;
+    width: 200px;
+    height: 200px;
+  }
+}
+
+/* From bootstrap.css 3.3.0 - start */
+.label {
+  display: inline;
+  padding: .2em .6em .3em;
+  font-size: 75%;
+  font-weight: bold;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: .25em;
+}
+a.label:hover,
+a.label:focus {
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+.label:empty {
+  display: none;
+}
+/* From bootstrap.css 3.3.0 - end */
+
+.label {
+  margin: 0 .25em;
+  background-color: #313131;
+}
+
+.posts a.label,
+.post-date a.label {
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Red */
+.theme-base-08 .label {
+  background-color: #271E1E;
+}
+
+/* Orange */
+.theme-base-09 .label {
+  background-color: #d28445;
+}
+
+/* Yellow */
+.theme-base-0a .label {
+  background-color: #f4bf75;
+}
+
+/* Green */
+.theme-base-0b .label {
+  background-color: #90a959;
+}
+
+/* Cyan */
+.theme-base-0c .label {
+  background-color: #75b5aa;
+}
+
+/* Blue */
+.theme-base-0d .label {
+  background-color: #6a9fb5;
+}
+
+/* Magenta */
+.theme-base-0e .label {
+  background-color: #aa759f;
+}
+
+/* Brown */
+.theme-base-0f .label {
+  background-color: #8f5536;
+}
+
+
+/*
+Date: 17.V.2011
+Author: pumbur <pumbur@pumbur.net>
+*/
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  background: #222;
+}
+
+.profile .hljs-header *,
+.ini .hljs-title,
+.nginx .hljs-title {
+  color: #fff;
+}
+
+.hljs-comment,
+.hljs-javadoc,
+.hljs-preprocessor,
+.hljs-preprocessor .hljs-title,
+.hljs-pragma,
+.hljs-shebang,
+.profile .hljs-summary,
+.diff,
+.hljs-pi,
+.hljs-doctype,
+.hljs-tag,
+.hljs-template_comment,
+.css .hljs-rules,
+.tex .hljs-special {
+  color: #444;
+}
+
+.hljs-string,
+.hljs-symbol,
+.diff .hljs-change,
+.hljs-regexp,
+.xml .hljs-attribute,
+.smalltalk .hljs-char,
+.xml .hljs-value,
+.ini .hljs-value,
+.clojure .hljs-attribute,
+.coffeescript .hljs-attribute {
+  color: #ffcc33;
+}
+
+.hljs-number,
+.hljs-addition {
+  color: #00cc66;
+}
+
+.hljs-built_in,
+.hljs-literal,
+.vhdl .hljs-typename,
+.go .hljs-constant,
+.go .hljs-typename,
+.ini .hljs-keyword,
+.lua .hljs-title,
+.perl .hljs-variable,
+.php .hljs-variable,
+.mel .hljs-variable,
+.django .hljs-variable,
+.css .funtion,
+.smalltalk .method,
+.hljs-hexcolor,
+.hljs-important,
+.hljs-flow,
+.hljs-inheritance,
+.parser3 .hljs-variable {
+  color: #32aaee;
+}
+
+.hljs-keyword,
+.hljs-tag .hljs-title,
+.css .hljs-tag,
+.css .hljs-class,
+.css .hljs-id,
+.css .hljs-pseudo,
+.css .hljs-attr_selector,
+.lisp .hljs-title,
+.clojure .hljs-built_in,
+.hljs-winutils,
+.tex .hljs-command,
+.hljs-request,
+.hljs-status {
+  color: #6644aa;
+}
+
+.hljs-title,
+.ruby .hljs-constant,
+.vala .hljs-constant,
+.hljs-parent,
+.hljs-deletion,
+.hljs-template_tag,
+.css .hljs-keyword,
+.objectivec .hljs-class .hljs-id,
+.smalltalk .hljs-class,
+.lisp .hljs-keyword,
+.apache .hljs-tag,
+.nginx .hljs-variable,
+.hljs-envvar,
+.bash .hljs-variable,
+.go .hljs-built_in,
+.vbscript .hljs-built_in,
+.lua .hljs-built_in,
+.rsl .hljs-built_in,
+.tail,
+.avrasm .hljs-label,
+.tex .hljs-formula,
+.tex .hljs-formula * {
+  color: #bb1166;
+}
+
+.hljs-yardoctag,
+.hljs-phpdoc,
+.profile .hljs-header,
+.ini .hljs-title,
+.apache .hljs-tag,
+.parser3 .hljs-title {
+  font-weight: bold;
+}
+
+.coffeescript .javascript,
+.javascript .xml,
+.tex .hljs-formula,
+.xml .javascript,
+.xml .vbscript,
+.xml .css,
+.xml .hljs-cdata {
+  opacity: 0.6;
+}
+
+.hljs,
+.hljs-subst,
+.diff .hljs-chunk,
+.css .hljs-value,
+.css .hljs-attribute {
+  color: #aaa;
+}
