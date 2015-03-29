@@ -2,19 +2,19 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Panos Blog</title>
-    <link>http://localhost:1313/</link>
+    <link>http://drpaneas.github.io/</link>
     <description>Recent content on Panos Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Sun, 01 Mar 2015 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://drpaneas.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>License</title>
-      <link>http://localhost:1313/license/</link>
+      <link>http://drpaneas.github.io/license/</link>
       <pubDate>Sun, 01 Mar 2015 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/license/</guid>
+      <guid>http://drpaneas.github.io/license/</guid>
       <description>
 
 &lt;h3 id=&#34;content-license:53e892b8b41cc4caece1cfd5ef21d6e7&#34;&gt;Content license&lt;/h3&gt;
@@ -38,10 +38,10 @@
     
     <item>
       <title>Decreypt OpenSSL file</title>
-      <link>http://localhost:1313/blog/2014/12/17/decreypt-openssl-file/</link>
+      <link>http://drpaneas.github.io/blog/2014/12/17/decreypt-openssl-file/</link>
       <pubDate>Wed, 17 Dec 2014 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/blog/2014/12/17/decreypt-openssl-file/</guid>
+      <guid>http://drpaneas.github.io/blog/2014/12/17/decreypt-openssl-file/</guid>
       <description>
 
 &lt;p&gt;Ντεμπούτο του Linuxed! Αναρωτιώμουν από πού να ξεκινήσω το άρθρο μου, αλλά σήμερα νιώθω ότι έχω πολλά να πω, και θέλω να αποφύγω να ξεκινάω να σας γράφω &lt;em&gt;για το ένα και για το άλλο&lt;/em&gt; και να αφήνω το σημαντικό στο τέλος. Αποφάσισα λοιπόν αντί άλλων καθυστερήσεων να μπω κατευθείαν στο κυρίως κείμενο&amp;hellip; &lt;em&gt;με μία μικρή εισαγωγή&lt;/em&gt;&amp;hellip;&lt;/p&gt;
@@ -101,7 +101,7 @@ q4$i???8?ЕP7F|Ԃ0Q????:??C???B?y??Ә*WW?j&amp;gt;V貺???Vi5uwyc??7%[?
 
 &lt;h2 id=&#34;κρυπτογράφιση-με-το-openssl:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Κρυπτογράφιση με το OpenSSL&lt;/h2&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/gandalfopenssl.png&#34; alt=&#34;Keep it secret keep it safe&#34; title=&#34;Keep it Secret, Keep it Safe&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/images/gandalfopenssl.png&#34; alt=&#34;Keep it secret keep it safe&#34; title=&#34;Keep it Secret, Keep it Safe&#34; /&gt;
 &lt;/p&gt;
 
 &lt;h3 id=&#34;βήμα-1-ενεργοποιήστε-την-κατάσταση-κωδικοποίησης-αρχείου:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Βήμα 1: Ενεργοποιήστε την κατάσταση κωδικοποίησης αρχείου&lt;/h3&gt;
@@ -206,10 +206,10 @@ q4$i???8?ЕP7F|Ԃ0Q????:??C???B?y??Ә*WW?j&amp;gt;V貺???Vi5uwyc??7%[?
     
     <item>
       <title>About Me</title>
-      <link>http://localhost:1313/about/</link>
+      <link>http://drpaneas.github.io/about/</link>
       <pubDate>Sun, 21 Sep 2014 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/about/</guid>
+      <guid>http://drpaneas.github.io/about/</guid>
       <description>
 
 &lt;h3 id=&#34;greetings-stranger:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Greetings stranger&lt;/h3&gt;
