@@ -562,7 +562,6 @@ input[type="number"]::-webkit-inner-spin-button {
   -moz-user-select: none;
   -ms-user-select: none;
   -o-user-select: none;
-  user-select: none;
   font-weight: 300;
   -webkit-transition: all 0.15s;
   -moz-transition: all 0.15s;
@@ -708,38 +707,6 @@ input[type="number"]::-webkit-inner-spin-button {
 @media (max-width: 767px) {
 }
 @media screen and (min-width: 768px) {
-}
-@-webkit-keyframes progress-bar-stripes {
-  from {
-    background-position: 40px 0;
-  }
-  to {
-    background-position: 0 0;
-  }
-}
-@-moz-keyframes progress-bar-stripes {
-  from {
-    background-position: 40px 0;
-  }
-  to {
-    background-position: 0 0;
-  }
-}
-@-o-keyframes progress-bar-stripes {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 40px 0;
-  }
-}
-@keyframes progress-bar-stripes {
-  from {
-    background-position: 40px 0;
-  }
-  to {
-    background-position: 0 0;
-  }
 }
 .panel {
   margin-bottom: 20px;
