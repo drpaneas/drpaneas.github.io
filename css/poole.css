@@ -267,11 +267,6 @@ dd {
 margin-left : 0;
 }
 @media (min-width:768px)
-blockquote p {
-font-size : 17.5px;
-font-weight : 300;
-line-height : 1.25;
-}
 q:before, q:after, blockquote:before, blockquote:after {
 content : "";
 }
