@@ -1720,7 +1720,6 @@ a.sidebar-nav-item:focus {
     background-repeat: repeat-x;
     border-color: #dbdbdb;
     border-color: #ccc;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#ffe0e0e0', GradientType=0);
 }
 
 .github-btn .btn-default:hover, .github-btn .btn-default:focus {
