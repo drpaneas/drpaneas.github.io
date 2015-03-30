@@ -1846,10 +1846,6 @@ a, a:hover, a:focus {
 
 input:focus, textarea:focus { outline: none; }
 *:focus {outline: none;}
-::selection {
-    background: #ff4088;
-    color: #fff;
-}
 ::-moz-selection {
     background: #ff4088;
     color: #fff;
