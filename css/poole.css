@@ -800,9 +800,6 @@ input[type="number"]::-webkit-inner-spin-button {
   float: right !important;
 }
 @media screen and (max-width: 400px) {
-  @-ms-viewport {
-    width: 320px;
-  }
 }
 
 .hidden-xs {
