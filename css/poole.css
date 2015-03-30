@@ -267,9 +267,6 @@ dd {
 margin-left : 0;
 }
 @media (min-width:768px)
-q:before, q:after, blockquote:before, blockquote:after {
-content : "";
-}
 address {
 display : block;
 margin-bottom : 20px;
