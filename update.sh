@@ -1,6 +1,7 @@
 #!/bin/bash
 
 git add --all
-git commit -m "sdfsdf"
+MESSAGE=$(date)
+git commit -m "$MESSAGE"
 git push
 
