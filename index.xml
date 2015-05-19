@@ -6,8 +6,52 @@
     <description>Recent content on Panos Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 01 Mar 2015 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 02 Apr 2015 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://drpaneas.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Static blog using Go</title>
+      <link>http://drpaneas.github.io/blog/2015/04/02/static-blog-using-go/</link>
+      <pubDate>Thu, 02 Apr 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://drpaneas.github.io/blog/2015/04/02/static-blog-using-go/</guid>
+      <description>
+
+&lt;h2 id=&#34;vim-plugin-for-writing-in-markdown:32ab7241d48fcc174c877413a917f8cf&#34;&gt;VIM plugin for writing in Markdown&lt;/h2&gt;
+
+&lt;p&gt;In the early beginning, I found writing posts in markdown format quite tricky.
+Things can become quite helpful by using an editor that
+provides you with features such as &lt;strong&gt;syntax highlighting&lt;/strong&gt; and &lt;strong&gt;HTML
+monitoring&lt;/strong&gt;. Apparently, there are noumerous plugins out there, but for
+me, &lt;em&gt;&amp;lsquo;vim-instant-markdown&amp;rsquo;&lt;/em&gt; seems to do the job, &lt;em&gt;just&lt;/em&gt; great.&lt;/p&gt;
+
+&lt;h3 id=&#34;install:32ab7241d48fcc174c877413a917f8cf&#34;&gt;Install&lt;/h3&gt;
+
+&lt;p&gt;In order to install it through &lt;em&gt;Vundle&lt;/em&gt;, edit your &lt;code&gt;.vimrc&lt;/code&gt; and put the &lt;strong&gt;git&lt;/strong&gt;
+source of the plugin:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-vim&#34;&gt; &amp;quot; plugin for MarkDown
+Plugin &#39;suan/vim-instant-markdown&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;force-md-files-to-be-treated-as-markdown:32ab7241d48fcc174c877413a917f8cf&#34;&gt;Force &lt;code&gt;.md&lt;/code&gt; files to be treated as &lt;code&gt;.markdown&lt;/code&gt;&lt;/h4&gt;
+
+&lt;p&gt;By default, only the &lt;code&gt;.markdown&lt;/code&gt; extension is typically recognized as
+markdown filetype. Given the fact that I&amp;rsquo;m one of those people who prefer to use
+ the  &lt;code&gt;.md&lt;/code&gt; extension as an alternative; VIM also needs to be configured, so to
+treat the content of my &lt;em&gt;posts&lt;/em&gt; like any other &lt;code&gt;.markdown&lt;/code&gt; file.&lt;/p&gt;
+
+&lt;p&gt;That has been said, edit your &lt;code&gt;.vimrc&lt;/code&gt; file and add this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-vim&#34;&gt;&amp;quot; Detect *.md as *.markdown
+autocmd BufNewFile,BufReadPost *.md set filetype=markdown
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To test if it works, edit (or create) a file with &lt;code&gt;.md&lt;/code&gt; extension and observe if the syntax has been
+highlighted or not. Also, your web-browser should immediately pop-up and start
+generating &amp;ndash; &lt;em&gt;on-the-fly&lt;/em&gt; &amp;ndash; a webpage, based on the markdown syntax of the file.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>License</title>
@@ -37,200 +81,371 @@
     </item>
     
     <item>
-      <title>Decreypt OpenSSL file</title>
-      <link>http://drpaneas.github.io/blog/2014/12/17/decreypt-openssl-file/</link>
-      <pubDate>Wed, 17 Dec 2014 00:00:00 +0000</pubDate>
-      
-      <guid>http://drpaneas.github.io/blog/2014/12/17/decreypt-openssl-file/</guid>
-      <description>
-
-&lt;p&gt;Ντεμπούτο του Linuxed! Αναρωτιώμουν από πού να ξεκινήσω το άρθρο μου, αλλά σήμερα νιώθω ότι έχω πολλά να πω, και θέλω να αποφύγω να ξεκινάω να σας γράφω &lt;em&gt;για το ένα και για το άλλο&lt;/em&gt; και να αφήνω το σημαντικό στο τέλος. Αποφάσισα λοιπόν αντί άλλων καθυστερήσεων να μπω κατευθείαν στο κυρίως κείμενο&amp;hellip; &lt;em&gt;με μία μικρή εισαγωγή&lt;/em&gt;&amp;hellip;&lt;/p&gt;
-
-&lt;p&gt;Αν είστε &lt;em&gt;fan&lt;/em&gt; του &lt;a href=&#34;http://el.wikipedia.org/wiki/%CE%9F_%CE%86%CF%81%CF%87%CE%BF%CE%BD%CF%84%CE%B1%CF%82_%CF%84%CF%89%CE%BD_%CE%94%CE%B1%CF%87%CF%84%CF%85%CE%BB%CE%B9%CE%B4%CE%B9%CF%8E%CE%BD&#34;&gt;LoTR&lt;/a&gt;, φαντάζομαι πως θα θυμάστε την σκηνή&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:ef6c1e81a6cb1460145443492c6e3cfa:1&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:ef6c1e81a6cb1460145443492c6e3cfa:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; που ο Gandalf μπαίνει μέσα στο Bag End και ρωτάει τον Frodo: &amp;ldquo;&lt;em&gt;Is it secret? Is it safe?&lt;/em&gt;&amp;rdquo;. Στην συνέχεια, ο Frodo επιβεβαιώνει τα λεγόμενά του, δείχνοτας πως το δαχτυλίδι παραμένει σφραγισμένο μέσα στον φάκελο. Προφανώς, για όλους εμάς, ένας φάκελος και μια σφραγίδα, δεν καλύπτουν τα σημερινα security standards. Οπότε, για όλους εμάς, το &lt;em&gt;δαχτυλίδι&lt;/em&gt; δεν είναι &lt;strong&gt;ούτε secret&lt;/strong&gt;, &lt;strong&gt;ούτε safe&lt;/strong&gt;, αλλά βλέπετε, εκείνη την &lt;em&gt;μυθική&lt;/em&gt; εποχή της &lt;em&gt;Μέσης Γης&lt;/em&gt;, οι μάγοι και άλλα πλάσματα του Eru Ilúvatar, δεν είχαν PC ή Internet. Αντίθετα σήμερα, οι μάγοι της εποχής μας έχουν τα δικά τους εργαλεία και είναι γνωστοί ως Hackers.&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;Αυτό όμως είναι μία ιστορία, θα πούμε άλλη φορά!&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&#34;keep-it-secret-keep-it-safe:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Keep it secret, Keep it Safe&lt;/h2&gt;
-
-&lt;p&gt;Το βασικό μου πρόβλημα ξεκίνησε όταν θέλησα να στείλω ένα αρχείο &lt;em&gt;από&lt;/em&gt; τον server μου στην Ελλάδα &lt;em&gt;στο&lt;/em&gt; macbook μου εδώ στην Γερμανία. Λοιπόν, για να πούμε τα πράγματα με το όνομά τους: Δεν ήταν ένα οποιοδήποτε αρχείο. Δεν μπορώ να σας πω &amp;ldquo;τι είναι&amp;rdquo; και &amp;ldquo;τι δεν είναι&amp;rdquo;, καθώς η κρυφή του ταυτότητα θαρρώ πως δίνει ένα &amp;ldquo;μυστικό τόνο&amp;rdquo; στο άρθρο. Αυτό δε σημαίνει ότι είναι μυστικό και σ&amp;rsquo;εμένα, μια χαρά ξέρω &amp;ldquo;περί&amp;rdquo; ποιου αρχείου πρόκειται. Κατά μία έννοια θα μπορούσε να πει κανείς ότι κ εσείς ξέρετε, ακόμα κι αν δεν έχετε άμεση πρόσβαση στο μυαλό μου ή τον υπολογιστή μου, μπορείτε να κάνετε εικασίες.&lt;/p&gt;
-
-&lt;p&gt;Καταλαβαίνετε που το πάω; Μπορεί να (μην) ξέρετε για ποιο αρχείο σας μιλάω, αλλά για όσους με ξέρουν και &amp;ldquo;το μυαλό τους πηγαίνει κατά κει&amp;rdquo;, να ξέρουν οτι δεν θα το βρουν. Unsurprisingly, την ίδια μοίρα μ&amp;rsquo;εσάς, θα έχει και η Deutsche Telekom και η NSA που έχουν&amp;rdquo;έχει στήσει αφτί&amp;rdquo; αμφότεροι στο τέλος της γραμμής. Όχι, δεν μπορεί και δεν θα μπορέσει ποτέ &lt;strong&gt;κανείς&lt;/strong&gt; να μάθει για ποιο αρχείο σας μιλάω. Μπα. Με τίποτα&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:ef6c1e81a6cb1460145443492c6e3cfa:2&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:ef6c1e81a6cb1460145443492c6e3cfa:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
-
-&lt;p&gt;Αν προσπαθείσετε να δείτε τα περιεχόμενα του αρχείου:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ cat file 
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;θα δείτε κάτι τέτοιο:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;Salted__???~?B?&#39;?`c?g&amp;lt;?)/g&amp;amp;??????[?&amp;lt;???O?d?S??~?q???Ѫi??C??
-                                                           &amp;quot;?Fz@????\pg????2?i|?f??L?&amp;gt;?d{?:*???????v??K?&amp;quot;?Y?̷?p?Z???(?Q???????*dme???Fgۦ?	??
- c??n?[Bo?r?^?;L+!?
-                   %7?L?*?Qr?Plb?b{Y	/?1[?=,﹯?}8K?rP?Ņ??U????f&amp;quot;{Ǒ?
-                                                                     ?-?&amp;amp;??O[????m?Qw$???҈R?(?]	??6;yQ??Wy)?FO?K?*I??URZ?l2)Xʓ????N?%??Q-??d??{??U?o
-     ?ڎ?;U&#39;?i?eR?/?R~???`???NM&amp;lt;?ԡ|0o=?P??9?̢j?/??
-?3?v?S?o&#39;?????۬?GM?X϶?^??OVr?&amp;quot;????\&amp;amp;L.?V8\|??b??????ՉJ?)????9;+??SC?c?㱶?]??\$?7G6??W??j??!l??$?_UO?i??H?H???
-??IHq??:?M ?G??I(4??/??S:Ӷ???Z?z??????E?9&#39;?a?(U߃D?Ny5???hD????@Z2U&amp;lt;?ɽ?
-sx?ϴ#??????W1?&#39;?T??|=ы?5?d?$?}?쪯YX(J/?}2?&#39;xx?t??Q#?@?&amp;gt;c{{????Dd5??&amp;amp;?~?lBmR?
-?jf?????@n?R??թG???T?I_W??(??????wQ?)q,?6M?(?w$???ᬥ???1??uxc,9(??*t1??yh??+U?? ?d??NL?8?ȴ?/?&#39;?OLa??z?&amp;amp;J9DR\c??f?%??sÒu????
-                                                                                                                        )s?9?f?x??E???\q???l??;?9
-???!L?z?%?})?(??a?}?&amp;gt;_?-?_?????&amp;amp;???R?XQ?x??U?C7?Z?:`F)@[?W5u??je??$??$`&amp;amp;??3?[jF
-                                                                               ¡?R??#??a??w?@ q|y6??5??*&amp;amp;??Vw?9}???om?a?_8??M0?!???c??h?}};گ?#?G?ĩ?	??BVJ^Ґ?V9
-                  H???*W6?kE??????Ơ
-                                   Zp]F86?b?8?5?8?N?,?N???1&#39;.??1???:??%@=?I@???????&#39;?OW?s?u?O?ꨯm??s?Mwzq???????????*?ƾx1V4???.?Ր???87??e
-??ܢO?r???DՁZ?1????Y7?WQE?ְ?X?Ps??Gseݍ
-8?wP?)??/%????}?`?Has?I?B?l&#39;????+
-?ۖF
-   ?L? ?F?rT?)?e{?#^m!IO??0P?3????_4Kgϗ,\???D???????8;???H?q
-????nTdZS???_???|\߷?t???P?
-                          ?.???t?0c:=?3yney#E??D?~?5????؅????أ8% .?U?l!6&amp;amp;
-q4$i???8?ЕP7F|Ԃ0Q????:??C???B?y??Ә*WW?j&amp;gt;V貺???Vi5uwyc??7%[?
-???s$?N???p??\ri5xza???&amp;amp;l?&amp;quot;o@?T?몜??o#u?$H???
-/O?F?&amp;quot;?R@n??6?o??8?:??Άf?.|?????9P??n
-                                     &amp;gt;?`?O$*?????x????ã??)??5?D?{v???Q&amp;amp;?Q??????9??j	*-
-                                                                                          ?Zxߚ?A?U?O?v&amp;gt;j?g??-?&amp;gt;&amp;amp;:??i?]??????5$a?9?U+????셴&amp;lt;+???k??r$O?;x:???l=?B4arp?
-??B??4?@??[?3N?q??!h???g`?pJ6???뭁????N??#??q??/???&amp;gt;?Q??#??ҧ?Q?W?????L??5xVnلΐ
-??(?&amp;quot;t?7???ň=?MH?O??c?sbF?@a??#?aK,?Q?q??b??Z ͊?F??g%܅??1v??$
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Οι παραπάνω &amp;ldquo;&lt;em&gt;ασυναρτησίες&lt;/em&gt;&amp;rdquo; οφείλονται στο γεγονός ότι το αρχείο είναι κρυπτογραφημένο (&lt;em&gt;encrypted&lt;/em&gt;). Και ένα αρχείο, μη προσπελάσιμο, είναι τελείως άχρηστο. Για να το αποκρυπτογραφίσετε, θα πρέπει να γνωρίζετε την τέχνη του OpenSSL, καθώς και κάποια άλλα πράγματα, όπως: τον &lt;strong&gt;Cipher&lt;/strong&gt; και το &lt;strong&gt;passphrase&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h2 id=&#34;κρυπτογράφιση-με-το-openssl:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Κρυπτογράφιση με το OpenSSL&lt;/h2&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://drpaneas.github.io/images/gandalfopenssl.png&#34; alt=&#34;Keep it secret keep it safe&#34; title=&#34;Keep it Secret, Keep it Safe&#34; /&gt;
-&lt;/p&gt;
-
-&lt;h3 id=&#34;βήμα-1-ενεργοποιήστε-την-κατάσταση-κωδικοποίησης-αρχείου:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Βήμα 1: Ενεργοποιήστε την κατάσταση κωδικοποίησης αρχείου&lt;/h3&gt;
-
-&lt;p&gt;The openssl program is a command line tool for using the various cryptography functions of OpenSSL’s crypto library from the shell. It can be also used for file encryption and decryption with Ciphers&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:ef6c1e81a6cb1460145443492c6e3cfa:3&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:ef6c1e81a6cb1460145443492c6e3cfa:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;. Για να χρησιμοποιήσουμε αυτή την λειτουργία, αρκεί να δώσουμε την παράμετρο &lt;code&gt;enc&lt;/code&gt;.&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;enc&lt;/code&gt; – Encoding with Ciphers.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&#34;βήμα-2-επιλέξτε-το-αρχείο-που-θέλετε-να-κρυπτογραφίσετε:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Βήμα 2: Επιλέξτε το αρχείο που θέλετε να κρυπτογραφίσετε&lt;/h3&gt;
-
-&lt;p&gt;Στην συνέχεια θα επιλέξουμε το αρχείο που θέλουμε να κρυπτογραφίσουμε (&lt;strong&gt;για λόγους ευκολίας, ας ονομάσουμε το αρχείο με το προτώτυπο όνομα που είμαι σίγουρος ότι δεν έχετε ξαναδει ποτέ μπροστά σας&lt;/strong&gt; &lt;code&gt;foo.bar&lt;/code&gt;). Αυτό λοιπόν πρόκειται να παίξει τον ρόλο του &lt;code&gt;input file&lt;/code&gt;, γεγονός που δηλώνεται με την παράμετρο &lt;code&gt;-in&lt;/code&gt;. Με την ευκαιρία, ας δούμε μερικές από τις επιλογές που μπορείτε να συνδυάσετε παρέα με την παράμετρο &lt;code&gt;enc&lt;/code&gt;:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;-in&lt;/code&gt; input file&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;-out&lt;/code&gt; output file&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;-pass&lt;/code&gt; pass phrase source&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;-e&lt;/code&gt; encrypt (by default)&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;-d&lt;/code&gt; decrypt&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;-k&lt;/code&gt; passphrase is the next argument&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&#34;βήμα-3-κρυπτογράφιση-ή-αποκρυπτογράφιση:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Βήμα 3: Κρυπτογράφιση ή Αποκρυπτογράφιση;&lt;/h3&gt;
-
-&lt;p&gt;Το επόμενο βήμα είναι να ορίσουμε τι θέλουμε να κάνουμε με το αρχείο:
-+ Encryption &lt;code&gt;-e&lt;/code&gt; ή
-+ Decryption &lt;code&gt;-d&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;Κάπου διάβασα, ότι η μεγαλύτερη παγίδα της σκέψης είναι αυτή του αυτονόητου, αλλά εδώ δεν χρίζει λόγος ανησυχίας. By default λοιπόν, χρησιμοποίεται η σημαία &lt;code&gt;-e&lt;/code&gt;, την οποία δεν δείτε να την χρησιμοποιούν ιδιαίτερα  (&lt;em&gt;όσο λιγότερα, τόσο το καλύτερο&lt;/em&gt;). Οπότε, η επιλογή &lt;code&gt;-e&lt;/code&gt; είναι optional με την προϋπόθεση ότι η πρόθεσή σας είναι να κρυπτογραφίσετε το αρχείο. Για να ολοκληρώσετε την &lt;em&gt;κρυπτογράφιση&lt;/em&gt; του αρχείου, το μόνο που μένει είναι να δηλώσετε άλλα δύο πράγματα:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Cipher (δηλαδή τον αλγόριθμο)&lt;/li&gt;
-&lt;li&gt;Passphrase&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:ef6c1e81a6cb1460145443492c6e3cfa:-&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:ef6c1e81a6cb1460145443492c6e3cfa:-&#34;&gt;0&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h3 id=&#34;βήμα-4-επιλογή-αλγορίθμου:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Βήμα 4: Επιλογή αλγορίθμου&lt;/h3&gt;
-
-&lt;p&gt;Για να κρυπτογραφίσουμε ένα αρχείο,  &lt;strong&gt;χρειαζόμαστε έναν Cipher&lt;/strong&gt;. Χωρίς να θέλω να πρωτοτυπήσω θα χρησιμοποιήσω τον: &lt;strong&gt;aes-256-cbc&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;h3 id=&#34;βήμα-5-επιλογή-κλειδιού:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Βήμα 5: Επιλογή κλειδιού&lt;/h3&gt;
-
-&lt;p&gt;Για passphrase (symmetric key) θα χρησιμοποιήσουμε την επιλογή &lt;code&gt;-k&lt;/code&gt;. Χμμμ, για να σκεφτώ&amp;hellip; ok I figured out, το passphrase μου θα είναι &lt;code&gt;darthvader666&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;Αν και σας είπα ότι έχουμε μόνο δύο πράγματα (τον αλγόριθμο και το passphrase), η αλήθεια είναι ότι μένει κάτι ακόμα. Υποθέτω, ότι δεν φαντάζει λογικώς ορθό να κάνουμε edit ένα αρχείο και &amp;ndash; &lt;em&gt;at the same time&lt;/em&gt; &amp;ndash; να το κάνουμε replace. Συνεπώς, χρειαζόμαστε ένα &lt;code&gt;output file&lt;/code&gt; το οποίο θα είναι το τελικό αποτέλεσμα (δηλ. &lt;em&gt;το κρυπτογραφημένο αρχείο&lt;/em&gt;). Για να το πω πιο απλά, είναι το αντίστοιχο του &amp;ldquo;&lt;strong&gt;save as&lt;/strong&gt;&amp;rdquo;. Για να το κάνουμε αυτό από γραμμή εντολών, το OpenSSL διαθέτει στο ρεπερτόριο εντολών του την επιλογή &lt;code&gt;-out&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;Για να δούμε λίγο ολόκληρη την εντολή:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;openssl enc -in foo.bar -e -aes-256-cbc -k darthvader666 -out foo.bar.enc
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Οπότε, ακόμα κι αν κάποιος υποκλέψει το αρχείο foo.bar.enc (το &lt;code&gt;enc&lt;/code&gt; απλά δηλώνει ότι το αρχείο είναι κρυπτογραφημένο. Ο λόγος που το βάζουμε είναι για να ξέρουμε εκ των πρωτέρων ότι το αρχείο είναι encrypted και τίποτε άλλο). Διαφορετικά, αν προσπαθήσει να το ανοίξει κάποιος τρίτος, θα δει &amp;ldquo;&lt;em&gt;ασυναρτησίες&lt;/em&gt;&amp;rdquo;.&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;Παρατηρήστε το &lt;code&gt;salted&lt;/code&gt; στην αρχή της πρότασης. Σημαίνει ότι το αρχείο είναι encrypted.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&#34;αποκρυπτογράφιση-με-το-openssl:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Αποκρυπτογράφιση με το OpenSSL&lt;/h2&gt;
-
-&lt;p&gt;Η λύση για να αποκαλυφθούν τα περιεχόμενα του αρχείου βρίσκεται στην αντίστροφη λειτουργία της κρυπτογράφισης ή αλλιώς: &lt;strong&gt;απο&lt;/strong&gt;κρυπτογράφισης (&lt;em&gt;decryption&lt;/em&gt;). Αν δεν υπάρχει &lt;em&gt;κρυπτογραφημένο αρχείο&lt;/em&gt;, δεν υπάρχει λόγος για &lt;em&gt;αποκρυπτογράφιση&lt;/em&gt;. Αν δεν υπάρχει λόγος για αποκτυπρογράφιση, τότε γιατί ταλαιπωρούμαστε; Να σας πω γιατί ταλαιπωρούμαστε: Ταλαιπωρούμαστε, αγαπητοί μου, γιατί ως άνθρωποι του Internet, είμαστε εκτεθημένοι σε ξένα μάτια. Μάτια που βλέπουν μέσα από τα καλώδια. Αν λοιπόν, έρθει μία στιγμή στην ζωή σας (πχ δουλειά) όπου θέλετε να κρατήσετε τα &lt;em&gt;μάτια των άλλων&lt;/em&gt; μακρυά από ένα συγκεκριμένο αρχείο, τότε θα χρειαστείτε όλα αυτά για τα οποία σας μιλάω σ&amp;rsquo;αυτό το άρθρο. Καλύτερα τώρα;&lt;/p&gt;
-
-&lt;p&gt;Αλλα πείτε μου, ποιός ο λόγος να κρυπτογραφίσω ένα αρχείο αν δεν μπορώ να το διαβάσω &lt;em&gt;ούτε εγώ ο ίδιος&lt;/em&gt; (;). Για να κάνουμε decrypt λοιπόν, αρχικά θα χρησιμοποιήσουμε τα ίδια filenames &lt;strong&gt;αντίστροφα&lt;/strong&gt; (είσοδος -&amp;gt; έξοδος) καθώς επίσης και την παράμετρο &lt;code&gt;-d&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;Για να δούμε ολόκληρη την εντολή:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;openssl enc -in foo.bar.enc -d -aes-256-cbc -k darthvader666 -out foo.bar
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Και τώρα, αν προσπαθείσετε να δείτε τα περιεχόμενα του αρχείου:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;cat foo.bar
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Θα δείτε &lt;strong&gt;επιτέλους&lt;/strong&gt; τα περιεχόμενα και τις πληροφορίες που έκρυβε όσο ήταν κρυπτογραφημένο:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;This file contatins super important stuff. Use it wisely:
-
-* FBI Password: paok
-* CIA Password: mpaok
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;συνοψίζοντας:ef6c1e81a6cb1460145443492c6e3cfa&#34;&gt;Συνοψίζοντας&lt;/h2&gt;
-
-&lt;p&gt;Αν το όλο άρθρο σας κέντρισε το ενδιαφέρον με την κρυπτογράφιση, θα σας πρότεινα να μελετήσετε το concept των &lt;strong&gt;public &amp;amp; private keys&lt;/strong&gt;. Καθώς και το αντίστοιχο course στο Coursera. Όχι, δεν σας δίνω το link&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:ef6c1e81a6cb1460145443492c6e3cfa:5&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:ef6c1e81a6cb1460145443492c6e3cfa:5&#34;&gt;4&lt;/a&gt;&lt;/sup&gt; γιατί βαριέμαι, αλλά γιατί περιμένω να ενεργοποιήθειτε και να ψάξετε! Run Forest! Run![^6]&lt;/p&gt;
-&lt;div class=&#34;footnotes&#34;&gt;
-
-&lt;hr /&gt;
-
-&lt;ol&gt;
-&lt;li id=&#34;fn:ef6c1e81a6cb1460145443492c6e3cfa:1&#34;&gt;Δείτε το &lt;a href=&#34;https://www.youtube.com/watch?v=E5jdaolDq7A&#34;&gt;βίντεο&lt;/a&gt; στο youtube ώστε να καταλάβετε για ποια σκηνή σας μιλάω.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:ef6c1e81a6cb1460145443492c6e3cfa:1&#34;&gt;&lt;sup&gt;[return]&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:ef6c1e81a6cb1460145443492c6e3cfa:2&#34;&gt;Κάτι &lt;a href=&#34;http://arstechnica.com/security/2012/12/25-gpu-cluster-cracks-every-standard-windows-password-in-6-hours/&#34;&gt;τέτοια&lt;/a&gt; διαβάζω, και σκέφτομαι αν η χρήση του χρονικού επιρρήματος &amp;ldquo;&lt;em&gt;ποτέ&lt;/em&gt;&amp;rdquo; ήταν σωστή σ&amp;rsquo;αυτή την περίπτωση. Υπερβολές!
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:ef6c1e81a6cb1460145443492c6e3cfa:2&#34;&gt;&lt;sup&gt;[return]&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:ef6c1e81a6cb1460145443492c6e3cfa:3&#34;&gt;Για την ώρα SSLv3 και v2 θεωρούνται vulnerable (βλ. &lt;a href=&#34;https://www.openssl.org/~bodo/ssl-poodle.pdf&#34;&gt;&lt;em&gt;Exploiting Poodle SSLv3&lt;/em&gt;&lt;/a&gt;) οπότε γενικά προτείνουμε TLS 1. Ωστόσο, η πλήρης λίστα βρίσκεται &lt;a href=&#34;https://www.openssl.org/docs/apps/ciphers.html#cipher_suite_names&#34;&gt;εδώ&lt;/a&gt;
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:ef6c1e81a6cb1460145443492c6e3cfa:3&#34;&gt;&lt;sup&gt;[return]&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:ef6c1e81a6cb1460145443492c6e3cfa:5&#34;&gt;ή πιο απλά, &lt;a href=&#34;http://lmgtfy.com/?q=Coursera+Cryptography#&#34;&gt;let me google that for you&lt;/a&gt;
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:ef6c1e81a6cb1460145443492c6e3cfa:5&#34;&gt;&lt;sup&gt;[return]&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
-</description>
-    </item>
-    
-    <item>
       <title>About Me</title>
       <link>http://drpaneas.github.io/about/</link>
       <pubDate>Sun, 21 Sep 2014 00:00:00 +0000</pubDate>
       
       <guid>http://drpaneas.github.io/about/</guid>
-      <description>&lt;p&gt;Thank you very much for visiting my personal blog! At this page you can find a
+      <description>
+
+&lt;p&gt;Thank you very much for visiting my personal blog! At this page you can find a
 huge pile of information about myself, such as my education, work experience,
 technical skills, hobbies and so on.&lt;/p&gt;
 
 &lt;p&gt;First things first, my fullname is &lt;em&gt;Panagiotis Georgiadis&lt;/em&gt;, born and raised in
-Thessaloniki at 13 April 1989. Currently, I am living at Nürnberg, Germany,
+&lt;em&gt;Thessaloniki&lt;/em&gt;[GR] at &lt;em&gt;13 April 1989&lt;/em&gt;. Currently, I am living in &lt;em&gt;Nürnberg&lt;/em&gt;[DE],
 where I am working as a QA Engineer for Software Maintenance at Research and
-Development department of SUSE Linux Products GmbH. Feel free to contact me
-anytime at drpaneas [at] gmail [dot] com.&lt;/p&gt;
+Development department of SUSE Linux.&lt;/p&gt;
+
+&lt;p&gt;Feel free to contact me anytime at &lt;em&gt;pgeorgiadis&lt;/em&gt; [at] &lt;em&gt;suse&lt;/em&gt; [dot] &lt;em&gt;com&lt;/em&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;p&gt;professional goals: Linux/Network administrator/engineer, PC hardware service,
-Software developer.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;professional goals:&lt;/strong&gt; Linux engineer, PC hardware service,
+software developer.&lt;/p&gt;&lt;/li&gt;
 
-&lt;li&gt;&lt;p&gt;interests: Technical editor in many IT websites, overclocking, Linux/C++
-programming, play piano and guitar, sketching and reading comics, sports.
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;interests:&lt;/strong&gt; Technical editor in many IT websites, overclocking, BASH,
+C/C++ and Python programming, play piano and guitar, sketching and reading comics, sports.
 Always willing to share knowledge and help friends.&lt;/p&gt;&lt;/li&gt;
 
-&lt;li&gt;&lt;p&gt;languages: Greek (native) | English (proficient) | German (studying for B1
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;languages:&lt;/strong&gt; Greek (native) | English (proficient) | German (studying for B1
 level)&lt;/p&gt;&lt;/li&gt;
 &lt;/ul&gt;
+
+&lt;h2 id=&#34;education:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Education&lt;/h2&gt;
+
+&lt;h4 id=&#34;bachelor-of-science-in-automation-control-systems-and-systems-engineering-http-www-autom-teithe-gr-en-atei-http-www-teithe-gr-index-en-html:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Bachelor of Science in &lt;a href=&#34;http://www.autom.teithe.gr/en/&#34;&gt;Automation, Control Systems and Systems Engineering&lt;/a&gt; - &lt;a href=&#34;http://www.teithe.gr/index_en.html&#34;&gt;ATEI&lt;/a&gt;&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Grade:&lt;/strong&gt; 7.59 in a scale of 10 (Very Good)&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Graduate Thesis:&lt;/strong&gt; Face Detection using Machine Learning (&lt;a href=&#34;http://www.youtube.com/watch?v=4nPrRLMq4-g&#34;&gt;presentation video&lt;/a&gt;)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;November 2012 to May 2013 — Principal Investigator: &lt;a href=&#34;http://www.linkedin.com/in/nbarmpalios&#34;&gt;Dr. Barbalios Nikolaos&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Grade: Outstanding performance &lt;sup&gt;10&lt;/sup&gt;&amp;frasl;&lt;sub&gt;10&lt;/sub&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;experimental-gymnasium-lyceum-university-of-macedonia-http-peiramatiko-uom-gr-gymna-index-htm:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Experimental Gymnasium – &lt;a href=&#34;http://peiramatiko.uom.gr/gymna/index.htm&#34;&gt;Lyceum University of Macedonia&lt;/a&gt;&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;High School Diploma, grade:16.9 (Very Good)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;online-courses-workshops:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Online Courses / Workshops&lt;/h2&gt;
+
+&lt;h5 id=&#34;coursera:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Coursera&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://class.coursera.org/ml/auth/auth_redirector?type=login&amp;amp;subtype=normal&#34;&gt;Machine Learning&lt;/a&gt; - Andrew Ng via Stanford University | &lt;a href=&#34;http://panosgeorgiadis.com/certificates/machine_learning.pdf&#34;&gt;Score 87.5%&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://class.coursera.org/images-2012-001/auth/auth_redirector?type=login&amp;amp;subtype=normal&#34;&gt;Image and Video processing&lt;/a&gt; – G.Sappiro via Duke University | &lt;a href=&#34;http://panosgeorgiadis.com/certificates/image.pdf&#34;&gt;Score 100% with Distinction&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&#34;udemy:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Udemy&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.udemy.com/the-ultimate-python-programming-course/&#34;&gt;Python Programming&lt;/a&gt; – O&amp;rsquo;Reilly Media | &lt;a href=&#34;http://drpaneas.github.io/UC-ACNT6KB8.jpg&#34;&gt;(certificate)&lt;/a&gt; &lt;a href=&#34;http://drpaneas.github.io/certificate-python.pdf&#34;&gt;(validation)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.udemy.com/comptia-linux-exam-lx0-101-vtc/#/&#34;&gt;CompTIA Linux+&lt;/a&gt; VTC Training Software | &lt;a href=&#34;http://drpaneas.github.io/UC-KSYYQVTE.pdf&#34;&gt;(certificate)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Learn to Run Linux Servers &lt;a href=&#34;https://linuxacademy.com/&#34;&gt;(Linux Academy)&lt;/a&gt; | &lt;a href=&#34;http://drpaneas.github.io/UC-3UWELDP4.pdf&#34;&gt;(certificate)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&#34;udacity:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Udacity&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.udacity.com/course/cs344&#34;&gt;Introduction to Parallel Programming with nVIDIA CUDA&lt;/a&gt; | Pending&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&#34;google-developers-festival:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Google Developers Festival&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://drpaneas.github.io/Dart-Language-Workshop-Certificate.pdf&#34;&gt;Dart Language workshop&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://drpaneas.github.io/Android-Workshop-Certificate.pdf&#34;&gt;Android development workshop&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&#34;linuxacademy:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;LinuxAcademy&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Mastering the Linux Command Line &lt;a href=&#34;http://drpaneas.github.io/784.pdf&#34;&gt;(certificate)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&#34;code-academy:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Code Academy&lt;/h5&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.codecademy.com/drpaneas#completed&#34;&gt;Completed Skills&lt;/a&gt;
++ Ruby&lt;/p&gt;
+
+&lt;h2 id=&#34;work-experience:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Work Experience&lt;/h2&gt;
+
+&lt;h4 id=&#34;qa-engineer-for-software-maintenance-suse-linux-https-www-suse-com:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;QA Engineer for Software Maintenance – &lt;a href=&#34;https://www.suse.com/&#34;&gt;SUSE Linux&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;&lt;em&gt;1st October 2015 to  — (current)&lt;/em&gt;: In this role I am responsible for testing
+software updates on a number of different hardware architectures and products.
+I will work with the developers on designing, executing and reviewing test
+cases and push for automation. I am exposed to latest technologies in
+virtualization, storage concepts and appliance building.&lt;/p&gt;
+
+&lt;p&gt;Key Responsibilities: testing software updates on supported hardware
+architectures and products, design, develop and maintain both automated and
+manual tests, maintenance of reference test systems related documentation tasks&lt;/p&gt;
+
+&lt;h4 id=&#34;linux-editor-unixmen-com-http-www-unixmen-com:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Linux Editor – &lt;a href=&#34;http://www.unixmen.com/&#34;&gt;Unixmen.com&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;&lt;em&gt;July 2012 to August 2014&lt;/em&gt; — Technical articles about Unix and GNU/Linux
+operating systems.&lt;/p&gt;
+
+&lt;h4 id=&#34;ta-programming-i-ii-iii-lab-automation-engineering-atei-https-www-autom-teithe-gr-gr-index-php:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;TA Programming I, II &amp;amp; III Lab – &lt;a href=&#34;https://www.autom.teithe.gr/gr/index.php&#34;&gt;Automation Engineering ATEI&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;&lt;em&gt;October 2013 to May 2014 (fixed)&lt;/em&gt; — As a part of my internship I work as a TA
+(Teacher’s Assistant) at the programming laboratory of ATEI of Thessaloniki,
+helping students (extra video lectures) with C++ (code::blocks IDE) and
+Microsoft Visual C#. Also I interfere with any technical difficulties may occur
+during the course session.&lt;/p&gt;
+
+&lt;h4 id=&#34;computer-technician-sales-associate-gigabyte-center-http-www-gigabyte-center-gr:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Computer Technician &amp;amp; Sales Associate – &lt;a href=&#34;http://www.gigabyte-center.gr/&#34;&gt;Gigabyte Center&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;&lt;em&gt;Nov 2011 to May 2012&lt;/em&gt; — Comprehensive troubleshooting and configuration of
+computer including building or configuring modern PC hardware,
+installing/updating software packages, creating and maintaining computer
+networks. Also experience in data recovery, system administration, or
+information systems.&lt;/p&gt;
+
+&lt;h4 id=&#34;pr-manager-reviewer-insomnia-gr-http-www-insomnia-gr:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;PR Manager &amp;amp; Reviewer – &lt;a href=&#34;http://www.insomnia.gr/&#34;&gt;Insomnia.gr&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;&lt;em&gt;June 2010 to August 2011&lt;/em&gt; — Provide overclockers with state of the art “behind
+the machine” knowledge and therefore enable them to maximize their system’s
+overall efficiency. Extensive reviews beyond giving a simple repetition of the
+manuals, to tackling the advanced concepts behind building successful cooling
+solutions required for one single purpose: using your pc to its fullest
+potential.&lt;/p&gt;
+
+&lt;h2 id=&#34;publications-lectures-presentations:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Publications / Lectures / Presentations&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Browsing using 3D Motion  &lt;a href=&#34;http://www.youtube.com/watch?v=GpRFmgLmiw4&#34;&gt;(watch Hangout On Air)&lt;/a&gt; || &lt;a href=&#34;http://gdgthess.org/&#34;&gt;GDG Thessaloniki&lt;/a&gt; (Google Developers Group)  | date: 14.09.2013&lt;/li&gt;
+&lt;li&gt;Introduction in GPU Computing &lt;a href=&#34;http://www.youtube.com/watch?v=nIkgv3kDQMU&#34;&gt;(video link)&lt;/a&gt; || &lt;a href=&#34;http://www.greeklug.gr/&#34;&gt;Greek L.U.G. Association&lt;/a&gt;  |  date:  30.04.2013&lt;/li&gt;
+&lt;li&gt;CUDA 5 Programming Cookbook | Reviewer | Packt Publishing (not published yet)&lt;/li&gt;
+&lt;li&gt;AVR ATMega32 Microcontroller student’s handbook | Co-Author of the 10nth chapter: AVR Programming Techniques  (not published yet)&lt;/li&gt;
+&lt;li&gt;Blogging Like a Hacker (video link) || &lt;a href=&#34;http://www.greeklug.gr/&#34;&gt;GREEK L.U.G. Association&lt;/a&gt; | date 19.04.2015&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;technical-skills:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Technical Skills&lt;/h2&gt;
+
+&lt;h3 id=&#34;networking:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Networking&lt;/h3&gt;
+
+&lt;p&gt;&lt;em&gt;May 2014 to Septeber 2014&lt;/em&gt; — Cisco CCNA Training at &lt;a href=&#34;http://www.infolab.gr/&#34;&gt;INFOLAB&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Sessions driven by qualified Instructor: &lt;a href=&#34;https://www.linkedin.com/pub/dimitris-vlachos/19/a88/2ab&#34;&gt;Dimitris Vlachos&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;programming-languages:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Programming Languages&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;MATLAB&lt;/li&gt;
+&lt;li&gt;Basic C/C++&lt;/li&gt;
+&lt;li&gt;Assembly Intel 8051 and AVR ATmega32&lt;/li&gt;
+&lt;li&gt;Python&lt;/li&gt;
+&lt;li&gt;Basic Ruby&lt;/li&gt;
+&lt;li&gt;Basic HTML/CSS&lt;/li&gt;
+&lt;li&gt;PLC Programming&lt;/li&gt;
+&lt;li&gt;Advanced Bash Scripting&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;software:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Software&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;AutoCAD 2D &amp;amp; 3D&lt;/li&gt;
+&lt;li&gt;NI MultiSIM&lt;/li&gt;
+&lt;li&gt;Kinect SDK for Windows&lt;/li&gt;
+&lt;li&gt;Adobe Photoshop&lt;/li&gt;
+&lt;li&gt;MS Visual Studio 2010 Express&lt;/li&gt;
+&lt;li&gt;Operating Systems: SUSE Linux, Mac OS X, Ubuntu/Debian, CentOS, Arch, Windows XP/7&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;fellowships-grants-awards:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Fellowships, Grants, Awards&lt;/h2&gt;
+
+&lt;h4 id=&#34;google-hand-picked-by-their-recruitment-team:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Google (Hand Picked by their recruitment team)&lt;/h4&gt;
+
+&lt;p&gt;Google Dublin (Ireland) offices contacted me via their recruitment team
+discussing (interview) about opportunities at Google. Then my profile/CV has
+been carefully reviewed and considered by a group of their engineers.
+Unfortunately, while they recognise my skills, there wasn’t a role at that time
+which was a strong match with me. Eventually, I didn’t work at Google, but I am
+proud they found my Github interesting enough to contact me in person.&lt;/p&gt;
+
+&lt;h4 id=&#34;intel-expert:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Intel Expert&lt;/h4&gt;
+
+&lt;p&gt;I have been recognised by Intel Technology Provider for comprehensive learning
+and understanding of Intel technologies and their application.&lt;/p&gt;
+
+&lt;h4 id=&#34;user-of-the-month-by-linuxformat-magazine:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;User-of-the-Month by LinuxFormat Magazine&lt;/h4&gt;
+
+&lt;p&gt;&lt;em&gt;2006&lt;/em&gt; – The Greek LinuxFormat Magazine covered me as the user of the month for
+my efforts into their forum during that period of time.&lt;/p&gt;
+
+&lt;h4 id=&#34;high-school-award:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;High School Award&lt;/h4&gt;
+
+&lt;p&gt;Des Tin Psifiaka, &lt;em&gt;August 2007&lt;/em&gt; — 7th place among the top 20 students who became
+accepted by ATEI Automation dept through National exams.&lt;/p&gt;
+
+&lt;h4 id=&#34;education-festival-diploma:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Education Festival Diploma&lt;/h4&gt;
+
+&lt;p&gt;Municipality of Neapolis, Thess, GR &lt;em&gt;June 2002&lt;/em&gt; — The Municipality of Neapolis
+congratulates me as a High School student for my contribution into Education
+Festival 2002 related to creativity and art activities.&lt;/p&gt;
+
+&lt;h4 id=&#34;praise-for-exceptional-performance-in-technology-course:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Praise for exceptional performance in Technology course&lt;/h4&gt;
+
+&lt;p&gt;&lt;em&gt;June 2002&lt;/em&gt; — The &lt;strong&gt;Rector of University of Macedonia&lt;/strong&gt;, &lt;a href=&#34;http://www.uom.gr/media/docs/pdf/cv-tsiotras-en.pdf&#34;&gt;Prof. Georgios D. Tsiotras&lt;/a&gt;
+awards me as a student of Experimental High School for my exceptional
+performance during school year 2001-2002 in Technology course.&lt;/p&gt;
+
+&lt;h2 id=&#34;additional-honors-awards:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Additional Honors &amp;amp; Awards&lt;/h2&gt;
+
+&lt;p&gt;School Olympic Games diploma – &lt;em&gt;June 2001&lt;/em&gt; — Committee sportsmanship award for my
+participation in school athletic games.&lt;/p&gt;
+
+&lt;h2 id=&#34;creative-work:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Creative Work&lt;/h2&gt;
+
+&lt;h4 id=&#34;overclocking-competition-hwbot:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Overclocking competition (HWBOT)&lt;/h4&gt;
+
+&lt;p&gt;From &lt;em&gt;2007 to 2010&lt;/em&gt; — Member of greek overclocking team called OutofSpecs,
+breaking two times World Records in Hwbot competition. My personal achievement
+is overclocking Intel Core i5 up to 4.9 GHz using Dry Ice cooling runing
+SuperPi benchmark ranked 35 out of 329 (video session)&lt;/p&gt;
+
+&lt;h4 id=&#34;github-repository:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;GITHUB Repository&lt;/h4&gt;
+
+&lt;p&gt;From &lt;em&gt;2012&lt;/em&gt; to Present — I fork and provide source code for several applications,
+mainly used in Linux (check my useful scripts, like Ask), Computer Vision
+(color to gray scale using CUDA) tasks using Microsoft Kinect, OpenCV,
+SimpleCV, Matlab code etc. I also maintain the UbuntuXtreme branch, as the
+creator of NVIDIA Installer Script and uXray.&lt;/p&gt;
+
+&lt;h4 id=&#34;websites-administrator-ubuntuxtreme-linuxed:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Websites Administrator (UbuntuXtreme, LinuxEd)&lt;/h4&gt;
+
+&lt;p&gt;From &lt;em&gt;2002 to Present&lt;/em&gt; — Web developer and administrator of several websites
+using WordPress (I used to use Joomla before that) and other platforms, such as
+Invision Board IPB, PHPbb and VBulletin. Currently, I am the owner of
+UbuntuXtreme.com, a place for Linux hardware enthusiasts running Linux. I also
+am the founder of Linuxed.gr (Linux Education) which is a place where I provide
+online videos and articles for Linux administrators (LPI level) and maintain a
+Q&amp;amp;A database — all these information are free for everyone.&lt;/p&gt;
+
+&lt;p&gt;Some of my websites that are no longer online: Greekhackers.com, Techole.gr,
+LinuxScriber.com&lt;/p&gt;
+
+&lt;h4 id=&#34;various-projects-and-hacks:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Various Projects and Hacks&lt;/h4&gt;
+
+&lt;p&gt;Now, I can’t recall all of them, but let me link you to some of them (proof
+Youtube videos)&lt;/p&gt;
+
+&lt;p&gt;Watch my projects at Youtube
+Composing audio tracks for gaming&lt;/p&gt;
+
+&lt;p&gt;As a musician and a gamer, I love playing soundtracks or jam on top. Currently,
+I am composing music for an RPG, dark style, with knights and kings. (listen
+tone 1, tone 2)&lt;/p&gt;
+
+&lt;h2 id=&#34;music-studies:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Music Studies&lt;/h2&gt;
+
+&lt;h4 id=&#34;electronic-keyboard:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Electronic Keyboard&lt;/h4&gt;
+
+&lt;p&gt;From &lt;em&gt;1996 to 2002&lt;/em&gt; — Completed the full cycle (6 years) of studies related to
+electronic keyboard (synthesizer) in the Music School of Neapolis with prof.
+Georgios Kampas and pass the final exams — Very Good.&lt;/p&gt;
+
+&lt;h4 id=&#34;music-theory-certification:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Music Theory Certification&lt;/h4&gt;
+
+&lt;p&gt;From &lt;em&gt;2002 to 2005&lt;/em&gt; — Completed the full cycle (3 years) of studied related to
+basic and fundamentals of music theory. Grade: 10 to 10.&lt;/p&gt;
+
+&lt;h4 id=&#34;classic-guitar:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Classic Guitar&lt;/h4&gt;
+
+&lt;p&gt;&lt;em&gt;June 2006&lt;/em&gt; — Completed the 2nd class of classic guitar in Music School of
+Neapolis. Grade: 10 to 10.&lt;/p&gt;
+
+&lt;h4 id=&#34;electric-guitar:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Electric Guitar&lt;/h4&gt;
+
+&lt;p&gt;&lt;em&gt;June 2006&lt;/em&gt; — Completed the 2nd class of electric guitar in Music School of
+Neapolis. Grade: 8 to 10.&lt;/p&gt;
+
+&lt;h2 id=&#34;volunteer-work:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Volunteer Work&lt;/h2&gt;
+
+&lt;h4 id=&#34;volunteer-tech-support-at-google-developers-group-thessaloniki:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Volunteer (Tech-Support) at Google Developers Group Thessaloniki&lt;/h4&gt;
+
+&lt;p&gt;From &lt;em&gt;September 2013 – to Present&lt;/em&gt;: I am member of Thessaloniki’s Google
+Developers Group, attending at their annual gathering (Google Developers) at
+TIF Helexpo, talking about innovative technologies and great open source
+projects. [(certificate of attendance)[/Volunteer-Certificate.pdf]&lt;/p&gt;
+
+&lt;h4 id=&#34;technical-editor:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Technical Editor&lt;/h4&gt;
+
+&lt;p&gt;Used to professionally write in:
+Guru3D.com, OSArena.net, VR-Zone.com, Outofspecs.gr, Insomnia.gr, Unixmen.com,
+Foxonfire.gr&lt;/p&gt;
+
+&lt;p&gt;Check out some of my best articles out there:
+My Guru3D Articles
+My Insomnia Articles
+My Unixmen articles
+My FirefoxOS (FoxOnFire) articles
+My OpenSourceArena Articles
+Unfortunately, my articles at OutOfSpecs and VR-Zone have been deleted or
+something, because I cannot find them after upgrading their website.&lt;/p&gt;
+
+&lt;h4 id=&#34;community-manager-diabloforums-gr:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Community Manager – Diabloforums.gr&lt;/h4&gt;
+
+&lt;p&gt;From &lt;em&gt;2010 – to Present&lt;/em&gt;: I am the founder of the official (licensed by Blizzard)
+Greek Diablo gaming community.&lt;/p&gt;
+
+&lt;h4 id=&#34;opensource-contributor-various-it-forums:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;OpenSource Contributor – Various IT Forums&lt;/h4&gt;
+
+&lt;p&gt;I also help users through facebook or Google+ communities. And believe me …
+I’ve helped a lot of people and I am still helping them. The knowledge belongs
+to the world – that’s the spirit.&lt;/p&gt;
+
+&lt;p&gt;Check my sticky posts into forums&lt;/p&gt;
+
+&lt;h4 id=&#34;overclocker-overclocking-competition-hwbot:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Overclocker – Overclocking competition (HWBOT)&lt;/h4&gt;
+
+&lt;p&gt;Member of greek overclocking team called OutofSpecs, breaking two times World
+Records in Hwbot competition. My personal achievement is overclocking Intel
+Core i5 up to 4.9 GHz using Dry Ice cooling runing SuperPi benchmark ranked 35
+out of 329&lt;/p&gt;
+
+&lt;h4 id=&#34;greeklug-member-greeklug:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;GreekLUG Member — GreekLUG&lt;/h4&gt;
+
+&lt;p&gt;From &lt;em&gt;2009 to Present&lt;/em&gt;: Member of Linux User Group called GreekLUG, taking part
+into discussions, mailing-list and occasional activities.&lt;/p&gt;
+
+&lt;h4 id=&#34;linux-hardware-reviewer-ubuntuxtreme-com:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Linux Hardware Reviewer – UbuntuXtreme.com&lt;/h4&gt;
+
+&lt;h4 id=&#34;editor-in-chief-of-ubuntuxtreme-com:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Editor-in-chief of UbuntuXtreme.com&lt;/h4&gt;
+
+&lt;p&gt;From &lt;em&gt;2012 - Present&lt;/em&gt;: I am the owner of UbuntuXtreme.com, a place
+for Linux hardware enthusiasts running Ubuntu.&lt;/p&gt;
+
+&lt;h4 id=&#34;steam-for-linux-beta-tester-valve-corporation:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;STEAM for Linux beta tester – Valve corporation&lt;/h4&gt;
+
+&lt;p&gt;&lt;em&gt;November 2012&lt;/em&gt; — I’ve been one among the 1000 private closed-beta testers for
+Steam Linux client. The project is considered as one of the the most
+anticipated projects in Linux history as so Steam provides gaming in OpenGL
+platform.&lt;/p&gt;
+
+&lt;h4 id=&#34;bugsquad-team-member-ubuntu:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;BugSquad Team member – Ubuntu&lt;/h4&gt;
+
+&lt;p&gt;&lt;em&gt;2012 – 2013&lt;/em&gt; (1 year) – Triage bugs for Ubuntu operating system. Each one of
+these needs to be read, assessed, and sorted so it can be fixed.&lt;/p&gt;
+
+&lt;h4 id=&#34;it-consultant-for-camino-musical-documentary-camino-musical-http-www-imdb-com-title-tt2785180:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;IT Consultant for Camino Musical documentary – &lt;a href=&#34;http://www.imdb.com/title/tt2785180/&#34;&gt;Camino Musical&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;&lt;em&gt;2012 – January 2013&lt;/em&gt; (1 year) — In cooperation with Alexandra Pagkrati (video
+editor) I provide them my DSLR Canon 550D along with my PC for post-production
+purposes. During the sessions I had to deal with several problems related to
+both software and hardware issues (mostly for Adobe Premiere). Also, I figured
+out how to export Pro Res from Windows Adobe Premiere using FFMPEG and
+VideoStreaming server.&lt;/p&gt;
 </description>
     </item>
     
