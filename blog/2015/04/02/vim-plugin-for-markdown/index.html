@@ -64,17 +64,15 @@
     </span>
     
 
-<h2 id="vim-plugin-for-writing-in-markdown:32ab7241d48fcc174c877413a917f8cf">VIM plugin for writing in Markdown</h2>
-
 <p>In the early beginning, I found writing posts in markdown format quite tricky.
 Things can become quite helpful by using an editor that
-provides you with features such as <strong>syntax highlighting</strong> and <strong>HTML
+comes with features such as <strong>syntax highlighting</strong> and <strong>HTML
 monitoring</strong>. Apparently, there are noumerous plugins out there, but for
-me, <em>&lsquo;vim-instant-markdown&rsquo;</em> seems to do the job, <em>just</em> great.</p>
+me, <em>&lsquo;vim-instant-markdown&rsquo;</em> seems to be sufficient.</p>
 
 <h3 id="install:32ab7241d48fcc174c877413a917f8cf">Install</h3>
 
-<p>In order to install it through <em>Vundle</em>, edit your <code>.vimrc</code> and put the <strong>git</strong>
+<p>Proper installation via <em>Vundle</em>, requests to edit your <code>.vimrc</code> and put the <strong>git</strong>
 source of the plugin:</p>
 
 <pre><code class="language-vim"> &quot; plugin for MarkDown
@@ -85,16 +83,14 @@ Plugin 'suan/vim-instant-markdown'
 
 <p>By default, only the <code>.markdown</code> extension is typically recognized as
 markdown filetype. Given the fact that I&rsquo;m one of those people who prefer to use
- the  <code>.md</code> extension as an alternative; VIM also needs to be configured, so to
-treat the content of my <em>posts</em> like any other <code>.markdown</code> file.</p>
-
-<p>That has been said, edit your <code>.vimrc</code> file and add this:</p>
+ the  <code>.md</code> extension as an alternative; VIM also needs to be configured. To
+treat the content of my <em>$post.md</em> like any other <em>$post.markdown</em>, add this to <code>.vimrc</code>:</p>
 
 <pre><code class="language-vim">&quot; Detect *.md as *.markdown
 autocmd BufNewFile,BufReadPost *.md set filetype=markdown
 </code></pre>
 
-<p>To test if it works, edit (or create) a file with <code>.md</code> extension and observe if the syntax has been
+<p>To test, edit/create a file with <code>.md</code> extension and observe if the syntax has been
 highlighted or not. Also, your web-browser should immediately pop-up and start
 generating &ndash; <em>on-the-fly</em> &ndash; a webpage, based on the markdown syntax of the file.</p>
 

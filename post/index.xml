@@ -17,17 +17,15 @@
       <guid>http://drpaneas.github.io/blog/2015/04/02/vim-plugin-for-markdown/</guid>
       <description>
 
-&lt;h2 id=&#34;vim-plugin-for-writing-in-markdown:32ab7241d48fcc174c877413a917f8cf&#34;&gt;VIM plugin for writing in Markdown&lt;/h2&gt;
-
 &lt;p&gt;In the early beginning, I found writing posts in markdown format quite tricky.
 Things can become quite helpful by using an editor that
-provides you with features such as &lt;strong&gt;syntax highlighting&lt;/strong&gt; and &lt;strong&gt;HTML
+comes with features such as &lt;strong&gt;syntax highlighting&lt;/strong&gt; and &lt;strong&gt;HTML
 monitoring&lt;/strong&gt;. Apparently, there are noumerous plugins out there, but for
-me, &lt;em&gt;&amp;lsquo;vim-instant-markdown&amp;rsquo;&lt;/em&gt; seems to do the job, &lt;em&gt;just&lt;/em&gt; great.&lt;/p&gt;
+me, &lt;em&gt;&amp;lsquo;vim-instant-markdown&amp;rsquo;&lt;/em&gt; seems to be sufficient.&lt;/p&gt;
 
 &lt;h3 id=&#34;install:32ab7241d48fcc174c877413a917f8cf&#34;&gt;Install&lt;/h3&gt;
 
-&lt;p&gt;In order to install it through &lt;em&gt;Vundle&lt;/em&gt;, edit your &lt;code&gt;.vimrc&lt;/code&gt; and put the &lt;strong&gt;git&lt;/strong&gt;
+&lt;p&gt;Proper installation via &lt;em&gt;Vundle&lt;/em&gt;, requests to edit your &lt;code&gt;.vimrc&lt;/code&gt; and put the &lt;strong&gt;git&lt;/strong&gt;
 source of the plugin:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-vim&#34;&gt; &amp;quot; plugin for MarkDown
@@ -38,16 +36,14 @@ Plugin &#39;suan/vim-instant-markdown&#39;
 
 &lt;p&gt;By default, only the &lt;code&gt;.markdown&lt;/code&gt; extension is typically recognized as
 markdown filetype. Given the fact that I&amp;rsquo;m one of those people who prefer to use
- the  &lt;code&gt;.md&lt;/code&gt; extension as an alternative; VIM also needs to be configured, so to
-treat the content of my &lt;em&gt;posts&lt;/em&gt; like any other &lt;code&gt;.markdown&lt;/code&gt; file.&lt;/p&gt;
-
-&lt;p&gt;That has been said, edit your &lt;code&gt;.vimrc&lt;/code&gt; file and add this:&lt;/p&gt;
+ the  &lt;code&gt;.md&lt;/code&gt; extension as an alternative; VIM also needs to be configured. To
+treat the content of my &lt;em&gt;$post.md&lt;/em&gt; like any other &lt;em&gt;$post.markdown&lt;/em&gt;, add this to &lt;code&gt;.vimrc&lt;/code&gt;:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-vim&#34;&gt;&amp;quot; Detect *.md as *.markdown
 autocmd BufNewFile,BufReadPost *.md set filetype=markdown
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;To test if it works, edit (or create) a file with &lt;code&gt;.md&lt;/code&gt; extension and observe if the syntax has been
+&lt;p&gt;To test, edit/create a file with &lt;code&gt;.md&lt;/code&gt; extension and observe if the syntax has been
 highlighted or not. Also, your web-browser should immediately pop-up and start
 generating &amp;ndash; &lt;em&gt;on-the-fly&lt;/em&gt; &amp;ndash; a webpage, based on the markdown syntax of the file.&lt;/p&gt;
 </description>
