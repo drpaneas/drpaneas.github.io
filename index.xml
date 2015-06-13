@@ -10,11 +10,11 @@
     <atom:link href="http://drpaneas.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>Static blog using Go</title>
-      <link>http://drpaneas.github.io/blog/2015/04/02/static-blog-using-go/</link>
+      <title>VIM Plugin for Markdown</title>
+      <link>http://drpaneas.github.io/blog/2015/04/02/vim-plugin-for-markdown/</link>
       <pubDate>Thu, 02 Apr 2015 00:00:00 +0000</pubDate>
       
-      <guid>http://drpaneas.github.io/blog/2015/04/02/static-blog-using-go/</guid>
+      <guid>http://drpaneas.github.io/blog/2015/04/02/vim-plugin-for-markdown/</guid>
       <description>
 
 &lt;h2 id=&#34;vim-plugin-for-writing-in-markdown:32ab7241d48fcc174c877413a917f8cf&#34;&gt;VIM plugin for writing in Markdown&lt;/h2&gt;
