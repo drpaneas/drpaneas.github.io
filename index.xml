@@ -2,19 +2,1204 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Panos Blog</title>
-    <link>http://drpaneas.github.io/</link>
+    <link>http://localhost:1313/</link>
     <description>Recent content on Panos Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 02 Apr 2015 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://drpaneas.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 07 Nov 2015 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>A Taste of X Server &amp; nouveau troubleshooting</title>
+      <link>http://localhost:1313/blog/2015/11/07/a-taste-of-x-server--nouveau-troubleshooting/</link>
+      <pubDate>Sat, 07 Nov 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/blog/2015/11/07/a-taste-of-x-server--nouveau-troubleshooting/</guid>
+      <description>
+
+&lt;p&gt;I am not responsible for your system
+ or you mental state after reading this guide.
+The purpose of this article is to help me understand how
+stupid I am trying to setup my multi-head monitors.&lt;/p&gt;
+
+&lt;h2 id=&#34;physical-display-confiruation:55674f506831bb5b77b4bb618427c08d&#34;&gt;Physical Display confiruation:&lt;/h2&gt;
+
+&lt;p&gt;This is what I would like to setup:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;  ----------   ----------   ----------
+ |          | |          | |          |
+ | Monitor0 | | Monitor1 | | Monitor2 |
+ |          | |          | |          |
+  ----------   ----------   ----------
+     | |          | |          | |
+     | |          | |          | |
+    /   \        /   \        /   \
+    =====        =====        =====
+     DVI          HDMI          VGA
+      |            |             |
+       ------      |     --------
+             \     |   /
+              \    |  /
+              ===========
+             | NVIDIA    |
+             | GeForce   |
+              ===========
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Eventually, I didn&amp;rsquo;t managed to set it up&amp;hellip; Here&amp;rsquo;s my
+story&amp;hellip;&lt;/p&gt;
+
+&lt;h2 id=&#34;try-with-dynamic-detection:55674f506831bb5b77b4bb618427c08d&#34;&gt;Try with dynamic detection&lt;/h2&gt;
+
+&lt;p&gt;First all all, make sure there&amp;rsquo;s no &lt;code&gt;/etc/X11/xorg.conf&lt;/code&gt;
+and if it exists, please remove it. As a side effect, X will try to
+configure your displays automatically.&lt;/p&gt;
+
+&lt;p&gt;Once you are logged into the Gnome session (fingers&amp;rsquo; crossed),
+you are going to experience this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;  ----------   ----------   ----------
+ |          | |          | |          |
+ | NoSignal | |  Mirror  | |  Mirror  |
+ |          | |          | |          |
+  ----------   ----------   ----------
+     | |          | |          | |
+     | |          | |          | |
+    /   \        /   \        /   \
+    =====        =====        =====
+     DEAD           |           |
+                    |           |
+                     -----------
+                 Mirrored by default
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Well, I suppose this is not the case that we want.
+We need to explicitely tell X Server how to organise
+our triple-head setup.&lt;/p&gt;
+
+&lt;h2 id=&#34;find-out-the-output-names:55674f506831bb5b77b4bb618427c08d&#34;&gt;Find out the Output names&lt;/h2&gt;
+
+&lt;p&gt;While you&amp;rsquo;re logged into Gnome, open a terminal
+and see the output names using &lt;code&gt;xrandr -q&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Screen 0: minimum 320 x 200, current 1152 x 864, maximum 8192 x 8192
+
+    DVI-I-1 connected (normal left inverted right x axis y axis)
+       1680x1050     59.88 +
+       1280x1024     75.02    60.02  
+       1152x864      75.00  
+       1024x768      75.08    60.00  
+       800x600       75.00    60.32  
+       640x480       75.00    60.00  
+       720x400       70.08  
+
+    HDMI-1 connected 1152x864+0+0 (normal left inverted right x axis y axis) 473mm x 296mm
+       1680x1050     59.95 +
+       1280x1024     75.02    60.02  
+       1152x864      75.00* 
+       1024x768      75.08    60.00  
+       800x600       75.00    60.32  
+       640x480       75.00    60.00  
+       720x400       70.08  
+
+    VGA-1 connected 1152x864+0+0 (normal left inverted right x axis y axis) 527mm x 297mm
+       1920x1080     60.00 +
+       1600x900      59.98  
+       1280x1024     75.02    60.02  
+       1152x864      75.00* 
+       1024x768      75.08    60.00  
+       800x600       75.00    60.32  
+       640x480       75.00    60.00  
+       720x400       70.08
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So, the corresponding names for our displays are:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Monitor0 --&amp;gt; DVI-I-1
+Monitor1 --&amp;gt; HDMI-1
+Monitor2 --&amp;gt; VGA-1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;create-a-very-basic-xorg-conf:55674f506831bb5b77b4bb618427c08d&#34;&gt;Create a very basic &amp;ldquo;xorg.conf&amp;rdquo;&lt;/h2&gt;
+
+&lt;p&gt;Let&amp;rsquo;s ask X Server to create a very basic &amp;ldquo;xorg.conf&amp;rdquo;
+for us. To do that, shutdown any GUI by simply going into
+Runlevel 3.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;~~&amp;gt; telinit 3&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Then, press &lt;code&gt;CTRL+ALT+F1&lt;/code&gt; to go to the first tty and login back
+to the system as root. Now, ask the X Server to serve you
+the &lt;strong&gt;xorg.conf&lt;/strong&gt; configuration file:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;~~&amp;gt; X -configure&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;This will generate the &amp;ldquo;/root/xorg.conf.new&amp;rdquo; with some standard
+configuration. Here it is:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Section &amp;quot;ServerLayout&amp;quot;
+    Identifier     &amp;quot;X.org Configured&amp;quot;
+    Screen      0  &amp;quot;Screen0&amp;quot; 0 0
+    InputDevice    &amp;quot;Mouse0&amp;quot; &amp;quot;CorePointer&amp;quot;
+    InputDevice    &amp;quot;Keyboard0&amp;quot; &amp;quot;CoreKeyboard&amp;quot;
+EndSection
+
+Section &amp;quot;Files&amp;quot;
+    ModulePath   &amp;quot;/usr/lib64/xorg/modules&amp;quot;
+    FontPath     &amp;quot;/usr/share/fonts/misc:unscaled&amp;quot;
+    FontPath     &amp;quot;/usr/share/fonts/Type1/&amp;quot;
+    FontPath     &amp;quot;/usr/share/fonts/100dpi:unscaled&amp;quot;
+    FontPath     &amp;quot;/usr/share/fonts/75dpi:unscaled&amp;quot;
+    FontPath     &amp;quot;/usr/share/fonts/ghostscript/&amp;quot;
+    FontPath     &amp;quot;/usr/share/fonts/cyrillic:unscaled&amp;quot;
+    FontPath     &amp;quot;/usr/share/fonts/misc/sgi:unscaled&amp;quot;
+    FontPath     &amp;quot;/usr/share/fonts/truetype/&amp;quot;
+    FontPath     &amp;quot;built-ins&amp;quot;
+EndSection
+
+Section &amp;quot;Module&amp;quot;
+    Load  &amp;quot;vnc&amp;quot;
+    Load  &amp;quot;glx&amp;quot;
+EndSection
+
+Section &amp;quot;InputDevice&amp;quot;
+    Identifier  &amp;quot;Keyboard0&amp;quot;
+    Driver      &amp;quot;kbd&amp;quot;
+EndSection
+
+Section &amp;quot;InputDevice&amp;quot;
+    Identifier  &amp;quot;Mouse0&amp;quot;
+    Driver      &amp;quot;mouse&amp;quot;
+    Option      &amp;quot;Protocol&amp;quot; &amp;quot;auto&amp;quot;
+    Option      &amp;quot;Device&amp;quot; &amp;quot;/dev/input/mice&amp;quot;
+    Option      &amp;quot;ZAxisMapping&amp;quot; &amp;quot;4 5 6 7&amp;quot;
+EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor0&amp;quot;
+    VendorName   &amp;quot;Monitor Vendor&amp;quot;
+    ModelName    &amp;quot;Monitor Model&amp;quot;
+EndSection
+
+Section &amp;quot;Device&amp;quot;
+    ### Available Driver options are:-
+    ### Values: &amp;lt;i&amp;gt;: integer, &amp;lt;f&amp;gt;: float, &amp;lt;bool&amp;gt;: &amp;quot;True&amp;quot;/&amp;quot;False&amp;quot;,
+    ### &amp;lt;string&amp;gt;: &amp;quot;String&amp;quot;, &amp;lt;freq&amp;gt;: &amp;quot;&amp;lt;f&amp;gt; Hz/kHz/MHz&amp;quot;,
+    ### &amp;lt;percent&amp;gt;: &amp;quot;&amp;lt;f&amp;gt;%&amp;quot;
+    ### [arg]: arg optional
+    #Option     &amp;quot;SWcursor&amp;quot;              # [&amp;lt;bool&amp;gt;]
+    #Option     &amp;quot;HWcursor&amp;quot;              # [&amp;lt;bool&amp;gt;]
+    #Option     &amp;quot;NoAccel&amp;quot;               # [&amp;lt;bool&amp;gt;]
+    #Option     &amp;quot;ShadowFB&amp;quot;              # [&amp;lt;bool&amp;gt;]
+    #Option     &amp;quot;VideoKey&amp;quot;              # &amp;lt;i&amp;gt;
+    #Option     &amp;quot;WrappedFB&amp;quot;             # [&amp;lt;bool&amp;gt;]
+    #Option     &amp;quot;GLXVBlank&amp;quot;             # [&amp;lt;bool&amp;gt;]
+    #Option     &amp;quot;ZaphodHeads&amp;quot;           # &amp;lt;str&amp;gt;
+    #Option     &amp;quot;PageFlip&amp;quot;              # [&amp;lt;bool&amp;gt;]
+    #Option     &amp;quot;SwapLimit&amp;quot;             # &amp;lt;i&amp;gt;
+    #Option     &amp;quot;AsyncUTSDFS&amp;quot;           # [&amp;lt;bool&amp;gt;]
+    #Option     &amp;quot;AccelMethod&amp;quot;           # &amp;lt;str&amp;gt;
+    Identifier  &amp;quot;Card0&amp;quot;
+    Driver      &amp;quot;nouveau&amp;quot;
+    BusID       &amp;quot;PCI:1:0:0&amp;quot;
+EndSection
+
+Section &amp;quot;Screen&amp;quot;
+    Identifier &amp;quot;Screen0&amp;quot;
+    Device     &amp;quot;Card0&amp;quot;
+    Monitor    &amp;quot;Monitor0&amp;quot;
+    SubSection &amp;quot;Display&amp;quot;
+        Viewport   0 0
+        Depth     1
+    EndSubSection
+    SubSection &amp;quot;Display&amp;quot;
+        Viewport   0 0
+        Depth     4
+    EndSubSection
+    SubSection &amp;quot;Display&amp;quot;
+        Viewport   0 0
+        Depth     8
+    EndSubSection
+    SubSection &amp;quot;Display&amp;quot;
+        Viewport   0 0
+        Depth     15
+    EndSubSection
+    SubSection &amp;quot;Display&amp;quot;
+        Viewport   0 0
+        Depth     16
+    EndSubSection
+    SubSection &amp;quot;Display&amp;quot;
+        Viewport   0 0
+        Depth     24
+    EndSubSection
+EndSection
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As you can see, it&amp;rsquo;s quite generic. For this reason,
+we are going to strip it down to a shorter version:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Section &amp;quot;ServerLayout&amp;quot;
+    Identifier     &amp;quot;TripleHead Setup with nouveau&amp;quot;
+    Screen      0  &amp;quot;Screen0&amp;quot; 0 0
+EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor0&amp;quot;
+EndSection
+
+Section &amp;quot;Device&amp;quot;
+    Identifier  &amp;quot;Card0&amp;quot;
+    Driver      &amp;quot;nouveau&amp;quot;
+    BusID       &amp;quot;PCI:1:0:0&amp;quot;
+EndSection
+
+Section &amp;quot;Screen&amp;quot;
+    Identifier &amp;quot;Screen0&amp;quot;
+    Device     &amp;quot;Card0&amp;quot;
+    Monitor    &amp;quot;Monitor0&amp;quot;
+EndSection
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;what-does-it-mean:55674f506831bb5b77b4bb618427c08d&#34;&gt;What does it mean?&lt;/h2&gt;
+
+&lt;p&gt;First of all we need a Monitor, which is equivalent to
+our physical display. Normally, we would have 3 Monitor
+sections, but hey: this is a very generic and basic, let&amp;rsquo;s
+stick to that for now on.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;  ----------
+ |          | The &amp;quot;Identifier&amp;quot; is just a name. You can put
+ | Monitor0 | whatever you want. In this guide, I am sticking
+ |          | with the &amp;quot;Monitor&amp;lt;N&amp;gt;&amp;quot; naming-convention.
+  ----------
+     | |
+    /   \
+    =====
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Next we need to plug this monitor into our videocard and
+make use of the videodriver:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;   =================
+  |                 |   The &amp;quot;Identifier&amp;quot; could be anything.
+  | Card0           |   But, the important part here is the driver which is responsible
+  |                 |   for the communication between the Card and the Linux kernel.
+   =================
+    ||||||||| |||           
+    --------- ----         ###########
+   | PCIe 01:00.0 | &amp;lt;---&amp;gt;  # nouveau # &amp;lt;---&amp;gt; KERNEL 
+    --------- ----         ###########
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Notice that the X found the open soure nvidia driver
+used for 3D accelleration, called &amp;ldquo;nouveau&amp;rdquo;. JYFI, you
+should not use the old 2D &lt;code&gt;nv&lt;/code&gt; driver, because is obsolete
+and not maintained.&lt;/p&gt;
+
+&lt;p&gt;Just to be on the safe side, make sure that &amp;ldquo;nouveau&amp;rdquo; is loaded:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;~~&amp;gt; lsmod | grep drm&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;    drm_kms_helper         65670  1 nouveau
+    drm                   335594  6 ttm,drm_kms_helper,nouveau
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and also, check that nouveau is the driver that userpace and kernel are using
+for your videocard:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;~~&amp;gt; lspci -nnk | grep -A3 VGA&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;    01:00.0 VGA compatible controller [0300]: NVIDIA Corporation GF108 [GeForce GT 440] [10de:0de0] (rev a1)
+        Subsystem: ASUSTeK Computer Inc. Device [1043:83b7]
+        Kernel driver in use: nouveau
+        Kernel modules: nouveau
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Notice that while the PCI BusID is: &lt;strong&gt;&amp;ldquo;01:00.0&amp;rdquo;&lt;/strong&gt;
+we change it a bit when we are putting this info
+into &lt;code&gt;xorg.conf&lt;/code&gt; like this: &amp;ldquo;PCI:1:0:0&amp;rdquo;. This information is
+optional if you have only one GPU installed (also, no internal graphics).
+Otherwise, you have to specify it. For my system, I have Intel graphics
+disabled from BIOS and I could have omitted that line from &amp;ldquo;xorg.conf&amp;rdquo;
+but because there&amp;rsquo;s always the danger to enable them sometime in the future,
+I wouldn&amp;rsquo;t like to end up with broken X. Because in that case, there will be
+two PCI Buses:&lt;/p&gt;
+
+&lt;p&gt;PCI:1:0:0 &amp;ndash;&amp;gt; nVIDIA
+  PCI:0:2:0 &amp;ndash;&amp;gt; Intel Graphics&lt;/p&gt;
+
+&lt;p&gt;and if there&amp;rsquo;s no reference into &amp;ldquo;xorg.conf&amp;rdquo; what is what, then it is going to
+be a problem.&lt;/p&gt;
+
+&lt;p&gt;JFYI, the &amp;ldquo;0x10de&amp;rdquo; is the code for NVIDIA as a vendor
+and the &amp;ldquo;0x0d30&amp;rdquo; is the code for the specific device (GeForce GT 440).
+In case you need to validate these information, you can search
+for the kernel&amp;rsquo;s data which are related to PCI bus:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;:~ # cat /sys/bus/pci/devices/0000\:01\:00.0/vendor 
+0x10de
+
+:~ # cat /sys/bus/pci/devices/0000\:01\:00.0/device 
+0x0de0
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The only problem with the device section is that I cannot
+tell which monitor I want to use. That&amp;rsquo;s why there is another section
+called &amp;ldquo;Screen&amp;rdquo; which is going to be the &amp;ldquo;link&amp;rdquo; between &amp;ldquo;Monitor&amp;rdquo; and &amp;ldquo;Device&amp;rdquo;
+sections.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;|                                          |
+ |    &amp;mdash;&amp;mdash;&amp;mdash;&amp;ndash;      =================                    |
+ |   |       |    |         |                   | The screen is just a visual
+interface
+ |   | Monitor 0 |    | Card0       |                   | used to combine a
+monitor with a
+ |   |       |    |             |                   | device.
+ |    &amp;mdash;&amp;mdash;&amp;mdash;&amp;ndash;      =================                    |
+ |       | |        ||||||||| |||                           |
+ |      /   \      &amp;mdash;&amp;mdash;&amp;mdash; &amp;mdash;-         ###########           |
+ |      =====      | PCIe 01:00.0 | &amp;lt;&amp;mdash;&amp;gt;  # nouveau # &amp;lt;&amp;mdash;&amp;gt; KERNEL     |
+ |                 &amp;mdash;&amp;mdash;&amp;mdash; &amp;mdash;-         ###########           |
+ |                                      |
+ |          Screen0                         |&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Notice, that we haven&amp;rsquo;t yet mentioned how the card0 is connected with the
+Monitor0.
+That has been said, X Server doesn&amp;rsquo;t know if the monitor we are talking about
+is VGA-0, DVI-I-1 or HDMI-1. We let X Server (for now) to choose this
+automatically.&lt;/p&gt;
+
+&lt;p&gt;Last but not least, we need a Layout Section. This section is used in order to
+place our screens in position. For now own, we have only one Monitor, thus
+we need to define this screen as the primary one.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;    Screen      0  &amp;quot;Screen0&amp;quot; 0 0
+
+                        ^            ^ ^
+                        |            | |
+ Primary ---------------             | | relative positions (x horizontal,
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;y vertical)
+                              x &amp;mdash;&amp;mdash;&amp;mdash;  | which means the upper left corner
+of our display
+                              y &amp;mdash;&amp;mdash;&amp;mdash;&amp;ndash;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Start the X Server:
+&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;-&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In order to start X Server and tell it to use this file you have 2 ways:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;I. Either, place the file into the appropriate directory:
+
+    :~&amp;gt; cp xorg.conf.new /etc/X11/xorg.conf
+
+   and then start X server:
+
+    :~&amp;gt; X
+
+
+II. Or, you simply can pass the configuration file as an parameter
+    while starting the X Server (recommended):
+
+
+    :~&amp;gt; X -config /root/xorg.conf.new
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You are going to see a black screen (this is surprisingly good)
+which means that X Server is running. Go again back to &amp;lsquo;tty1&amp;rsquo;
+and kill it by pressing &amp;ldquo;ctrl+c&amp;rdquo;.&lt;/p&gt;
+
+&lt;p&gt;Now, view the logs:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;:~&amp;gt; vim /var/log/Xorg.0.log
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;First, let&amp;rsquo;s see if X Server uses the same Output-names
+as XRandR does:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;:~&amp;gt; grep &amp;quot;Output.*connected&amp;quot; /var/log/Xorg.0.log
+
+    [  3409.088] (II) NOUVEAU(0): Output DVI-I-1 connected
+    [  3409.088] (II) NOUVEAU(0): Output HDMI-1 connected
+    [  3409.088] (II) NOUVEAU(0): Output VGA-1 connected
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The answer here is: yes it does.
+Do you remember that we didn&amp;rsquo;t tell X Server what Output name is used
+for our monitor? Let&amp;rsquo;s see what X Server probing picked up automatically:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[  7177.781] (II) NOUVEAU(0): Output DVI-I-1 using monitor section Monitor0
+[  7177.813] (II) NOUVEAU(0): Output HDMI-1 has no monitor section
+[  7177.845] (II) NOUVEAU(0): Output VGA-1 has no monitor section
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So, X Server thinks that my Monitor0 is connected using DVI. Which is correct,
+but
+this is pure luck. Let&amp;rsquo;s see the resolution that X chose:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[  7177.945] (II) NOUVEAU(0): Output DVI-I-1 using initial mode 1152x864
+[  7177.945] (II) NOUVEAU(0): Output HDMI-1 using initial mode 1152x864
+[  7177.945] (II) NOUVEAU(0): Output VGA-1 using initial mode 1152x864
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Hm, it makes sense (if you look my output from xrandr) that 1152x864 is the
+higher resolution
+supported by &lt;em&gt;all&lt;/em&gt; of my displays.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s try to fire-up gnome and see what is going to be. To do that, we first
+have to place the
+configuration to the right place:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;:~&amp;gt; cp xorg.conf.new /etc/X11/xorg.conf
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and go into graphical target (aka Runlevel 5):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;:~&amp;gt; telinit 5
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;However, I still get the same result as my first state (without &amp;ldquo;xorg.conf&amp;rdquo;).
+Let&amp;rsquo;s make sure first that X Server is reading our configuration:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[  7848.626] (==) Using config file: &amp;quot;/etc/X11/xorg.conf&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So, the file is the correct one.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[  7848.627] (==) ServerLayout &amp;quot;TripleHead Setup with nouveau&amp;quot;
+[  7848.627] (**) |--&amp;gt;Screen &amp;quot;Screen0&amp;quot; (0)
+[  7848.627] (**) |   |--&amp;gt;Monitor &amp;quot;Monitor0&amp;quot;
+[  7848.627] (**) |   |--&amp;gt;Device &amp;quot;Card0&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So does the rest of the setup. Let&amp;rsquo;s try to force Monitor0 to be the DVI-I-1
+connection
+and see what happens. Go into your &amp;ldquo;device section&amp;rdquo; and put this line:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Option      &amp;quot;Monitor-DVI-I-1&amp;quot;   &amp;quot;Monitor0&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and see what happens. In order to test this, we are going to follow the same
+procedure:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;1. Change /etc/X11/xorg.conf
+    2. Go to &#39;runlevel 3&#39;
+    3. Start X Server by typing &amp;quot;X&amp;quot;
+    4. Go to tty1 (press ctrl+alt+F1)
+    5. Kill the X Server (pres ctrl+c)
+    6. See the logs (vi /var/log/Xorg.0.log)
+7. Go to &#39;runlevel 5&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Hm, it didn&amp;rsquo;t change. Same results.&lt;/p&gt;
+
+&lt;h2 id=&#34;5-optimize-xorg-conf:55674f506831bb5b77b4bb618427c08d&#34;&gt;5) Optimize xorg.conf&lt;/h2&gt;
+
+&lt;p&gt;Let&amp;rsquo;s try to add 3 monitors, which are going to be like our 3 displays.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor0&amp;quot;
+EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor1&amp;quot;
+EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor2&amp;quot;
+EndSection
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And let&amp;rsquo;s connect the to corresponding hardware according to my setup:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Section &amp;quot;Device&amp;quot;
+    Identifier  &amp;quot;Card0&amp;quot;
+    Driver      &amp;quot;nouveau&amp;quot;
+    BusID       &amp;quot;PCI:1:0:0&amp;quot;
+    Option      &amp;quot;Monitor-DVI-I-1&amp;quot;   &amp;quot;Monitor0&amp;quot;
+    Option      &amp;quot;Monitor-HDMI-1&amp;quot;    &amp;quot;Monitor1&amp;quot;
+    Option      &amp;quot;Monitor-VGA-1&amp;quot;     &amp;quot;Monitor2&amp;quot;
+EndSection
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;let&amp;rsquo;s test. Same result (from Gnome) but the logs have changed:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[  8893.423] (II) NOUVEAU(0): Output DVI-I-1 using monitor section Monitor0
+[  8893.455] (II) NOUVEAU(0): Output HDMI-1 using monitor section Monitor1
+[  8893.487] (II) NOUVEAU(0): Output VGA-1 using monitor section Monitor2
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Which is the correct configuration:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;      ----------   ----------   ----------  
+     |      | |      | |          |
+     | Monitor0 | | Monitor1 | | Monitor2 |
+     |      | |      | |          |
+      ----------   ----------   ----------
+         | |      | |          | |
+         | |      | |          | |
+        /   \    /   \        /   \
+        =====    =====        =====
+
+        DVI          HDMI          VGA
+
+          |           |     |
+           ------     |    ---------
+             \    |   /
+              \   |  /
+             ===========
+            | NVIDIA    |
+            | GeForce   |
+             ===========
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Checking if they are all connected:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[  8893.587] (II) NOUVEAU(0): Output DVI-I-1 connected
+[  8893.587] (II) NOUVEAU(0): Output HDMI-1 connected
+[  8893.587] (II) NOUVEAU(0): Output VGA-1 connected
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;They are all connected but still, I get:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;      ----------   ----------   ----------  
+     |      | |      | |          |
+     | NoSignal | |  Mirror  | |  Mirror  |
+     |      | |      | |          |
+      ----------   ----------   ----------
+         | |      | |          | |
+         | |      | |          | |
+        /   \    /   \        /   \
+        =====    =====        =====
+
+        DEAD           |        |
+               |        |
+                ------------ 
+              Mirrored by default
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Check the logs:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[  8893.587] (II) NOUVEAU(0): Output DVI-I-1 using initial mode 1152x864
+[  8893.587] (II) NOUVEAU(0): Output HDMI-1 using initial mode 1152x864
+[  8893.587] (II) NOUVEAU(0): Output VGA-1 using initial mode 1152x864
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Well, let&amp;rsquo;s try to disable the Mirrored-ones (Monitor1 and Monitor2)
+by putting this line into their &amp;ldquo;Monitor Sections&amp;rdquo;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Option       &amp;quot;Ignore&amp;quot;   &amp;quot;True&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So, it will look like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor0&amp;quot;
+EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor1&amp;quot;
+    Option       &amp;quot;Ignore&amp;quot;   &amp;quot;True&amp;quot;
+EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor2&amp;quot;
+    Option       &amp;quot;Ignore&amp;quot;   &amp;quot;True&amp;quot;
+EndSection
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and continue testing&amp;hellip;.&lt;/p&gt;
+
+&lt;p&gt;Voila! For the first time, now, X Server does what we told him to do.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;      ----------   ----------   ----------  
+     |      | |      | |          |
+     | Working  | | Disabled | | Disabled |
+     |      | |      | |          |
+      ----------   ----------   ----------
+         | |      | |          | |
+         | |      | |          | |
+        /   \    /   \        /   \
+        =====    =====        =====
+
+       Monitor0     Monitor1     Monitor2
+        DVI          HDMI          VGA
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;let&amp;rsquo;s see what the logs has to say about this new change:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[  9346.246] (II) NOUVEAU(0): Output DVI-I-1 using monitor section Monitor0
+[  9346.278] (II) NOUVEAU(0): Output HDMI-1 using monitor section Monitor1
+[  9346.278] (**) NOUVEAU(0): Option &amp;quot;Ignore&amp;quot; &amp;quot;True&amp;quot;
+[  9346.310] (II) NOUVEAU(0): Output VGA-1 using monitor section Monitor2
+[  9346.310] (**) NOUVEAU(0): Option &amp;quot;Ignore&amp;quot; &amp;quot;True&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;which is correct (known from the previous configuration), but notice
+that HDMI-1 and VGA-1 are now marked with the &amp;ldquo;Ignore&amp;rdquo; option.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[  9346.346] (II) NOUVEAU(0): Output DVI-I-1 connected
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Which has as a result that only DVI-I-1 to be connected.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[  9346.346] (II) NOUVEAU(0): Output DVI-I-1 using initial mode 1680x1050    
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and as long as this is the only display, X server picked up the best resolution
+supported
+by my monitor (which makes sense because there is no other other monitor to
+operate with).&lt;/p&gt;
+
+&lt;p&gt;So, let&amp;rsquo;s try to leave only the HDMI disabled and see what is going to be. To
+do that
+remove the &amp;ldquo;Ignore&amp;rdquo; line from Monitor1.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor0&amp;quot;
+EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor1&amp;quot;
+EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor2&amp;quot;
+    Option       &amp;quot;Ignore&amp;quot;   &amp;quot;True&amp;quot;
+EndSection
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and Test&lt;/p&gt;
+
+&lt;p&gt;Works! Here&amp;rsquo;s the expected results:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;      ----------   ----------   ----------  
+     |      | |      | |          |
+     | Primary  | | 2ndary   | | Disabled |
+     |      | |      | |          |
+      ----------   ----------   ----------
+         | |      | |          | |
+         | |      | |          | |
+        /   \    /   \        /   \
+        =====    =====        =====
+
+       Monitor0     Monitor1     Monitor2
+        DVI          HDMI          VGA
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;let&amp;rsquo;s see the logs:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[ 10227.375] (II) NOUVEAU(0): Output DVI-I-1 using monitor section Monitor0
+[ 10227.407] (II) NOUVEAU(0): Output HDMI-1 using monitor section Monitor1
+[ 10227.439] (II) NOUVEAU(0): Output VGA-1 using monitor section Monitor2
+[ 10227.439] (**) NOUVEAU(0): Option &amp;quot;Ignore&amp;quot; &amp;quot;True&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;That&amp;rsquo;s correct. Only the Monitor2 (VGA) is disabled.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;II&#34;&gt; 10227.507&lt;/a&gt; NOUVEAU(0): Output DVI-I-1 connected
+&lt;a href=&#34;II&#34;&gt; 10227.507&lt;/a&gt; NOUVEAU(0): Output HDMI-1 connected&lt;/p&gt;
+
+&lt;p&gt;Again, that&amp;rsquo;s correct. The VGA-1 is disconnected ;)&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;II&#34;&gt; 10227.507&lt;/a&gt; NOUVEAU(0): Using exact sizes for initial modes
+&lt;a href=&#34;II&#34;&gt; 10227.507&lt;/a&gt; NOUVEAU(0): Output DVI-I-1 using initial mode 1680x1050
+&lt;a href=&#34;II&#34;&gt; 10227.507&lt;/a&gt; NOUVEAU(0): Output HDMI-1 using initial mode 1680x1050&lt;/p&gt;
+
+&lt;p&gt;and also, my two monitors seems to have same resolution.&lt;/p&gt;
+
+&lt;p&gt;So, dual-head works. What&amp;rsquo;s happens and thins go crazy when I am using 3
+connected monitors.
+So, far to my understaning is that the only thing that changes is the
+placement. When
+we have two monitors, it&amp;rsquo;s pretty normal that one is going to be &amp;ldquo;left&amp;rdquo; and the
+other
+is going to be &amp;ldquo;right&amp;rdquo;. For my current configuration, the primary monitor is
+the left one,
+which is monitor0. This can be also verified from gnome:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Monitor0 ---&amp;gt; Primary
+Monitor1 ---&amp;gt; Secondary
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;so, if I need to place a third monitor, maybe we need to statically say to X
+Server
+where my third monitor is going to be:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor0&amp;quot;
+EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor1&amp;quot;
+EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor2&amp;quot;
+    Option       &amp;quot;RightOf&amp;quot;  &amp;quot;Monitor1&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;let&amp;rsquo;s test it&lt;/p&gt;
+
+&lt;p&gt;Well, not exactly what I was expected:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;      ----------   ----------   ----------  
+     |      | |      | |          |
+     | NoSignal | | Primary  | | 2ndary   |
+     |      | |      | |          |
+      ----------   ----------   ----------
+         | |      | |          | |
+         | |      | |          | |
+        /   \    /   \        /   \
+        =====    =====        =====
+
+       Monitor0     Monitor1     Monitor2
+        DVI          HDMI          VGA
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;let&amp;rsquo;s see what the logs have to say about this new thing:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[ 10778.986] (II) NOUVEAU(0): Output DVI-I-1 using monitor section Monitor0
+[ 10779.018] (II) NOUVEAU(0): Output HDMI-1 using monitor section Monitor1
+[ 10779.050] (II) NOUVEAU(0): Output VGA-1 using monitor section Monitor2
+[ 10779.050] (**) NOUVEAU(0): Option &amp;quot;RightOf&amp;quot; &amp;quot;Monitor1&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;which is correct.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[ 10779.151] (II) NOUVEAU(0): Output DVI-I-1 connected
+[ 10779.151] (II) NOUVEAU(0): Output HDMI-1 connected
+[ 10779.151] (II) NOUVEAU(0): Output VGA-1 connected
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;which is correct&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[ 10779.151] (II) NOUVEAU(0): Using user preference for initial modes
+[ 10779.151] (II) NOUVEAU(0): Output DVI-I-1 using initial mode 1680x1050
+[ 10779.151] (II) NOUVEAU(0): Output HDMI-1 using initial mode 1680x1050
+[ 10779.151] (II) NOUVEAU(0): Output VGA-1 using initial mode 1600x900
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;My third monitor uses different resolution (doesn&amp;rsquo;t supprot 1680x1050).
+So, as a last chance let&amp;rsquo;s try to say the place for its display except from
+the primary one (monitor0).&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor0&amp;quot;
+EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor1&amp;quot;
+    Option       &amp;quot;RightOf&amp;quot;  &amp;quot;Monitor0&amp;quot;
+EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor2&amp;quot;
+    Option       &amp;quot;RightOf&amp;quot;  &amp;quot;Monitor1&amp;quot;
+EndSection
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;AAnd test&amp;hellip;&lt;/p&gt;
+
+&lt;p&gt;same result&amp;hellip;.&lt;/p&gt;
+
+&lt;p&gt;After a &lt;em&gt;lot&lt;/em&gt; of hacking into the &amp;ldquo;xorg.conf&amp;rdquo; file I didn&amp;rsquo;t manage to enable
+all three monitors.
+The problem seems to be the CRTC. Most hardware only have 2 CRTCs, which means
+that they have only
+2 rendering pipelines. Simply put, only two 2 displays output ports can be
+enabled at the same time.
+I can see the CRTC using xrandr:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;:~&amp;gt; xrandr --verbose | grep CRTC
+
+    CRTCs:      0 1
+    CRTC:       0
+    CRTCs:      0 1
+    CRTC:       1
+    CRTCs:      0 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Which means:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Monitor0 (DVI)  --&amp;gt; Supports: 0 and 1 --&amp;gt; Enabled: none , so that&#39;s why it
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;is turned off
+    Monitor1 (HDMI) &amp;ndash;&amp;gt; Supports: 0 and 1 &amp;ndash;&amp;gt; Enabled: 0 (Working)
+    Monitor1 (VGA)  &amp;ndash;&amp;gt; Supports: 0 and 1 &amp;ndash;&amp;gt; Enabled: 1 (Working)&lt;/p&gt;
+
+&lt;p&gt;This is why X Server disabled one display out of three, because there&amp;rsquo;s no
+enough CRTCs to use.
+Thus, we are doomed to use only 2 monitors.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;DualHead Setup:
+~~~~~~~~~~~~~~~~~~&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Since I am going to use only two monitors, I will pick the monitors that they
+have
+the same resolution. But before configure and visual screen (shared window),
+let&amp;rsquo;s enable them:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;      ----------   ----------   ----------  
+     |      | |      | |          |
+     | Primary  | | Secondary| |   Off    |
+     |      | |      | |          |
+      ----------   ----------   ----------
+         | |      | |          | |
+         | |      | |          | |
+        /   \    /   \        /   \
+        =====    =====        =====
+
+       Monitor0     Monitor1     Monitor2
+        DVI          HDMI          VGA
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This is the setup we I am going to start with:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Section &amp;quot;ServerLayout&amp;quot;
+    Identifier     &amp;quot;DualHead Setup with nouveau&amp;quot;    # Let&#39;s change the name
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;from triple to dual
+        Screen      0  &amp;ldquo;Screen0&amp;rdquo; 0 0
+    EndSection&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor0&amp;quot;
+    Option       &amp;quot;Primary&amp;quot;  &amp;quot;True&amp;quot;          # Force Monitor0 to be the
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Primary one
+    EndSection&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor1&amp;quot;
+    Option       &amp;quot;RightOf&amp;quot;  &amp;quot;Monitor0&amp;quot;      # This is going to be the
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;secondary display
+    EndSection&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor2&amp;quot;
+    Option       &amp;quot;RightOf&amp;quot;  &amp;quot;Monitor1&amp;quot;
+    Option       &amp;quot;Ignore&amp;quot;   &amp;quot;True&amp;quot;          # Turn this off (no CRTC left)
+EndSection
+
+Section &amp;quot;Device&amp;quot;
+    Identifier  &amp;quot;Card0&amp;quot;
+    Driver      &amp;quot;nouveau&amp;quot;
+    BusID       &amp;quot;PCI:1:0:0&amp;quot;
+    Option      &amp;quot;Monitor-DVI-I-1&amp;quot;   &amp;quot;Monitor0&amp;quot;
+    Option      &amp;quot;Monitor-HDMI-1&amp;quot;    &amp;quot;Monitor1&amp;quot;
+    Option      &amp;quot;Monitor-VGA-1&amp;quot;     &amp;quot;Monitor2&amp;quot;
+EndSection
+
+
+Section &amp;quot;Screen&amp;quot;
+    Identifier &amp;quot;Screen0&amp;quot;
+    Device     &amp;quot;Card0&amp;quot;
+    Monitor    &amp;quot;Monitor0&amp;quot;
+EndSection
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and let&amp;rsquo;s test.&lt;/p&gt;
+
+&lt;p&gt;And it works. The result is as expected:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;      ----------   ----------   ----------  
+     |      | |      | |          |
+     | Primary  | | Secondary| |   Off    |
+     |      | |      | |          |
+      ----------   ----------   ----------
+         | |      | |          | |
+         | |      | |          | |
+        /   \    /   \        /   \
+        =====    =====        =====
+
+       Monitor0     Monitor1     Monitor2
+        DVI          HDMI          VGA
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;let&amp;rsquo;s see the logs:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[ 66561.307] (II) NOUVEAU(0): Output DVI-I-1 using monitor section Monitor0
+[ 66561.307] (**) NOUVEAU(0): Option &amp;quot;Primary&amp;quot; &amp;quot;True&amp;quot;
+[ 66561.339] (II) NOUVEAU(0): Output HDMI-1 using monitor section Monitor1
+[ 66561.339] (**) NOUVEAU(0): Option &amp;quot;RightOf&amp;quot; &amp;quot;Monitor0&amp;quot;
+[ 66561.371] (II) NOUVEAU(0): Output VGA-1 using monitor section Monitor2
+[ 66561.371] (**) NOUVEAU(0): Option &amp;quot;RightOf&amp;quot; &amp;quot;Monitor1&amp;quot;
+[ 66561.371] (**) NOUVEAU(0): Option &amp;quot;Ignore&amp;quot; &amp;quot;True&amp;quot;
+...
+...
+...
+[ 66561.440] (II) NOUVEAU(0): Output DVI-I-1 connected
+[ 66561.440] (II) NOUVEAU(0): Output HDMI-1 connected
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;which is correct. We had to disable the 3rd screen (Monitor1) because our
+hardware
+supports only 2 CRTCS:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[ 66561.371] (II) NOUVEAU(0): 2 crtcs needed for screen.
+[ 66561.375] (II) NOUVEAU(0): Allocated crtc nr. 0 to this screen.
+[ 66561.375] (II) NOUVEAU(0): Allocated crtc nr. 1 to this screen.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Indeed, X Server confirms that 2 CRTCs are needed for the screen:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;        ------------------------
+CRTC 0 ---&amp;gt;    |            | 
+CRTC 1 ---&amp;gt;    |  Monitor0     Monitor1 |
+           |            |
+        ------------------------
+                  | |
+              | |
+             /   \
+             =====
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Let&amp;rsquo;s see what resolution is picked from X automatically:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;II&#34;&gt; 66561.440&lt;/a&gt; NOUVEAU(0): Using user preference for initial modes
+&lt;a href=&#34;II&#34;&gt; 66561.440&lt;/a&gt; NOUVEAU(0): Output DVI-I-1 using initial mode 1680x1050
+&lt;a href=&#34;II&#34;&gt; 66561.440&lt;/a&gt; NOUVEAU(0): Output HDMI-1 using initial mode 1680x1050&lt;/p&gt;
+
+&lt;p&gt;As expected, 1680x1050 is the top resolution for each of my individual
+displays,
+thus X server picked this up for both of them.&lt;/p&gt;
+
+&lt;p&gt;The &amp;ldquo;trick&amp;rdquo; I love in this configuration is that we are using only one screen,
+called &amp;ldquo;Screen0&amp;rdquo;. This config, forced X Server to automatically combine
+my two monitors, into the same screen, and not separate. Simply put,
+there&amp;rsquo;s only one DISPLAY env variable for both of my displays, which means
+that I can share windows (moving them from one display to another).
+The technical term for this Screen is called &amp;ldquo;Visual Screen&amp;rdquo;, which
+unifies the monitors into a greater resolution:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;            1680 + 1680 = 3360
+    -----------------------------
+       |  -----------   -----------  |
+       | |       | |       | |
+       | | 1680x1050 | | 1680x1050 | |
+       | |       | |       | |
+       |  -----------   -----------  |
+       |     | |       | |       |
+       |     | |       | |       |
+       |    /   \     /   \      |
+       |    =====     =====      |
+        -----------------------------
+           |   |
+           |   |
+          /     \
+         /   \
+         =========
+
+               Visual Screen 3360x1050
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So, let&amp;rsquo;s see if my calculations are related to logs:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[ 66561.440] (--) NOUVEAU(0): Virtual size is 3360x1050 (pitch 0)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;indeed they are :)
+So, the the X Server picked the correct mode (resolution + refresh rate) and
+combined them altogether:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[ 66561.440] (**) NOUVEAU(0):  Driver mode &amp;quot;1680x1050&amp;quot;: 146.2 MHz (scaled
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;from 0.0 MHz), 65.3 kHz, 60.0 Hz
+    &lt;a href=&#34;II&#34;&gt; 66561.440&lt;/a&gt; NOUVEAU(0): Modeline &amp;ldquo;1680x1050&amp;rdquo;x60.0  146.25  1680 1784
+1960 2240  1050 1053 1059 1089 -hsync +vsync (65.3 kHz eP)&lt;/p&gt;
+
+&lt;p&gt;If the X Server has problem detecting the best mode, you have to explicitely,
+set it up into the &amp;ldquo;xorg.conf&amp;rdquo;
+But first you need to know the complete list of modes that your display
+supports:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;:~ # xrandr 
+
+    DVI-I-1 connected primary 1680x1050+0+0 (normal left inverted right x
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;axis y axis) 473mm x 296mm
+           1680x1050     59.88*+
+           1280x1024     75.02    60.02&lt;br /&gt;
+           1152x864      75.00&lt;br /&gt;
+           1024x768      75.08    60.00&lt;br /&gt;
+           800x600       75.00    60.32&lt;br /&gt;
+           640x480       75.00    60.00&lt;br /&gt;
+           720x400       70.08&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;    HDMI-1 connected 1680x1050+1680+0 (normal left inverted right x axis y
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;axis) 473mm x 296mm
+           1680x1050     59.95*+
+           1280x1024     75.02    60.02&lt;br /&gt;
+           1152x864      75.00&lt;br /&gt;
+           1024x768      75.08    60.00&lt;br /&gt;
+           800x600       75.00    60.32&lt;br /&gt;
+           640x480       75.00    60.00&lt;br /&gt;
+           720x400       70.08&lt;/p&gt;
+
+&lt;p&gt;So, for my displays, the best mode for them to work together is 1680x1050@59.95
+In order to generate the &amp;ldquo;modeline&amp;rdquo; I am going to use the &amp;ldquo;gtf&amp;rdquo; tool:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;gtf 1680 1050 59.95
+
+  # 1680x1050 @ 59.95 Hz (GTF) hsync: 65.17 kHz; pclk: 147.01 MHz
+  Modeline &amp;quot;1680x1050_59.95&amp;quot;  147.01  1680 1784 1968 2256  1050 1051 1054
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;1087  -HSync +Vsync&lt;/p&gt;
+
+&lt;p&gt;and then you have to put this info in your &amp;ldquo;xorg.conf&amp;rdquo;. For my case this
+optional, because
+X Server already pick this modeline by itself, but it not quite optimized:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;X Server    ---&amp;gt; Modeline &amp;quot;1680x1050&amp;quot;x60.0  146.25  1680 1784 1960 2240
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;1050 1053 1059 1089 -hsync +vsync (65.3 kHz eP)
+    gtf version &amp;mdash;&amp;gt; Modeline &amp;ldquo;1680x1050_59.95&amp;rdquo;  147.01  1680 1784 1968 2256
+1050 1051 1054 1087  -HSync +Vsync&lt;/p&gt;
+
+&lt;p&gt;So, let&amp;rsquo;s put the &amp;ldquo;gtf&amp;rdquo; result into my Xorg and see what happens:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Section &amp;quot;ServerLayout&amp;quot;
+    Identifier     &amp;quot;DualHead Setup with nouveau&amp;quot;
+    Screen      0  &amp;quot;Screen0&amp;quot; 0 0
+EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor0&amp;quot;
+    Option       &amp;quot;Primary&amp;quot;  &amp;quot;True&amp;quot;
+    Modeline     &amp;quot;1680x1050_59.95&amp;quot;  147.01  1680 1784 1968 2256  1050 1051
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;1054 1087  -HSync +Vsync # The gtf version
+        Option       &amp;ldquo;PreferredMode&amp;rdquo;    &amp;ldquo;1680x1050_59.95&amp;rdquo;&lt;/p&gt;
+
+&lt;h1 id=&#34;tell-x-to-pick-the-gtf-version:55674f506831bb5b77b4bb618427c08d&#34;&gt;Tell X to pick the gtf version&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code&gt;EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor1&amp;quot;
+    Option       &amp;quot;RightOf&amp;quot;  &amp;quot;Monitor0&amp;quot;
+    Modeline     &amp;quot;1680x1050_59.95&amp;quot;  147.01  1680 1784 1968 2256  1050 1051
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;1054 1087  -HSync +Vsync # same
+        Option       &amp;ldquo;PreferredMode&amp;rdquo;    &amp;ldquo;1680x1050_59.95&amp;rdquo;&lt;/p&gt;
+
+&lt;h1 id=&#34;same:55674f506831bb5b77b4bb618427c08d&#34;&gt;same&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code&gt;EndSection
+
+Section &amp;quot;Monitor&amp;quot;
+    Identifier   &amp;quot;Monitor2&amp;quot;
+    Option       &amp;quot;RightOf&amp;quot;  &amp;quot;Monitor1&amp;quot;
+    Option       &amp;quot;Ignore&amp;quot;   &amp;quot;True&amp;quot;
+EndSection
+
+Section &amp;quot;Device&amp;quot;
+    Identifier  &amp;quot;Card0&amp;quot;
+    Driver      &amp;quot;nouveau&amp;quot;
+    BusID       &amp;quot;PCI:1:0:0&amp;quot;
+    Option      &amp;quot;Monitor-DVI-I-1&amp;quot;   &amp;quot;Monitor0&amp;quot;
+    Option      &amp;quot;Monitor-HDMI-1&amp;quot;    &amp;quot;Monitor1&amp;quot;
+    Option      &amp;quot;Monitor-VGA-1&amp;quot;     &amp;quot;Monitor2&amp;quot;
+EndSection
+
+
+Section &amp;quot;Screen&amp;quot;
+    Identifier &amp;quot;Screen0&amp;quot;
+    Device     &amp;quot;Card0&amp;quot;
+    Monitor    &amp;quot;Monitor0&amp;quot;
+
+    SubSection &amp;quot;Display&amp;quot;        # Define the Virtual screen
+              Depth     24          # 24 is kind of a default nowadays
+      Virtual   3360 1050       # The visual screen resolution
+    EndSubSection
+
+EndSection
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And test it&amp;hellip;&lt;/p&gt;
+
+&lt;p&gt;All good! Let&amp;rsquo;s see the logs:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[ 74689.115] (II) NOUVEAU(0): Using user preference for initial modes
+[ 74689.115] (II) NOUVEAU(0): Output DVI-I-1 using initial mode
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;1680x1050_59.95
+    &lt;a href=&#34;II&#34;&gt; 74689.115&lt;/a&gt; NOUVEAU(0): Output HDMI-1 using initial mode
+1680x1050_59.95&lt;/p&gt;
+
+&lt;p&gt;Ah so, the X server picked our preference and used our modeline. Great :D&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[ 74689.115] (--) NOUVEAU(0): Virtual size is 3360x1050 (pitch 0)
+[ 74689.115] (**) NOUVEAU(0):  Mode &amp;quot;1680x1050_59.95&amp;quot;: 147.0 MHz (scaled
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;from 0.0 MHz), 65.2 kHz, 59.9 Hz
+    &lt;a href=&#34;II&#34;&gt; 74689.115&lt;/a&gt; NOUVEAU(0): Modeline &amp;ldquo;1680x1050_59.95&amp;rdquo;x59.9  147.01  1680
+1784 1968 2256  1050 1051 1054 1087 -hsync +vsync (65.2 kHz UP)&lt;/p&gt;
+
+&lt;p&gt;Here you can compare 1:1 the Modeline that X Server is using now, which is
+identicall to the &amp;ldquo;gtf&amp;rdquo;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Binary search algorithm and Big-O notation</title>
+      <link>http://localhost:1313/blog/2015/06/23/binary-search-algorithm-and-big-o-notation/</link>
+      <pubDate>Tue, 23 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/blog/2015/06/23/binary-search-algorithm-and-big-o-notation/</guid>
+      <description>
+
+&lt;h3 id=&#34;what-you-need-to-know-before-start-reading:849996b02ca4328548d72a65492ef197&#34;&gt;What you need to know before start reading &amp;hellip;&lt;/h3&gt;
+
+&lt;p&gt;You will need to be familiar with one programming language at least. If you
+don&amp;rsquo;t know any programming langugage, it would be some kind of tricky for you
+but not impossible. IMO I&amp;rsquo;d suggest you to pick up with Python or Ruby, because
+they both are pretty easy and famous around these days. However, the code
+snippets of this article are written in C.&lt;/p&gt;
+
+&lt;p&gt;Additionally, you are expected to know a bit of basic algebra. No no no, I
+don&amp;rsquo;t want to scare your or something. Let&amp;rsquo;s take a function: &lt;strong&gt;f(x) = x *
+2&lt;/strong&gt;. What if (5)? If you answered 10, then you&amp;rsquo;re good to continue reading.&lt;/p&gt;
+
+&lt;p&gt;In the early beginning, I found writing posts in markdown format quite tricky.
+Things can become quite helpful by using an editor that
+comes with features such as &lt;strong&gt;syntax highlighting&lt;/strong&gt; and &lt;strong&gt;HTML
+monitoring&lt;/strong&gt;. Apparently, there are noumerous plugins out there, but for
+me, &lt;em&gt;&amp;lsquo;vim-instant-markdown&amp;rsquo;&lt;/em&gt; seems to be sufficient.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>VIM Plugin for Markdown</title>
-      <link>http://drpaneas.github.io/blog/2015/04/02/vim-plugin-for-markdown/</link>
+      <link>http://localhost:1313/blog/2015/04/02/vim-plugin-for-markdown/</link>
       <pubDate>Thu, 02 Apr 2015 00:00:00 +0000</pubDate>
       
-      <guid>http://drpaneas.github.io/blog/2015/04/02/vim-plugin-for-markdown/</guid>
+      <guid>http://localhost:1313/blog/2015/04/02/vim-plugin-for-markdown/</guid>
       <description>
 
 &lt;p&gt;In the early beginning, I found writing posts in markdown format quite tricky.
@@ -51,10 +1236,10 @@ generating &amp;ndash; &lt;em&gt;on-the-fly&lt;/em&gt; &amp;ndash; a webpage, ba
     
     <item>
       <title>License</title>
-      <link>http://drpaneas.github.io/license/</link>
+      <link>http://localhost:1313/license/</link>
       <pubDate>Sun, 01 Mar 2015 00:00:00 +0000</pubDate>
       
-      <guid>http://drpaneas.github.io/license/</guid>
+      <guid>http://localhost:1313/license/</guid>
       <description>
 
 &lt;h3 id=&#34;content-license:53e892b8b41cc4caece1cfd5ef21d6e7&#34;&gt;Content license&lt;/h3&gt;
@@ -78,10 +1263,10 @@ generating &amp;ndash; &lt;em&gt;on-the-fly&lt;/em&gt; &amp;ndash; a webpage, ba
     
     <item>
       <title>About Me</title>
-      <link>http://drpaneas.github.io/about/</link>
+      <link>http://localhost:1313/about/</link>
       <pubDate>Sun, 21 Sep 2014 00:00:00 +0000</pubDate>
       
-      <guid>http://drpaneas.github.io/about/</guid>
+      <guid>http://localhost:1313/about/</guid>
       <description>
 
 &lt;p&gt;Thank you very much for visiting my personal blog! At this page you can find a
@@ -143,9 +1328,9 @@ level)&lt;/p&gt;&lt;/li&gt;
 &lt;h5 id=&#34;udemy:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Udemy&lt;/h5&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.udemy.com/the-ultimate-python-programming-course/&#34;&gt;Python Programming&lt;/a&gt; – O&amp;rsquo;Reilly Media | &lt;a href=&#34;http://drpaneas.github.io/UC-ACNT6KB8.jpg&#34;&gt;(certificate)&lt;/a&gt; &lt;a href=&#34;http://drpaneas.github.io/certificate-python.pdf&#34;&gt;(validation)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.udemy.com/comptia-linux-exam-lx0-101-vtc/#/&#34;&gt;CompTIA Linux+&lt;/a&gt; VTC Training Software | &lt;a href=&#34;http://drpaneas.github.io/UC-KSYYQVTE.pdf&#34;&gt;(certificate)&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;Learn to Run Linux Servers &lt;a href=&#34;https://linuxacademy.com/&#34;&gt;(Linux Academy)&lt;/a&gt; | &lt;a href=&#34;http://drpaneas.github.io/UC-3UWELDP4.pdf&#34;&gt;(certificate)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.udemy.com/the-ultimate-python-programming-course/&#34;&gt;Python Programming&lt;/a&gt; – O&amp;rsquo;Reilly Media | &lt;a href=&#34;http://localhost:1313/UC-ACNT6KB8.jpg&#34;&gt;(certificate)&lt;/a&gt; &lt;a href=&#34;http://localhost:1313/certificate-python.pdf&#34;&gt;(validation)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.udemy.com/comptia-linux-exam-lx0-101-vtc/#/&#34;&gt;CompTIA Linux+&lt;/a&gt; VTC Training Software | &lt;a href=&#34;http://localhost:1313/UC-KSYYQVTE.pdf&#34;&gt;(certificate)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Learn to Run Linux Servers &lt;a href=&#34;https://linuxacademy.com/&#34;&gt;(Linux Academy)&lt;/a&gt; | &lt;a href=&#34;http://localhost:1313/UC-3UWELDP4.pdf&#34;&gt;(certificate)&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h5 id=&#34;udacity:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Udacity&lt;/h5&gt;
@@ -157,14 +1342,14 @@ level)&lt;/p&gt;&lt;/li&gt;
 &lt;h5 id=&#34;google-developers-festival:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Google Developers Festival&lt;/h5&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://drpaneas.github.io/Dart-Language-Workshop-Certificate.pdf&#34;&gt;Dart Language workshop&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://drpaneas.github.io/Android-Workshop-Certificate.pdf&#34;&gt;Android development workshop&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://localhost:1313/Dart-Language-Workshop-Certificate.pdf&#34;&gt;Dart Language workshop&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://localhost:1313/Android-Workshop-Certificate.pdf&#34;&gt;Android development workshop&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h5 id=&#34;linuxacademy:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;LinuxAcademy&lt;/h5&gt;
 
 &lt;ul&gt;
-&lt;li&gt;Mastering the Linux Command Line &lt;a href=&#34;http://drpaneas.github.io/784.pdf&#34;&gt;(certificate)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Mastering the Linux Command Line &lt;a href=&#34;http://localhost:1313/784.pdf&#34;&gt;(certificate)&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h5 id=&#34;code-academy:6083a88ee3411b0d17ce02d738f69d47&#34;&gt;Code Academy&lt;/h5&gt;
@@ -442,6 +1627,1326 @@ purposes. During the sessions I had to deal with several problems related to
 both software and hardware issues (mostly for Adobe Premiere). Also, I figured
 out how to export Pro Res from Windows Adobe Premiere using FFMPEG and
 VideoStreaming server.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>How to RPM package your script using OBS</title>
+      <link>http://localhost:1313/blog/1/01/01/how-to-rpm-package-your-script-using-obs/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/blog/1/01/01/how-to-rpm-package-your-script-using-obs/</guid>
+      <description>
+
+&lt;p&gt;The purpose of this tutorial is to teach you the very basics of OpenBuild
+service and RPM packaging using a dummy hello world script. Suppose that you
+have a script that you want to package it and share it with your friends. This
+is how to do it:&lt;/p&gt;
+
+&lt;h3 id=&#34;write-the-script:9e85b091fa492d9c02a31bf044182d87&#34;&gt;Write the Script&lt;/h3&gt;
+
+&lt;p&gt;Make a folder called &lt;code&gt;building&lt;/code&gt; or whatever you prefer and inside of it, create
+your bash script &lt;code&gt;hello.sh&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~&amp;gt; cd building/
+pgeorgiadis@panos:~/building&amp;gt; vi hello.sh
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;hello.sh&lt;/code&gt; source code:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+echo &amp;quot;Hello World&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;create-the-spec-file:9e85b091fa492d9c02a31bf044182d87&#34;&gt;Create the spec file&lt;/h3&gt;
+
+&lt;p&gt;After writing the script, then it&amp;rsquo;s time to create the spec file. This is the
+file that contains &lt;em&gt;all&lt;/em&gt; the necessary information about building the package.
+The trick here is that there&amp;rsquo;s an already made template for the spec file; all
+you have to do is just create the &lt;code&gt;hello.spec&lt;/code&gt; file.&lt;/p&gt;
+
+&lt;p&gt;The default template is like that:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-spec&#34;&gt;Name:           hello
+Version:
+Release:
+License:
+Summary:
+Url:
+Group:
+Source:
+Patch:
+BuildRequires:
+PreReq:
+Provides:
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+
+%description
+
+%prep
+%setup -q
+
+%build
+%configure
+make %{?_smp_mflags}
+
+%install
+make install DESTDIR=%{buildroot} %{?_smp_mflags}
+
+%post
+
+%postun
+
+%files
+%defattr(-,root,root)
+%doc ChangeLog README COPYING
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and modify it accordingly into this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-spec&#34;&gt;Name:           hello
+Version:        1.1
+Release:        0
+License:        GPL-2.0
+Summary:        TODO
+Url:            TODO
+Group:          TODO
+Source:         hello.sh
+#Patch:
+#BuildRequires:
+%if 0%{?suse_version}
+PreReq:         nfs-client
+%endif
+#Provides:
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+
+%description
+TODO
+
+%prep
+#setup -q
+
+%build
+#configure
+#make %{?_smp_mflags}
+
+%install
+#make install DESTDIR=%{buildroot} %{?_smp_mflags}
+install -D -m 755 %{S:0} %{buildroot}%{_bindir}/hello.sh
+
+%files
+%defattr(-,root,root)
+%{_bindir}/hello.sh
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If you are interested to know what&amp;rsquo;s all these macros, feel free to google
+theand make sure that they are supported by your system. For example what&amp;rsquo;s
+&lt;code&gt;bindir&lt;/code&gt; ?&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~&amp;gt; rpm --eval &amp;quot;%_bindir&amp;quot;
+/usr/bin
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;create-project-on-obs:9e85b091fa492d9c02a31bf044182d87&#34;&gt;Create project on OBS&lt;/h3&gt;
+
+&lt;p&gt;Go to &lt;a href=&#34;https://build.opensuse.org/&#34;&gt;Open Build Service&lt;/a&gt; and log in. Then click
+on your &lt;code&gt;Home Project&lt;/code&gt; (if you don&amp;rsquo;t have one, then create it). Over there, you
+can create as many packages as you want. In our case, we are going to create
+the dummy &lt;code&gt;hello&lt;/code&gt; package, so we click on &lt;code&gt;Create package&lt;/code&gt; and populate the
+required fields respectively:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;name : &lt;code&gt;hello&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;title: &lt;code&gt;hello&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;description: &lt;code&gt;dummy package&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Next, we leave the tickbox &lt;code&gt;Disable build results publishing.&lt;/code&gt; deactivated and
+finally click on &lt;code&gt;Save changes&lt;/code&gt; button.&lt;/p&gt;
+
+&lt;h4 id=&#34;connect-our-remote-project-with-our-local-files:9e85b091fa492d9c02a31bf044182d87&#34;&gt;Connect our remote project with our local files&lt;/h4&gt;
+
+&lt;p&gt;Normally, we should have created the project first on OBS, then check-it out
+locally (even empty) and then add files in it. Now, we are going to do it
+backwards, but this is not going to be a problem.&lt;/p&gt;
+
+&lt;p&gt;In order to be able to interactive with OBS via command line we have to provide
+the required authetication (username, password) and API that we are going to
+use. Before that, let&amp;rsquo;s edit the &lt;code&gt;.bashrc&lt;/code&gt; file and create an alias:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;vim ~/.bashrc
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;create an alias to ioscrc&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;test -s ~/.alias &amp;amp;&amp;amp; . ~/.alias || true
+alias obs=&#39;osc --apiurl=https://api.opensuse.org&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So, instead of having to type the whole &lt;code&gt;osc --apiurl=https://api.opensuse.org&lt;/code&gt;
+command, you can just type &lt;code&gt;obs&lt;/code&gt;, which is faster and easy to remember. Last
+but not least, don&amp;rsquo;t forget to do &lt;code&gt;source ~/.bashrc&lt;/code&gt; in order for the changes
+to take immediate effect.&lt;/p&gt;
+
+&lt;p&gt;Next, we proceed by defining our login username &amp;amp; password, used for the OBS.
+We do that, by editing the &lt;code&gt;~/.oscrc&lt;/code&gt; file.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;[https://api.opensuse.org]
+user=&amp;lt;username&amp;gt;
+pass=&amp;lt;password&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Finally, you should be able to checkout (download) your project from OBS into
+our local hard disk. To do that, you need to know the URL of your project. In
+my case, that is
+&lt;code&gt;https://build.opensuse.org/package/show/home:pgeorgiadis/hello&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building&amp;gt; obs co home:pgeorgiadis/hello
+A    home:pgeorgiadis
+A    home:pgeorgiadis/hello
+At revision None.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now, let&amp;rsquo;s put them all together, like that:
+&lt;code&gt;home:pgeorgiadis/hello/&amp;lt;myfiles&amp;gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building&amp;gt; ls
+hello.sh  hello.spec  home:pgeorgiadis
+pgeorgiadis@panos:~/building&amp;gt; mv hello.s* home:pgeorgiadis/
+pgeorgiadis@panos:~/building&amp;gt; cd home:pgeorgiadis/
+pgeorgiadis@panos:~/building/home:pgeorgiadis&amp;gt; mv hello.s* hello
+pgeorgiadis@panos:~/building/home:pgeorgiadis&amp;gt; ls
+hello
+pgeorgiadis@panos:~/building/home:pgeorgiadis&amp;gt; cd hello/
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;build-the-rpm-package:9e85b091fa492d9c02a31bf044182d87&#34;&gt;Build the RPM Package&lt;/h3&gt;
+
+&lt;p&gt;First let&amp;rsquo;s see what Repositories I have enabled at remote OBS. This can be
+seen from the web-interface&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;click to &lt;code&gt;Home Project&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Go to tab &lt;code&gt;Repositories&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;or this can also be done in console:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; obs repos
+openSUSE_13.2  i586
+openSUSE_13.2  x86_64
+SLE_12         x86_64
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If I would like to build it locally in my machine, and if I would like to build
+it only for openSUSE_13.2 then I would type:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; opensc build openSUSE_13.2
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Short while the build service is going to ask you to put your faith on it.
+Please do by selecting &lt;code&gt;1 - always&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;The build root needs packages from project &#39;openSUSE:13.2&#39;.
+Note that malicious packages can compromise the build result or even your
+system.
+Would you like to ...
+0 - quit (default)
+1 - always trust packages from &#39;openSUSE:13.2&#39;
+2 - trust packages just this time
+? 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This actually means that is going to write a new line into your &lt;code&gt;.oscrc&lt;/code&gt; file
+related to openSUSE:13.2 and trust.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;adding &#39;openSUSE:13.2&#39; to ~/.oscrc: [&#39;https://api.opensuse.org&#39;][&#39;trusted_prj&#39;]
+100.0% cache miss. 0/98 dependencies cached.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Just in case you get this error:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;packagecachedir is not writable for you?
+[Errno 13] Permission denied: &#39;/var/tmp/osbuild-packagecache/openSUSE:13.2&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;this means that you have previously used OBS as a different user, and you don&amp;rsquo;t
+have the permission to write into &lt;code&gt;/var/tmp/osbuild-packagecache/&lt;/code&gt; directory.
+In my case I used OBS before as &lt;code&gt;slenkins&lt;/code&gt; user, and I left some leftovers&amp;hellip;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:/var/tmp/osbuild-packagecache&amp;gt; ls -l
+total 0
+drwxr-xr-x 1 slenkins users 26 Sep 15 15:49 Devel:SLEnkins:testsuites
+drwxr-xr-x 1 slenkins users 30 Sep 15 15:49 SUSE:SLE-12:GA
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;so it&amp;rsquo;s completely normal to see that message in that case. All I had to do is
+either remove it or rename it (in case I don&amp;rsquo;t want to delete it).&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:/var/tmp/osbuild-packagecache&amp;gt; cd ..
+pgeorgiadis@panos:/var/tmp&amp;gt; sudo mv osbuild-packagecache/ osbuild-packagecache2
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and now try again to build the package locally. It should work:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; opensc build openSUSE_13.2
+Building hello.spec for openSUSE_13.2/x86_64
+Getting buildinfo from server and store to
+/suse/pgeorgiadis/building/home:pgeorgiadis/hello/.osc/_buildinfo-openSUSE_13.2-x86_64.xml
+Getting buildconfig from server and store to
+/suse/pgeorgiadis/building/home:pgeorgiadis/hello/.osc/_buildconfig-openSUSE_13.2-x86_64
+Updating cache of required packages
+100.0% cache miss. 0/98 dependencies cached.
+
+(openSUSE:13.2) aaa_base-13.2+git20140911.61c1681-1. 100%
+|==========================| 121 kB    00:00     
+(openSUSE:13.2) attr-2.4.47-4.1.2.x86_64.rpm         100%
+|==========================|  50 kB    00:00     
+(openSUSE:13.2) bash-4.2-75.3.1.x86_64.rpm           100%
+|==========================| 344 kB    00:00     
+(openSUSE:13.2) coreutils-8.23-2.3.1.x86_64.rpm      100%
+|==========================| 1.2 MB    00:10     
+(openSUSE:13.2) diffutils-3.3-6.1.2.x86_64.rpm       100%
+|==========================| 199 kB    00:00     
+(openSUSE:13.2) filesystem-13.2-4.3.1.x86_64.rpm     100%
+|==========================|  69 kB    00:00     
+(openSUSE:13.2) fillup-1.42-271.1.2.x86_64.rpm       100%
+|==========================|  20 kB    00:00     
+(openSUSE:13.2) glibc-2.19-16.2.5.x86_64.rpm         100%
+|==========================| 1.6 MB    00:07     
+(openSUSE:13.2) grep-2.20-2.1.2.x86_64.rpm           100%
+|==========================| 338 kB    00:00     
+(openSUSE:13.2) libbz2-1-1.0.6-29.2.7.x86_64.rpm     100%
+|==========================|  34 kB    00:00     
+(openSUSE:13.2) libgcc_s1-4.8.3+r212056-2.2.4.x86_64 100%
+|==========================|  49 kB    00:00     
+(openSUSE:13.2) m4-1.4.17-2.1.2.x86_64.rpm           100%
+|==========================| 237 kB    00:00     
+(openSUSE:13.2) libncurses5-5.9-52.2.3.x86_64.rpm    100%
+|==========================| 353 kB    00:04     
+(openSUSE:13.2) pam-1.1.8-11.1.2.x86_64.rpm          100%
+|==========================| 400 kB    00:01     
+(openSUSE:13.2) permissions-2014.08.26.1452-1.2.x86_ 100%
+|==========================|  31 kB    00:00     
+(openSUSE:13.2) libreadline6-6.2-75.3.1.x86_64.rpm   100%
+|==========================| 130 kB    00:00     
+(openSUSE:13.2) rpm-4.11.3-1.2.x86_64.rpm            100%
+|==========================| 1.6 MB    00:03     
+(openSUSE:13.2) sed-4.2.2-5.1.2.x86_64.rpm           100%
+|==========================|  99 kB    00:00     
+(openSUSE:13.2) tar-1.28-2.2.2.x86_64.rpm            100%
+|==========================| 510 kB    00:00     
+(openSUSE:13.2) libz1-1.2.8-5.1.2.x86_64.rpm         100%
+|==========================|  51 kB    00:00     
+(openSUSE:13.2) libselinux1-2.3-2.2.5.x86_64.rpm     100%
+|==========================|  64 kB    00:00     
+(openSUSE:13.2) liblzma5-5.0.7-1.1.x86_64.rpm        100%
+|==========================|  96 kB    00:00     
+(openSUSE:13.2) libcap2-2.22-13.1.8.x86_64.rpm       100%
+|==========================|  12 kB    00:00     
+(openSUSE:13.2) libacl1-2.2.52-5.1.2.x86_64.rpm      100%
+|==========================|  19 kB    00:00     
+(openSUSE:13.2) libattr1-2.4.47-4.1.2.x86_64.rpm     100%
+|==========================|  21 kB    00:00     
+(openSUSE:13.2) libpopt0-1.16-27.1.2.x86_64.rpm      100%
+|==========================|  49 kB    00:00     
+(openSUSE:13.2) libelf1-0.158-4.2.6.x86_64.rpm       100%
+|==========================|  46 kB    00:00     
+(openSUSE:13.2) liblua5_1-5.1.5-10.2.2.x86_64.rpm    100%
+|==========================|  78 kB    00:00     
+(openSUSE:13.2) libpcre1-8.35-3.2.3.x86_64.rpm       100%
+|==========================| 244 kB    00:00     
+(openSUSE:13.2) util-linux-2.25.1-2.4.x86_64.rpm     100%
+|==========================| 938 kB    00:01     
+(openSUSE:13.2) libmount1-2.25.1-2.4.x86_64.rpm      100%
+|==========================| 147 kB    00:00     
+(openSUSE:13.2) perl-base-5.20.1-1.3.x86_64.rpm      100%
+|==========================| 1.1 MB    00:01     
+(openSUSE:13.2) libdb-4_8-4.8.30-29.1.2.x86_64.rpm   100%
+|==========================| 668 kB    00:00     
+(openSUSE:13.2) libsepol1-2.3-2.1.8.x86_64.rpm       100%
+|==========================| 106 kB    00:00     
+(openSUSE:13.2) libblkid1-2.25.1-2.4.x86_64.rpm      100%
+|==========================| 139 kB    00:00     
+(openSUSE:13.2) libuuid1-2.25.1-2.4.x86_64.rpm       100%
+|==========================|  52 kB    00:00     
+(openSUSE:13.2) net-tools-1.60-765.1.2.x86_64.rpm    100%
+|==========================| 222 kB    00:00     
+(openSUSE:13.2) libsmartcols1-2.25.1-2.4.x86_64.rpm  100%
+|==========================|  96 kB    00:00     
+(openSUSE:13.2) kernel-obs-build-3.16.6-2.1.x86_64.r 100%
+|==========================|  20 MB    00:05     
+(openSUSE:13.2) rpm-build-4.11.3-1.2.x86_64.rpm      100%
+|==========================|  33 kB    00:00     
+(openSUSE:13.2) glibc-devel-2.19-16.2.5.x86_64.rpm   100%
+|==========================| 637 kB    00:01     
+(openSUSE:13.2) xz-5.0.7-1.1.x86_64.rpm              100%
+|==========================| 123 kB    00:00     
+(openSUSE:13.2) cpio-2.11-29.2.3.x86_64.rpm          100%
+|==========================|  83 kB    00:00     
+(openSUSE:13.2) gcc-4.8-7.1.2.x86_64.rpm             100%
+|==========================| 5.7 kB    00:00     
+(openSUSE:13.2) file-5.19-3.1.2.x86_64.rpm           100%
+|==========================|  45 kB    00:00     
+(openSUSE:13.2) findutils-4.5.14-2.1.2.x86_64.rpm    100%
+|==========================| 280 kB    00:00     
+(openSUSE:13.2) bzip2-1.0.6-29.2.7.x86_64.rpm        100%
+|==========================|  36 kB    00:00     
+(openSUSE:13.2) make-4.0-2.2.3.x86_64.rpm            100%
+|==========================| 381 kB    00:00     
+(openSUSE:13.2) gawk-4.1.1-3.1.2.x86_64.rpm          100%
+|==========================| 1.0 MB    00:02     
+(openSUSE:13.2) binutils-2.24-6.1.7.x86_64.rpm       100%
+|==========================| 4.3 MB    00:01     
+(openSUSE:13.2) gzip-1.6-8.1.8.x86_64.rpm            100%
+|==========================| 113 kB    00:00     
+(openSUSE:13.2) glibc-locale-2.19-16.2.5.x86_64.rpm  100%
+|==========================| 6.0 MB    00:00     
+(openSUSE:13.2) which-2.20-4.1.2.x86_64.rpm          100%
+|==========================|  31 kB    00:00     
+(openSUSE:13.2) patch-2.7.1-7.1.2.x86_64.rpm         100%
+|==========================|  88 kB    00:00     
+(openSUSE:13.2) systemd-rpm-macros-2-8.1.2.noarch.rp 100%
+|==========================| 4.7 kB    00:00     
+(openSUSE:13.2) libgmp10-5.1.3-3.1.2.x86_64.rpm      100%
+|==========================| 237 kB    00:00     
+(openSUSE:13.2) linux-glibc-devel-3.16-2.1.7.noarch. 100%
+|==========================| 945 kB    00:01     
+(openSUSE:13.2) libcap-ng0-0.7.4-3.1.2.x86_64.rpm    100%
+|==========================|  22 kB    00:00     
+(openSUSE:13.2) libaudit1-2.4-1.3.x86_64.rpm         100%
+|==========================|  56 kB    00:00     
+(openSUSE:13.2) libutempter0-1.1.6-5.2.3.x86_64.rpm  100%
+|==========================|  19 kB    00:00     
+(openSUSE:13.2) insserv-compat-0.1-12.2.2.noarch.rpm 100%
+|==========================| 9.0 kB    00:00     
+(openSUSE:13.2) gcc48-4.8.3+r212056-2.2.4.x86_64.rpm 100%
+|==========================| 8.5 MB    00:13     
+(openSUSE:13.2) cpp-4.8-7.1.2.x86_64.rpm             100%
+|==========================| 4.8 kB    00:00     
+(openSUSE:13.2) libmagic1-5.19-3.1.2.x86_64.rpm      100%
+|==========================|  65 kB    00:00     
+(openSUSE:13.2) update-alternatives-1.16.10-8.1.2.x8 100%
+|==========================|  35 kB    00:00     
+(openSUSE:13.2) libsemanage1-2.3-2.1.8.x86_64.rpm    100%
+|==========================|  72 kB    00:00     
+(openSUSE:13.2) info-4.13a-38.1.2.x86_64.rpm         100%
+|==========================| 134 kB    00:00     
+(openSUSE:13.2) terminfo-base-5.9-52.2.3.x86_64.rpm  100%
+|==========================| 197 kB    00:00     
+(openSUSE:13.2) libcrack2-2.9.0-4.1.3.x86_64.rpm     100%
+|==========================|  18 kB    00:00     
+(openSUSE:13.2) libmpfr4-3.1.2-5.1.2.x86_64.rpm      100%
+|==========================| 151 kB    00:00     
+(openSUSE:13.2) libcloog-isl4-0.18.1-2.1.2.x86_64.rp 100%
+|==========================|  58 kB    00:00     
+(openSUSE:13.2) libisl10-0.12.2-2.1.2.x86_64.rpm     100%
+|==========================| 414 kB    00:02     
+(openSUSE:13.2) libmpc3-1.0.2-2.1.2.x86_64.rpm       100%
+|==========================|  42 kB    00:00     
+(openSUSE:13.2) cpp48-4.8.3+r212056-2.2.4.x86_64.rpm 100%
+|==========================| 4.9 MB    00:01     
+(openSUSE:13.2) libasan0-4.8.3+r212056-2.2.4.x86_64. 100%
+|==========================|  74 kB    00:00     
+(openSUSE:13.2) file-magic-5.19-3.1.2.x86_64.rpm     100%
+|==========================| 317 kB    00:00     
+(openSUSE:13.2) libustr-1_0-1-1.0.4-33.1.2.x86_64.rp 100%
+|==========================|  80 kB    00:00     
+(openSUSE:13.2) libzio1-1.00-10.1.2.x86_64.rpm       100%
+|==========================|  13 kB    00:00     
+(openSUSE:13.2) cracklib-2.9.0-4.1.3.x86_64.rpm      100%
+|==========================|  49 kB    00:00     
+(openSUSE:13.2) gettext-tools-mini-0.19.2-2.1.3.x86_ 100%
+|==========================| 1.8 MB    00:00     
+(openSUSE:13.2) gettext-runtime-mini-0.19.2-2.1.3.x8 100%
+|==========================| 722 kB    00:01     
+(openSUSE:13.2) libstdc++6-4.8.3+r212056-2.2.4.x86_6 100%
+|==========================| 247 kB    00:00     
+(openSUSE:13.2) libatomic1-4.8.3+r212056-2.2.4.x86_6 100%
+|==========================|  21 kB    00:00     
+(openSUSE:13.2) libgomp1-4.8.3+r212056-2.2.4.x86_64. 100%
+|==========================|  36 kB    00:00     
+(openSUSE:13.2) libitm1-4.8.3+r212056-2.2.4.x86_64.r 100%
+|==========================|  41 kB    00:00     
+(openSUSE:13.2) libtsan0-4.8.3+r212056-2.2.4.x86_64. 100%
+|==========================| 107 kB    00:08     
+(openSUSE:13.2) pam-modules-12.1-24.1.2.x86_64.rpm   100%
+|==========================| 100 kB    00:00     
+(openSUSE:13.2) perl-5.20.1-1.3.x86_64.rpm           100%
+|==========================| 6.1 MB    00:02     
+(openSUSE:13.2) build-mkbaselibs-20140424-2.1.3.noar 100%
+|==========================|  26 kB    00:00     
+(openSUSE:13.2) brp-check-suse-13.2+git20140727.d76b 100%
+|==========================|  73 kB    00:00     
+(openSUSE:13.2) post-build-checks-13.2+git20140318.f 100%
+|==========================|  44 kB    00:00     
+(openSUSE:13.2) rpmlint-Factory-1.0-88.1.2.noarch.rp 100%
+|==========================|  13 kB    00:00     
+(openSUSE:13.2) build-compare-2014.07.15-4.1.5.noarc 100%
+|==========================|  25 kB    00:00     
+(openSUSE:13.2) brp-extract-appdata-2012.02.13-22.1. 100%
+|==========================| 8.0 kB    00:00     
+(openSUSE:13.2) libgdbm4-1.11-3.1.2.x86_64.rpm       100%
+|==========================|  69 kB    00:00     
+(openSUSE:13.2) aaa_base-malloccheck-13.2+git2014091 100%
+|==========================|  35 kB    00:00     
+(openSUSE:13.2) rpmlint-mini-1.5-8.1.9.x86_64.rpm    100%
+|==========================| 1.7 MB    00:02     
+(openSUSE:13.2) libncurses6-5.9-52.2.3.x86_64.rpm    100%
+|==========================| 362 kB    00:02     
+ Verifying integrity of cached packages
+using keys from openSUSE:13.2
+Writing build configuration
+Running build
+root&#39;s password:
+logging output to /var/tmp/build-root/openSUSE_13.2-x86_64/.build.log...
+[    0s] Memory limit set to 30209708KB
+[    0s] Using BUILD_ROOT=/var/tmp/build-root/openSUSE_13.2-x86_64
+[    0s] Using BUILD_ARCH=x86_64:i686:i586:i486:i386
+[    0s] 
+[    0s] 
+[    0s] panos started &amp;quot;build hello.spec&amp;quot; at Thu Sep 17 12:33:24 UTC 2015.
+[    0s] 
+[    0s] 
+[    0s] processing recipe
+/suse/pgeorgiadis/building/home:pgeorgiadis/hello/hello.spec ...
+[    0s] running changelog2spec --target rpm --file
+/suse/pgeorgiadis/building/home:pgeorgiadis/hello/hello.spec
+[    0s] init_buildsystem --configdir /usr/lib/build/configs --cachedir
+/var/cache/build --rpmlist /tmp/rpmlist.gqa5_i
+/suse/pgeorgiadis/building/home:pgeorgiadis/hello/hello.spec ...
+[    1s] [1/29] preinstalling filesystem...
+[    1s] [2/29] preinstalling glibc...
+[    1s] [3/29] preinstalling fillup...
+[    1s] [4/29] preinstalling libattr1...
+[    1s] [5/29] preinstalling libbz2-1...
+[    1s] [6/29] preinstalling libcap2...
+[    1s] [7/29] preinstalling libelf1...
+[    1s] [8/29] preinstalling libgcc_s1...
+[    1s] [9/29] preinstalling liblua5_1...
+[    1s] [10/29] preinstalling liblzma5...
+[    1s] [11/29] preinstalling libpcre1...
+[    1s] [12/29] preinstalling libpopt0...
+[    1s] [13/29] preinstalling libz1...
+[    1s] [14/29] preinstalling attr...
+[    1s] [15/29] preinstalling libacl1...
+[    1s] [16/29] preinstalling libncurses5...
+[    1s] [17/29] preinstalling libselinux1...
+[    1s] [18/29] preinstalling libreadline6...
+[    1s] [19/29] preinstalling bash...
+[    1s] [20/29] preinstalling diffutils...
+[    1s] [21/29] preinstalling m4...
+[    1s] [22/29] preinstalling sed...
+[    1s] [23/29] preinstalling tar...
+[    1s] [24/29] preinstalling grep...
+[    1s] [25/29] preinstalling coreutils...
+[    1s] [26/29] preinstalling permissions...
+[    1s] [27/29] preinstalling aaa_base...
+[    1s] [28/29] preinstalling rpm...
+[    2s] [29/29] preinstalling pam...
+[    2s] 
+[    3s] running aaa_base preinstall script
+[    3s] running aaa_base postinstall script
+[    3s] Updating /etc/sysconfig/language...
+[    3s] Updating /etc/sysconfig/backup...
+[    3s] Updating /etc/sysconfig/proxy...
+[    3s] Updating /etc/sysconfig/windowmanager...
+[    3s] Updating /etc/sysconfig/news...
+[    3s] Updating etc/passwd...unchanged
+[    3s] Updating etc/group...unchanged
+[    3s] Updating etc/shadow...new
+[    3s] initializing rpm db...
+[    4s] reordering...cycle: libcrack2 -&amp;gt; cracklib
+[    4s]   breaking dependency libcrack2 -&amp;gt; cracklib
+[    4s] done
+[    4s] [1/98] cumulate file-magic-5.19-3.1.2
+[    4s] [2/98] cumulate filesystem-13.2-4.3.1
+[    4s] [3/98] cumulate insserv-compat-0.1-12.2.2
+[    4s] [4/98] cumulate kernel-obs-build-3.16.6-2.1
+[    4s] [5/98] cumulate terminfo-base-5.9-52.2.3
+[    4s] [6/98] cumulate glibc-2.19-16.2.5
+[    4s] [7/98] cumulate fillup-1.42-271.1.2
+[    4s] [8/98] cumulate libatomic1-4.8.3+r212056-2.2.4
+[    4s] [9/98] cumulate libattr1-2.4.47-4.1.2
+[    4s] [10/98] cumulate libaudit1-2.4-1.3
+[    4s] [11/98] cumulate libbz2-1-1.0.6-29.2.7
+[    4s] [12/98] cumulate libcap-ng0-0.7.4-3.1.2
+[    4s] [13/98] cumulate libcap2-2.22-13.1.8
+[    4s] [14/98] cumulate libelf1-0.158-4.2.6
+[    5s] [15/98] cumulate libgcc_s1-4.8.3+r212056-2.2.4
+[    5s] [16/98] cumulate libgdbm4-1.11-3.1.2
+[    5s] [17/98] cumulate libgmp10-5.1.3-3.1.2
+[    5s] [18/98] cumulate libgomp1-4.8.3+r212056-2.2.4
+[    5s] [19/98] cumulate libitm1-4.8.3+r212056-2.2.4
+[    5s] [20/98] cumulate liblua5_1-5.1.5-10.2.2
+[    5s] [21/98] cumulate liblzma5-5.0.7-1.1
+[    5s] [22/98] cumulate libpcre1-8.35-3.2.3
+[    5s] [23/98] cumulate libpopt0-1.16-27.1.2
+[    5s] [24/98] cumulate libsepol1-2.3-2.1.8
+[    5s] [25/98] cumulate libsmartcols1-2.25.1-2.4
+[    5s] [26/98] cumulate libustr-1_0-1-1.0.4-33.1.2
+[    5s] [27/98] cumulate libuuid1-2.25.1-2.4
+[    5s] [28/98] cumulate libz1-1.2.8-5.1.2
+[    5s] [29/98] cumulate net-tools-1.60-765.1.2
+[    5s] [30/98] cumulate patch-2.7.1-7.1.2
+[    5s] [31/98] cumulate perl-base-5.20.1-1.3
+[    5s] [32/98] cumulate update-alternatives-1.16.10-8.1.2
+[    5s] [33/98] cumulate brp-extract-appdata-2012.02.13-22.1.2
+[    6s] [34/98] cumulate build-mkbaselibs-20140424-2.1.3
+[    6s] [35/98] cumulate attr-2.4.47-4.1.2
+[    6s] [36/98] cumulate libacl1-2.2.52-5.1.2
+[    6s] [37/98] cumulate libasan0-4.8.3+r212056-2.2.4
+[    6s] [38/98] cumulate libblkid1-2.25.1-2.4
+[    6s] [39/98] cumulate libisl10-0.12.2-2.1.2
+[    6s] [40/98] cumulate libmpfr4-3.1.2-5.1.2
+[    6s] [41/98] cumulate libselinux1-2.3-2.2.5
+[    6s] [42/98] cumulate libstdc++6-4.8.3+r212056-2.2.4
+[    6s] [43/98] cumulate libtsan0-4.8.3+r212056-2.2.4
+[    6s] [44/98] cumulate libmagic1-5.19-3.1.2
+[    6s] [45/98] cumulate libzio1-1.00-10.1.2
+[    6s] [46/98] cumulate file-5.19-3.1.2
+[    6s] [47/98] cumulate libcloog-isl4-0.18.1-2.1.2
+[    6s] [48/98] cumulate libdb-4_8-4.8.30-29.1.2
+[    6s] [49/98] cumulate libmount1-2.25.1-2.4
+[    6s] [50/98] cumulate libmpc3-1.0.2-2.1.2
+[    6s] [51/98] cumulate libncurses5-5.9-52.2.3
+[    6s] [52/98] cumulate libncurses6-5.9-52.2.3
+[    7s] [53/98] cumulate libsemanage1-2.3-2.1.8
+[    7s] [54/98] cumulate libreadline6-6.2-75.3.1
+[    7s] [55/98] cumulate perl-5.20.1-1.3
+[    7s] [56/98] cumulate cpp48-4.8.3+r212056-2.2.4
+[    7s] [57/98] cumulate brp-check-suse-13.2+git20140727.d76b99d-3.2.1
+[    7s] [58/98] cumulate bash-4.2-75.3.1
+[    7s] [59/98] cumulate build-compare-2014.07.15-4.1.5
+[    7s] [60/98] cumulate cpp-4.8-7.1.2
+[    7s] [61/98] cumulate bzip2-1.0.6-29.2.7
+[    7s] [62/98] cumulate xz-5.0.7-1.1
+[    7s] [63/98] cumulate info-4.13a-38.1.2
+[    7s] [64/98] cumulate cpio-2.11-29.2.3
+[    7s] [65/98] cumulate diffutils-3.3-6.1.2
+[    7s] [66/98] cumulate gzip-1.6-8.1.8
+[    7s] [67/98] cumulate m4-1.4.17-2.1.2
+[    7s] [68/98] cumulate make-4.0-2.2.3
+[    7s] [69/98] cumulate sed-4.2.2-5.1.2
+[    7s] [70/98] cumulate tar-1.28-2.2.2
+[    7s] [71/98] cumulate which-2.20-4.1.2
+[    8s] [72/98] cumulate findutils-4.5.14-2.1.2
+[    8s] [73/98] cumulate gawk-4.1.1-3.1.2
+[    8s] [74/98] cumulate gettext-runtime-mini-0.19.2-2.1.3
+[    8s] [75/98] cumulate grep-2.20-2.1.2
+[    8s] [76/98] cumulate binutils-2.24-6.1.7
+[    8s] [77/98] cumulate coreutils-8.23-2.3.1
+[    8s] [78/98] cumulate linux-glibc-devel-3.16-2.1.7
+[    8s] [79/98] cumulate systemd-rpm-macros-2-8.1.2
+[    8s] [80/98] cumulate glibc-locale-2.19-16.2.5
+[    8s] [81/98] cumulate gettext-tools-mini-0.19.2-2.1.3
+[    8s] [82/98] cumulate permissions-2014.08.26.1452-1.2
+[    8s] [83/98] cumulate rpm-4.11.3-1.2
+[    8s] [84/98] cumulate glibc-devel-2.19-16.2.5
+[    8s] [85/98] cumulate libutempter0-1.1.6-5.2.3
+[    8s] [86/98] cumulate rpmlint-mini-1.5-8.1.9
+[    8s] [87/98] cumulate rpmlint-Factory-1.0-88.1.2
+[    8s] [88/98] cumulate gcc48-4.8.3+r212056-2.2.4
+[    8s] [89/98] cumulate gcc-4.8-7.1.2
+[    8s] [90/98] cumulate libcrack2-2.9.0-4.1.3
+[    9s] [91/98] cumulate cracklib-2.9.0-4.1.3
+[    9s] [92/98] cumulate pam-1.1.8-11.1.2
+[    9s] [93/98] cumulate pam-modules-12.1-24.1.2
+[    9s] [94/98] cumulate util-linux-2.25.1-2.4
+[    9s] [95/98] cumulate aaa_base-13.2+git20140911.61c1681-1.3
+[    9s] [96/98] cumulate rpm-build-4.11.3-1.2
+[    9s] [97/98] cumulate aaa_base-malloccheck-13.2+git20140911.61c1681-1.3
+[    9s] [98/98] cumulate post-build-checks-13.2+git20140318.f24deaf-2.1.2
+[    9s] now installing cumulated packages
+[    9s] Preparing...
+########################################
+[    9s] Updating / installing...
+[    9s] terminfo-base-5.9-52.2.3
+########################################
+[    9s] filesystem-13.2-4.3.1
+########################################
+[    9s] glibc-2.19-16.2.5
+########################################
+[    9s] libz1-1.2.8-5.1.2
+########################################
+[    9s] perl-base-5.20.1-1.3
+########################################
+[    9s] libgcc_s1-4.8.3+r212056-2.2.4
+########################################
+[    9s] libgmp10-5.1.3-3.1.2
+########################################
+[    9s] libbz2-1-1.0.6-29.2.7
+########################################
+[    9s] libstdc++6-4.8.3+r212056-2.2.4
+########################################
+[    9s] libncurses5-5.9-52.2.3
+########################################
+[    9s] fillup-1.42-271.1.2
+########################################
+[    9s] libisl10-0.12.2-2.1.2
+########################################
+[    9s] libmpfr4-3.1.2-5.1.2
+########################################
+[    9s] libattr1-2.4.47-4.1.2
+########################################
+[    9s] libaudit1-2.4-1.3
+########################################
+[    9s] libcap2-2.22-13.1.8
+########################################
+[    9s] liblzma5-5.0.7-1.1
+########################################
+[    9s] libacl1-2.2.52-5.1.2
+########################################
+[    9s] libmpc3-1.0.2-2.1.2
+########################################
+[    9s] libcloog-isl4-0.18.1-2.1.2
+########################################
+[   10s] cpp48-4.8.3+r212056-2.2.4
+########################################
+[   10s] libgomp1-4.8.3+r212056-2.2.4
+########################################
+[   10s] libpcre1-8.35-3.2.3
+########################################
+[   10s] libselinux1-2.3-2.2.5
+########################################
+[   10s] libpopt0-1.16-27.1.2
+########################################
+[   10s] libuuid1-2.25.1-2.4
+########################################
+[   10s] libblkid1-2.25.1-2.4
+########################################
+[   10s] update-alternatives-1.16.10-8.1.2
+########################################
+[   10s] libmount1-2.25.1-2.4
+########################################
+[   10s] libzio1-1.00-10.1.2
+########################################
+[   10s] libreadline6-6.2-75.3.1
+########################################
+[   10s] bash-4.2-75.3.1
+########################################
+[   10s] info-4.13a-38.1.2
+########################################
+[   10s] coreutils-8.23-2.3.1
+########################################
+[   11s] diffutils-3.3-6.1.2
+########################################
+[   11s] grep-2.20-2.1.2
+########################################
+[   11s] permissions-2014.08.26.1452-1.2
+########################################
+[   11s] Updating /etc/sysconfig/security...
+[   11s] Warning: running kernel does not support fscaps
+[   11s] Checking permissions and ownerships - using the permissions files
+[   11s]    /etc/permissions
+[   11s]    /etc/permissions.easy
+[   11s]    /etc/permissions.local
+[   11s] setting /dev/full to root:root 0666. (wrong permissions 0622)
+[   11s] setting /sbin/unix_chkpwd to root:shadow 4755. (wrong owner/group
+root:root)
+[   11s] sed-4.2.2-5.1.2
+########################################
+[   11s] cpio-2.11-29.2.3
+########################################
+[   11s] findutils-4.5.14-2.1.2
+########################################
+[   11s] gawk-4.1.1-3.1.2
+########################################
+[   11s] update-alternatives: using /usr/bin/gawk to provide /bin/awk (awk) in
+auto mode
+[   12s] binutils-2.24-6.1.7
+########################################
+[   12s] update-alternatives: using /usr/bin/ld.bfd to provide /usr/bin/ld (ld)
+in auto mode
+[   13s] libutempter0-1.1.6-5.2.3
+########################################
+[   13s] Warning: running kernel does not support fscaps
+[   13s] linux-glibc-devel-3.16-2.1.7
+########################################
+[   13s] glibc-devel-2.19-16.2.5
+########################################
+[   13s] systemd-rpm-macros-2-8.1.2
+########################################
+[   14s] glibc-locale-2.19-16.2.5
+########################################
+[   14s] gzip-1.6-8.1.8
+########################################
+[   14s] make-4.0-2.2.3
+########################################
+[   14s] tar-1.28-2.2.2
+########################################
+[   14s] which-2.20-4.1.2
+########################################
+[   14s] gettext-runtime-mini-0.19.2-2.1.3
+########################################
+[   14s] gettext-tools-mini-0.19.2-2.1.3
+########################################
+[   15s] cpp-4.8-7.1.2
+########################################
+[   15s] bzip2-1.0.6-29.2.7
+########################################
+[   15s] xz-5.0.7-1.1
+########################################
+[   15s] libcrack2-2.9.0-4.1.3
+########################################
+[   15s] cracklib-2.9.0-4.1.3
+########################################
+[   15s] pam-1.1.8-11.1.2
+########################################
+[   15s] Warning: running kernel does not support fscaps
+[   15s] libdb-4_8-4.8.30-29.1.2
+########################################
+[   15s] libncurses6-5.9-52.2.3
+########################################
+[   15s] libasan0-4.8.3+r212056-2.2.4
+########################################
+[   15s] libtsan0-4.8.3+r212056-2.2.4
+########################################
+[   15s] libatomic1-4.8.3+r212056-2.2.4
+########################################
+[   15s] libcap-ng0-0.7.4-3.1.2
+########################################
+[   15s] libelf1-0.158-4.2.6
+########################################
+[   15s] libgdbm4-1.11-3.1.2
+########################################
+[   16s] perl-5.20.1-1.3
+########################################
+[   16s] libitm1-4.8.3+r212056-2.2.4
+########################################
+[   16s] gcc48-4.8.3+r212056-2.2.4
+########################################
+[   16s] gcc-4.8-7.1.2
+########################################
+[   16s] liblua5_1-5.1.5-10.2.2
+########################################
+[   16s] libsepol1-2.3-2.1.8
+########################################
+[   16s] libsmartcols1-2.25.1-2.4
+########################################
+[   16s] libustr-1_0-1-1.0.4-33.1.2
+########################################
+[   16s] libsemanage1-2.3-2.1.8
+########################################
+[   16s] net-tools-1.60-765.1.2
+########################################
+[   16s] patch-2.7.1-7.1.2
+########################################
+[   16s] insserv-compat-0.1-12.2.2
+########################################
+[   16s] util-linux-2.25.1-2.4
+########################################
+[   16s] Warning: running kernel does not support fscaps
+[   16s] setting /usr/bin/wall to root:tty 2755. (wrong permissions 0755)
+[   16s] setting /usr/bin/write to root:tty 2755. (wrong permissions 0755)
+[   16s] Warning: running kernel does not support fscaps
+[   16s] aaa_base-13.2+git20140911.61c1681-1.3
+########################################
+[   17s] Updating /etc/sysconfig/language...
+[   17s] Updating /etc/sysconfig/backup...
+[   17s] Updating /etc/sysconfig/proxy...
+[   17s] Updating /etc/sysconfig/windowmanager...
+[   17s] Updating /etc/sysconfig/news...
+[   17s] Updating etc/passwd...unchanged
+[   17s] Updating etc/group...unchanged
+[   17s] Updating etc/shadow...unchanged
+[   17s]
+aaa_base-malloccheck-13.2+git20140911.########################################
+[   17s] file-magic-5.19-3.1.2
+########################################
+[   17s] libmagic1-5.19-3.1.2
+########################################
+[   17s] rpm-4.11.3-1.2
+########################################
+[   17s] Updating /etc/sysconfig/services...
+[   18s] rpmlint-mini-1.5-8.1.9
+########################################
+[   18s] file-5.19-3.1.2
+########################################
+[   18s] rpm-build-4.11.3-1.2
+########################################
+[   18s] rpmlint-Factory-1.0-88.1.2
+########################################
+[   18s]
+post-build-checks-13.2+git20140318.f24########################################
+[   18s]
+brp-check-suse-13.2+git20140727.d76b99########################################
+[   18s] pam-modules-12.1-24.1.2
+########################################
+[   18s] Warning: running kernel does not support fscaps
+[   18s] m4-1.4.17-2.1.2
+########################################
+[   18s] build-compare-2014.07.15-4.1.5
+########################################
+[   18s] attr-2.4.47-4.1.2
+########################################
+[   18s] brp-extract-appdata-2012.02.13-22.1.2
+########################################
+[   18s] build-mkbaselibs-20140424-2.1.3
+########################################
+[   19s] kernel-obs-build-3.16.6-2.1
+########################################
+[   19s] removing nis flags from
+/var/tmp/build-root/openSUSE_13.2-x86_64/etc/nsswitch.conf...
+[   19s] now finalizing build dir...
+[   19s] -----------------------------------------------------------------
+[   19s] ----- building hello.spec (user abuild)
+[   19s] -----------------------------------------------------------------
+[   19s] -----------------------------------------------------------------
+[   19s] + exec rpmbuild -ba --define &#39;_srcdefattr (-,root,root)&#39; --nosignature
+/home/abuild/rpmbuild/SOURCES/hello.spec
+[   19s] Executing(%prep): /bin/sh -e /var/tmp/rpm-tmp.lltMuT
+[   19s] + umask 022
+[   19s] + cd /home/abuild/rpmbuild/BUILD
+[   19s] + exit 0
+[   19s] Executing(%build): /bin/sh -e /var/tmp/rpm-tmp.4VTIQ2
+[   19s] + umask 022
+[   19s] + cd /home/abuild/rpmbuild/BUILD
+[   19s] + /usr/bin/rm -rf /home/abuild/rpmbuild/BUILDROOT/hello-0-0.x86_64
+[   19s] ++ dirname /home/abuild/rpmbuild/BUILDROOT/hello-0-0.x86_64
+[   19s] + /usr/bin/mkdir -p /home/abuild/rpmbuild/BUILDROOT
+[   19s] + /usr/bin/mkdir /home/abuild/rpmbuild/BUILDROOT/hello-0-0.x86_64
+[   19s] + exit 0
+[   19s] Executing(%install): /bin/sh -e /var/tmp/rpm-tmp.sCRndc
+[   19s] + umask 022
+[   19s] + cd /home/abuild/rpmbuild/BUILD
+[   19s] + install -D -m 755 /home/abuild/rpmbuild/SOURCES/hello.sh
+/home/abuild/rpmbuild/BUILDROOT/hello-0-0.x86_64/usr/bin/hello.sh
+[   19s] + /usr/lib/rpm/brp-compress
+[   19s] + /usr/lib/rpm/brp-suse
+[   19s] calling /usr/lib/rpm/brp-suse.d/brp-05-permissions
+[   19s] setting / to root:root 0755. (wrong owner/group abuild:abuild)
+[   19s] setting /usr/ to root:root 0755. (wrong owner/group abuild:abuild)
+[   19s] calling /usr/lib/rpm/brp-suse.d/brp-15-strip-debug
+[   19s] calling /usr/lib/rpm/brp-suse.d/brp-25-symlink
+[   19s] calling /usr/lib/rpm/brp-suse.d/brp-30-desktop
+[   19s] WARNING: &#39;/usr/lib/rpm/brp-desktop.data/suse-screensavers.menu&#39; does
+not exist
+[   19s] WARNING: &#39;/usr/lib/rpm/brp-desktop.data/preferences-gnome.menu&#39; does
+not exist
+[   19s] WARNING: &#39;/usr/lib/rpm/brp-desktop.data/applications-kmenuedit.menu&#39;
+does not exist
+[   19s] calling /usr/lib/rpm/brp-suse.d/brp-35-rpath
+[   19s] calling /usr/lib/rpm/brp-suse.d/brp-40-rootfs
+[   19s] calling /usr/lib/rpm/brp-suse.d/brp-45-tcl
+[   19s] calling /usr/lib/rpm/brp-suse.d/brp-50-check-python
+[   19s] calling /usr/lib/rpm/brp-suse.d/brp-55-boot-scripts
+[   19s] calling /usr/lib/rpm/brp-suse.d/brp-60-hook
+[   19s] calling /usr/lib/rpm/brp-suse.d/brp-65-lib64-linux
+[   19s] calling /usr/lib/rpm/brp-suse.d/brp-72-extract-appdata
+[   19s] Processing files: hello-0-0.x86_64
+[   19s] Provides: hello = 0-0 hello(x86-64) = 0-0
+[   19s] Requires(rpmlib): rpmlib(CompressedFileNames) &amp;lt;= 3.0.4-1
+rpmlib(PayloadFilesHavePrefix) &amp;lt;= 4.0-1
+[   19s] Requires: /bin/bash
+[   19s] Checking for unpackaged file(s): /usr/lib/rpm/check-files
+/home/abuild/rpmbuild/BUILDROOT/hello-0-0.x86_64
+[   19s] Wrote: /home/abuild/rpmbuild/SRPMS/hello-0-0.src.rpm
+[   19s] Wrote: /home/abuild/rpmbuild/RPMS/x86_64/hello-0-0.x86_64.rpm
+[   19s] Executing(%clean): /bin/sh -e /var/tmp/rpm-tmp.LQOxLH
+[   19s] + umask 022
+[   19s] + cd /home/abuild/rpmbuild/BUILD
+[   19s] + /usr/bin/rm -rf /home/abuild/rpmbuild/BUILDROOT/hello-0-0.x86_64
+[   19s] + exit 0
+[   19s] ... checking for files with abuild user/group
+[   19s] ... running 00-check-install-rpms
+[   19s] ... installing all built rpms
+[   19s] Preparing packages...
+[   19s] hello-0-0.x86_64
+[   20s] ... running 01-check-debuginfo
+[   20s] ... testing for empty debuginfo packages
+[   20s] ... running 02-check-gcc-output
+[   20s] ... testing for serious compiler warnings
+[   20s]     (using /usr/lib/build/checks-data/check_gcc_output)
+[   20s]     (using /var/tmp/build-root/openSUSE_13.2-x86_64/.build.log)
+[   20s] ... running 03-check-binary-kernel-log
+[   20s] ... running 04-check-filelist
+[   20s] ... checking filelist
+[   20s] ... running 05-check-invalid-requires
+[   20s] ... running 06-check-installtest
+[   20s] ... testing for pre/postinstall scripts that are not idempotent
+[   20s] ... running 08-check-permissions
+[   20s] ... testing for modified permissions
+[   20s] ... running 09-check-packaged-twice
+[   20s] ... running 10-check-lanana
+[   20s] ... running 12-check-libtool-deps
+[   20s] ... testing devel dependencies required by libtool .la files
+[   20s]     (can be skipped by &amp;quot;skip-check-libtool-deps&amp;quot; anywhere in spec)
+[   20s] ... running 13-check-invalid-provides
+[   20s] ... running 14-check-gconf-scriptlets
+[   20s] ... testing GConf scriptlet presence
+[   20s] ... running 72-translate-appdata
+[   20s] ... running 99-check-remove-rpms
+[   20s] ... removing all built rpms
+[   20s]     (order: reverse hello)
+[   20s] 
+[   20s] RPMLINT report:
+[   20s] ===============
+[   20s] hello.x86_64: W: no-manual-page-for-binary hello.sh
+[   20s] Each executable in standard binary directories should have a man page.
+[   20s] 
+[   20s] hello.x86_64: W: no-changelogname-tag
+[   20s] hello.src: W: no-changelogname-tag
+[   20s] There is no changelog. Please insert a &#39;%changelog&#39; section heading in
+your
+[   20s] spec file and prepare your changes file using e.g. the &#39;osc vc&#39;
+command.
+[   20s] 
+[   20s] hello.x86_64: W: no-binary
+[   20s] The package should be of the noarch architecture because it doesn&#39;t
+contain
+[   20s] any binaries.
+[   20s] 
+[   20s] hello.src:43: W: macro-in-comment %{buildroot}
+[   20s] There is a unescaped macro after a shell style comment in the
+specfile. Macros
+[   20s] are expanded everywhere, so check if it can cause a problem in this
+case and
+[   20s] escape the macro with another leading % if appropriate.
+[   20s] 
+[   20s] hello.x86_64: W: invalid-url URL TODO
+[   20s] hello.src: W: invalid-url URL TODO
+[   20s] The value should be a valid, public HTTP, HTTPS, or FTP URL.
+[   20s] 
+[   20s] hello.x86_64: W: description-shorter-than-summary
+[   20s] hello.src: W: description-shorter-than-summary
+[   20s] The package description should be longer than the summary. be a bit
+more
+[   20s] verbose, please.
+[   20s] 
+[   20s] 2 packages and 0 specfiles checked; 0 errors, 9 warnings.
+[   20s] 
+[   20s] 
+[   20s] panos finished &amp;quot;build hello.spec&amp;quot; at Thu Sep 17 12:33:44 UTC 2015.
+[   20s] 
+
+/var/tmp/build-root/openSUSE_13.2-x86_64/home/abuild/rpmbuild/SRPMS/hello-0-0.src.rpm
+
+/var/tmp/build-root/openSUSE_13.2-x86_64/home/abuild/rpmbuild/RPMS/x86_64/hello-0-0.x86_64.rpm
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;build-it-remotely:9e85b091fa492d9c02a31bf044182d87&#34;&gt;Build it remotely&lt;/h3&gt;
+
+&lt;p&gt;In order to build it remotely, on the OBS side of things you first have to add
+the files in order to be staged.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; opensc addremove
+A    hello.sh
+A    hello.spec
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;then write the changelog for version control:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; opensc vc
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and type what&amp;rsquo;s all about. For example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-changes&#34;&gt;-------------------------------------------------------------------
+Thu Sep 17 12:34:27 UTC 2015 - pgeorgiadis@novell.com
+
+- Initial Package
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;after that, a new file &lt;code&gt;hello.changes&lt;/code&gt; will be automatically created. Let&amp;rsquo;s add
+it also:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; opensc addremove
+A    hello.changes
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And now we are good to go and commit the changes to OBS:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; opensc ci
+Sending    hello.sh
+Sending    hello.spec
+Sending    hello.changes
+Transmitting file data ...
+Committed revision 1.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now, go to the web-interface, go to your project &lt;code&gt;hello&lt;/code&gt; (which can be found at
+your &lt;code&gt;Home Project&lt;/code&gt; page) and check the &lt;code&gt;Build Result&lt;/code&gt; status on the right side
+of the page. Also, feel free to hit refresh of the results (not the whole
+page). Once it&amp;rsquo;s done, you should see &lt;code&gt;succeeded&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;how-to-share-it-with-your-friends:9e85b091fa492d9c02a31bf044182d87&#34;&gt;How to share it with your friends:&lt;/h3&gt;
+
+&lt;p&gt;If you want to know the repository click on the distribution you have just build for (e.g. &lt;a href=&#34;https://build.opensuse.org/package/binaries/home:pgeorgiadis/hello?repository=openSUSE_13.2&#34;&gt;openSUSE_13.2-x86_64&lt;/a&gt;
+) and then click on &lt;a href=&#34;http://download.opensuse.org/repositories/home:/pgeorgiadis/openSUSE_13.2/&#34;&gt;Go to download repository&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;However, the link you are going to share with your friend is not that. You can
+find that link at your project&amp;rsquo;s page, saying &lt;a href=&#34;https://software.opensuse.org/download.html?project=home%3Apgeorgiadis&amp;amp;package=hello&#34;&gt;Download
+package&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;This page will contain automatically the information for your friends to
+install your package. For example, for OpenSUSE they are going to be provided
+with a &lt;code&gt;One-click installer&lt;/code&gt; or with the manual instructions:&lt;/p&gt;
+
+&lt;p&gt;``bash
+zypper addrepo
+&lt;a href=&#34;http://download.opensuse.org/repositories/home:pgeorgiadis/openSUSE_13.2/home:pgeorgiadis.repo&#34;&gt;http://download.opensuse.org/repositories/home:pgeorgiadis/openSUSE_13.2/home:pgeorgiadis.repo&lt;/a&gt;
+zypper refresh
+zypper install hello&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+### Update your script
+
+In case you want to make some new changes, for example:
+
+```bash
+pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; vi hello.sh 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;source code:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+VERSION=1.0
+echo &amp;quot;Hello World&amp;quot;
+echo &amp;quot;Good night&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;I added a new variable with the name of the version and another print message.
+Then let&amp;rsquo;s edit also the &lt;code&gt;.spec&lt;/code&gt; file:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; vi hello.spec
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and change the version also there:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-spec&#34;&gt;Version:        1.0
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;finally, write the new changelog:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; obs vc
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;for example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;Thu Sep 17 12:46:32 UTC 2015 - pgeorgiadis@novell.com
+
+- Update to 1.0
+  Be polite and say good night
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and commit:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; opensc ci
+Sending    hello.changes
+Sending    hello.sh
+Sending    hello.spec
+Transmitting file data ...
+Committed revision 2.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The packages are going to be also rebuild automatically on the OBS.&lt;/p&gt;
+
+&lt;h3 id=&#34;build-for-fedora-and-centos:9e85b091fa492d9c02a31bf044182d87&#34;&gt;Build for Fedora and CentOS&lt;/h3&gt;
+
+&lt;p&gt;If you want to build for more &lt;strong&gt;RPM&lt;/strong&gt; distributions like Fedora, CentOS, RHEL
+etc and go to OBS web-interface &amp;gt; Home Project and then click on the &lt;strong&gt;tab&lt;/strong&gt;
+&lt;a href=&#34;https://build.opensuse.org/project/repositories/home:pgeorgiadis&#34;&gt;Repositories&lt;/a&gt;.Once
+you go there, click [Add repositories] and select the distributions you are
+going to build with. Let&amp;rsquo;s select only the RPM once since there are more stuff
+needed to build a debian package.&lt;/p&gt;
+
+&lt;p&gt;Now, everytime I commit my changes on OBS, my package is going to be build also
+for OpenSUSE, CentOS and Fedora.&lt;/p&gt;
+
+&lt;h3 id=&#34;dependencies:9e85b091fa492d9c02a31bf044182d87&#34;&gt;Dependencies&lt;/h3&gt;
+
+&lt;p&gt;Let&amp;rsquo;s pretend that my script uses NFS server. Thus I need NFS server to be
+present on the machine. Then I am going to change the spec file accordingly:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-spec&#34;&gt;PreReq:         nfs-client
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;PreReq&lt;/code&gt; means that my package is going to require nfs-client package to be
+present both for installation and runtime. Also, if sometime infuture someone
+tries to remove &lt;code&gt;nfs-client&lt;/code&gt; then my package &lt;code&gt;hello&lt;/code&gt; is also going to be
+removed.&lt;/p&gt;
+
+&lt;p&gt;If there&amp;rsquo;s different name package for OpenSUSE, I can do it like that:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-spec&#34;&gt;%if 0%{?suse_version}
+PreReq:         yast2-nfs-client
+%else
+PreReq:         nfs-client
+%endif
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This means that if th  system is OpenSUSE then it&amp;rsquo;s going to install
+&lt;code&gt;yast2-nfs-client&lt;/code&gt;. If the system is something else (e.g. CentOS or Fedora in
+our case) it&amp;rsquo;s going to install &lt;code&gt;nfs-client&lt;/code&gt; package.&lt;/p&gt;
+
+&lt;p&gt;The difference between &lt;code&gt;PreReq&lt;/code&gt; and &lt;code&gt;Requires&lt;/code&gt; is that:
+&lt;code&gt;PreReq&lt;/code&gt;: Needed for Installation and Runtime
+&lt;code&gt;Requires&lt;/code&gt;: Needed only for Runtime&lt;/p&gt;
+
+&lt;p&gt;Also, note that there&amp;rsquo;s no need to change the version of my script since I
+didn&amp;rsquo;t make any changes. However, I am going to document what have changes in
+that revision:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; opensc vc
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;for example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;-------------------------------------------------------------------
+Thu Sep 17 13:14:54 UTC 2015 - pgeorgiadis@novell.com
+
+- Added pre_req for nfs_server for any suse
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and commit:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; opensc ci
+Sending    hello.changes
+Sending    hello.spec
+Transmitting file data ..
+Committed revision 3.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;a-friend-sends-you-a-request:9e85b091fa492d9c02a31bf044182d87&#34;&gt;A friend sends you a request&lt;/h3&gt;
+
+&lt;p&gt;Let&amp;rsquo;s pretend that a friend of yours or someone else sends you a request. First
+of all, how can he do that:&lt;/p&gt;
+
+&lt;p&gt;He creates a folder to download your project:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ktsamis@kostas:~&amp;gt; cd Documents/hello/
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;he branches it:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ktsamis@kostas:~/Documents/hello&amp;gt; osc -H -A https://api.opensuse.org/ bco home:pgeorgiadis/hello
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;after that, he has branches my project into his home project:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ktsamis@kostas:~/Documents/hello&amp;gt; cd
+home:ktsamis:branches:home:pgeorgiadis/hello/
+ktsamis@kostas:~/Documents/hello/home:ktsamis:branches:home:pgeorgiadis/hello&amp;gt;ls
+total 20
+drwxr-xr-x 3 ktsamis suse 4096 Sep 17 15:40 ./
+drwxr-xr-x 4 ktsamis suse 4096 Sep 17 15:40 ../
+-rw-r--r-- 1 ktsamis suse  483 Sep 17 15:18 hello.changes
+-rw-r--r-- 1 ktsamis suse   62 Sep 17 14:48 hello.sh
+-rw-r--r-- 1 ktsamis suse 1289 Sep 17 15:18 hello.spec
+drwxr-xr-x 2 ktsamis suse 4096 Sep 17 15:40 .osc/
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;then he edits my script, for example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ktsamis@kostas:~/Documents/hello/home:ktsamis:branches:home:pgeorgiadis/hello&amp;gt;vi hello.sh
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;source code:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#!/bin/bash
+VERSION=1.1
+echo &amp;quot;Hello World&amp;quot;
+echo &amp;quot;Good night&amp;quot;
+echo &amp;quot;Version is: $VERSION&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So, he add a new &lt;code&gt;echo&lt;/code&gt; and since he edits my script he also bumps the version
+from &lt;code&gt;1.0&lt;/code&gt; to &lt;code&gt;1.1&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;then he runs the script to make sure he didn&amp;rsquo;t make any mistake:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ktsamis@kostas:~/Documents/hello/home:ktsamis:branches:home:pgeorgiadis/hello&amp;gt;chmod +x hello.sh
+ktsamis@kostas:~/Documents/hello/home:ktsamis:branches:home:pgeorgiadis/hello&amp;gt;./hello.sh
+Hello World
+Good night
+Version is: 1.1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So, as long as it&amp;rsquo;s ok, then he proceeds with changing the version number also
+from the spec file:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ktsamis@kostas:~/Documents/hello/home:ktsamis:branches:home:pgeorgiadis/hello&amp;gt;vi hello.spec
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;Version:        1.1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and last but not least, write the changelog:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ktsamis@kostas:~/Documents/hello/home:ktsamis:branches:home:pgeorgiadis/hello&amp;gt;osc vc
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-changes&#34;&gt;-------------------------------------------------------------------
+Thu Sep 17 13:44:32 UTC 2015 - ktsamis@suse.com
+
+- Update to Version 1.1. Now it shows you the version
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;then do a diff to see what changed and commit to his branch&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ktsamis@kostas:~/Documents/hello/home:ktsamis:branches:home:pgeorgiadis/hello&amp;gt;osc diff 
+ktsamis@kostas:~/Documents/hello/home:ktsamis:branches:home:pgeorgiadis/hello&amp;gt;osc ci 
+Sending    hello.changes
+Sending    hello.sh
+Sending    hello.spec
+Transmitting file data ...
+Committed revision 2.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Finally, he sends me a merge request in order to apply his changes into mine
+original project.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ktsamis@kostas:~/Documents/hello/home:ktsamis:branches:home:pgeorgiadis/hello&amp;gt;osc sr 
+created request id 331791
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;merging-the-request-from-your-friend:9e85b091fa492d9c02a31bf044182d87&#34;&gt;Merging the request from your friend&lt;/h3&gt;
+
+&lt;p&gt;I can see that I have on task to do via (my mail) or going to the
+web-interface. There I can see everything, like the  changelog, what changed
+(diff) and so on.&lt;/p&gt;
+
+&lt;p&gt;If I prefer the command line, I can see it like that:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; opensc request show -d
+331791
+Request: #331791
+
+  submit:       home:ktsamis:branches:home:pgeorgiadis/hello@2(cleanup) -&amp;gt;
+home:pgeorgiadis
+
+
+Message:
+- Update to Version 1.1. Now it shows you the version
+
+State:   new        2015-09-17T13:46:04 ktsamis
+Comment: &amp;lt;no comment&amp;gt;
+
+History: 2015-09-17T13:46:04 ktsamis      Request created
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and in order to approve it:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; opensc up
+U    hello.changes
+U    hello.sh
+U    hello.spec
+At revision 4.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This merges his code into mine, and the package is rebuilding again online on
+the OBS. Also, I have the locally the latest version:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; ls
+hello.changes  hello.sh  hello.spec
+pgeorgiadis@panos:~/building/home:pgeorgiadis/hello&amp;gt; cat hello.sh
+#!/bin/bash
+VERSION=1.1
+echo &amp;quot;Hello World&amp;quot;
+echo &amp;quot;Good night&amp;quot;
+echo &amp;quot;Version is: $VERSION&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     

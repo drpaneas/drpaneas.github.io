@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 
-  <title>VIM Plugin for Markdown &middot; Panos Georgiadis</title>
+  <title>Binary search algorithm and Big-O notation &middot; Panos Georgiadis</title>
 
   
   <link rel="stylesheet" href="http://localhost:1313//css/poole.css">
@@ -24,8 +24,8 @@
   
   
 
-  <meta name="description" content="VIM plugin for writing and learning markdown syntax">
-  <meta name="keywords" content="panos georgiadis,hugo,blog,static,html generator">
+  <meta name="description" content="Tutorial for binary search algorithm and Big-O notation">
+  <meta name="keywords" content="panos georgiadis,binary search,algorithm,big o notation,beginners">
   <link rel="author" href="http://plus.google.com/PanosGeorgiadis">
 </head>
 <body class="theme-base-08">
@@ -59,40 +59,28 @@
 
 <div class="content container">
   <div class="post">
-    <h1>VIM Plugin for Markdown</h1>
-    <span class="post-date">Apr 2, 2015 &middot; 1 minute read &middot; <a href="http://localhost:1313/blog/2015/04/02/vim-plugin-for-markdown/#disqus_thread">Comments</a>
+    <h1>Binary search algorithm and Big-O notation</h1>
+    <span class="post-date">Jun 23, 2015 &middot; 1 minute read &middot; <a href="http://localhost:1313/blog/2015/06/23/binary-search-algorithm-and-big-o-notation/#disqus_thread">Comments</a>
     </span>
     
+
+<h3 id="what-you-need-to-know-before-start-reading:849996b02ca4328548d72a65492ef197">What you need to know before start reading &hellip;</h3>
+
+<p>You will need to be familiar with one programming language at least. If you
+don&rsquo;t know any programming langugage, it would be some kind of tricky for you
+but not impossible. IMO I&rsquo;d suggest you to pick up with Python or Ruby, because
+they both are pretty easy and famous around these days. However, the code
+snippets of this article are written in C.</p>
+
+<p>Additionally, you are expected to know a bit of basic algebra. No no no, I
+don&rsquo;t want to scare your or something. Let&rsquo;s take a function: <strong>f(x) = x *
+2</strong>. What if (5)? If you answered 10, then you&rsquo;re good to continue reading.</p>
 
 <p>In the early beginning, I found writing posts in markdown format quite tricky.
 Things can become quite helpful by using an editor that
 comes with features such as <strong>syntax highlighting</strong> and <strong>HTML
 monitoring</strong>. Apparently, there are noumerous plugins out there, but for
 me, <em>&lsquo;vim-instant-markdown&rsquo;</em> seems to be sufficient.</p>
-
-<h3 id="install:32ab7241d48fcc174c877413a917f8cf">Install</h3>
-
-<p>Proper installation via <em>Vundle</em>, requests to edit your <code>.vimrc</code> and put the <strong>git</strong>
-source of the plugin:</p>
-
-<pre><code class="language-vim"> &quot; plugin for MarkDown
-Plugin 'suan/vim-instant-markdown'
-</code></pre>
-
-<h4 id="force-md-files-to-be-treated-as-markdown:32ab7241d48fcc174c877413a917f8cf">Force <code>.md</code> files to be treated as <code>.markdown</code></h4>
-
-<p>By default, only the <code>.markdown</code> extension is typically recognized as
-markdown filetype. Given the fact that I&rsquo;m one of those people who prefer to use
- the  <code>.md</code> extension as an alternative; VIM also needs to be configured. To
-treat the content of my <em>$post.md</em> like any other <em>$post.markdown</em>, add this to <code>.vimrc</code>:</p>
-
-<pre><code class="language-vim">&quot; Detect *.md as *.markdown
-autocmd BufNewFile,BufReadPost *.md set filetype=markdown
-</code></pre>
-
-<p>To test, edit/create a file with <code>.md</code> extension and observe if the syntax has been
-highlighted or not. Also, your web-browser should immediately pop-up and start
-generating &ndash; <em>on-the-fly</em> &ndash; a webpage, based on the markdown syntax of the file.</p>
 
   </div>
   <div id="disqus_thread"></div>
