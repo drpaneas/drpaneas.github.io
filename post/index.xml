@@ -2,19 +2,19 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on Panos Blog</title>
-    <link>http://localhost:1313/post/</link>
+    <link>http://drpaneas.github.io/post/</link>
     <description>Recent content in Posts on Panos Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Sat, 07 Nov 2015 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/post/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://drpaneas.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>A Taste of X Server &amp; nouveau troubleshooting</title>
-      <link>http://localhost:1313/blog/2015/11/07/a-taste-of-x-server--nouveau-troubleshooting/</link>
+      <link>http://drpaneas.github.io/blog/2015/11/07/a-taste-of-x-server--nouveau-troubleshooting/</link>
       <pubDate>Sat, 07 Nov 2015 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/blog/2015/11/07/a-taste-of-x-server--nouveau-troubleshooting/</guid>
+      <guid>http://drpaneas.github.io/blog/2015/11/07/a-taste-of-x-server--nouveau-troubleshooting/</guid>
       <description>
 
 &lt;p&gt;I am not responsible for your system
@@ -1167,79 +1167,11 @@ identicall to the &amp;ldquo;gtf&amp;rdquo;.&lt;/p&gt;
     </item>
     
     <item>
-      <title>Binary search algorithm and Big-O notation</title>
-      <link>http://localhost:1313/blog/2015/06/23/binary-search-algorithm-and-big-o-notation/</link>
-      <pubDate>Tue, 23 Jun 2015 00:00:00 +0000</pubDate>
-      
-      <guid>http://localhost:1313/blog/2015/06/23/binary-search-algorithm-and-big-o-notation/</guid>
-      <description>
-
-&lt;h3 id=&#34;what-you-need-to-know-before-start-reading:849996b02ca4328548d72a65492ef197&#34;&gt;What you need to know before start reading &amp;hellip;&lt;/h3&gt;
-
-&lt;p&gt;You will need to be familiar with one programming language at least. If you
-don&amp;rsquo;t know any programming langugage, it would be some kind of tricky for you
-but not impossible. IMO I&amp;rsquo;d suggest you to pick up with Python or Ruby, because
-they both are pretty easy and famous around these days. However, the code
-snippets of this article are written in C.&lt;/p&gt;
-
-&lt;p&gt;Additionally, you are expected to know a bit of basic algebra. No no no, I
-don&amp;rsquo;t want to scare your or something. Let&amp;rsquo;s take a function: &lt;strong&gt;f(x) = x *
-2&lt;/strong&gt;. What if (5)? If you answered 10, then you&amp;rsquo;re good to continue reading.&lt;/p&gt;
-
-&lt;p&gt;In the early beginning, I found writing posts in markdown format quite tricky.
-Things can become quite helpful by using an editor that
-comes with features such as &lt;strong&gt;syntax highlighting&lt;/strong&gt; and &lt;strong&gt;HTML
-monitoring&lt;/strong&gt;. Apparently, there are noumerous plugins out there, but for
-me, &lt;em&gt;&amp;lsquo;vim-instant-markdown&amp;rsquo;&lt;/em&gt; seems to be sufficient.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>VIM Plugin for Markdown</title>
-      <link>http://localhost:1313/blog/2015/04/02/vim-plugin-for-markdown/</link>
-      <pubDate>Thu, 02 Apr 2015 00:00:00 +0000</pubDate>
-      
-      <guid>http://localhost:1313/blog/2015/04/02/vim-plugin-for-markdown/</guid>
-      <description>
-
-&lt;p&gt;In the early beginning, I found writing posts in markdown format quite tricky.
-Things can become quite helpful by using an editor that
-comes with features such as &lt;strong&gt;syntax highlighting&lt;/strong&gt; and &lt;strong&gt;HTML
-monitoring&lt;/strong&gt;. Apparently, there are noumerous plugins out there, but for
-me, &lt;em&gt;&amp;lsquo;vim-instant-markdown&amp;rsquo;&lt;/em&gt; seems to be sufficient.&lt;/p&gt;
-
-&lt;h3 id=&#34;install:32ab7241d48fcc174c877413a917f8cf&#34;&gt;Install&lt;/h3&gt;
-
-&lt;p&gt;Proper installation via &lt;em&gt;Vundle&lt;/em&gt;, requests to edit your &lt;code&gt;.vimrc&lt;/code&gt; and put the &lt;strong&gt;git&lt;/strong&gt;
-source of the plugin:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-vim&#34;&gt; &amp;quot; plugin for MarkDown
-Plugin &#39;suan/vim-instant-markdown&#39;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;force-md-files-to-be-treated-as-markdown:32ab7241d48fcc174c877413a917f8cf&#34;&gt;Force &lt;code&gt;.md&lt;/code&gt; files to be treated as &lt;code&gt;.markdown&lt;/code&gt;&lt;/h4&gt;
-
-&lt;p&gt;By default, only the &lt;code&gt;.markdown&lt;/code&gt; extension is typically recognized as
-markdown filetype. Given the fact that I&amp;rsquo;m one of those people who prefer to use
- the  &lt;code&gt;.md&lt;/code&gt; extension as an alternative; VIM also needs to be configured. To
-treat the content of my &lt;em&gt;$post.md&lt;/em&gt; like any other &lt;em&gt;$post.markdown&lt;/em&gt;, add this to &lt;code&gt;.vimrc&lt;/code&gt;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-vim&#34;&gt;&amp;quot; Detect *.md as *.markdown
-autocmd BufNewFile,BufReadPost *.md set filetype=markdown
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;To test, edit/create a file with &lt;code&gt;.md&lt;/code&gt; extension and observe if the syntax has been
-highlighted or not. Also, your web-browser should immediately pop-up and start
-generating &amp;ndash; &lt;em&gt;on-the-fly&lt;/em&gt; &amp;ndash; a webpage, based on the markdown syntax of the file.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
       <title>How to RPM package your script using OBS</title>
-      <link>http://localhost:1313/blog/1/01/01/how-to-rpm-package-your-script-using-obs/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <link>http://drpaneas.github.io/blog/2015/09/17/how-to-rpm-package-your-script-using-obs/</link>
+      <pubDate>Thu, 17 Sep 2015 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/blog/1/01/01/how-to-rpm-package-your-script-using-obs/</guid>
+      <guid>http://drpaneas.github.io/blog/2015/09/17/how-to-rpm-package-your-script-using-obs/</guid>
       <description>
 
 &lt;p&gt;The purpose of this tutorial is to teach you the very basics of OpenBuild
@@ -2551,6 +2483,74 @@ echo &amp;quot;Hello World&amp;quot;
 echo &amp;quot;Good night&amp;quot;
 echo &amp;quot;Version is: $VERSION&amp;quot;
 &lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Binary search algorithm and Big-O notation</title>
+      <link>http://drpaneas.github.io/blog/2015/06/23/binary-search-algorithm-and-big-o-notation/</link>
+      <pubDate>Tue, 23 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://drpaneas.github.io/blog/2015/06/23/binary-search-algorithm-and-big-o-notation/</guid>
+      <description>
+
+&lt;h3 id=&#34;what-you-need-to-know-before-start-reading:849996b02ca4328548d72a65492ef197&#34;&gt;What you need to know before start reading &amp;hellip;&lt;/h3&gt;
+
+&lt;p&gt;You will need to be familiar with one programming language at least. If you
+don&amp;rsquo;t know any programming langugage, it would be some kind of tricky for you
+but not impossible. IMO I&amp;rsquo;d suggest you to pick up with Python or Ruby, because
+they both are pretty easy and famous around these days. However, the code
+snippets of this article are written in C.&lt;/p&gt;
+
+&lt;p&gt;Additionally, you are expected to know a bit of basic algebra. No no no, I
+don&amp;rsquo;t want to scare your or something. Let&amp;rsquo;s take a function: &lt;strong&gt;f(x) = x *
+2&lt;/strong&gt;. What if (5)? If you answered 10, then you&amp;rsquo;re good to continue reading.&lt;/p&gt;
+
+&lt;p&gt;In the early beginning, I found writing posts in markdown format quite tricky.
+Things can become quite helpful by using an editor that
+comes with features such as &lt;strong&gt;syntax highlighting&lt;/strong&gt; and &lt;strong&gt;HTML
+monitoring&lt;/strong&gt;. Apparently, there are noumerous plugins out there, but for
+me, &lt;em&gt;&amp;lsquo;vim-instant-markdown&amp;rsquo;&lt;/em&gt; seems to be sufficient.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>VIM Plugin for Markdown</title>
+      <link>http://drpaneas.github.io/blog/2015/04/02/vim-plugin-for-markdown/</link>
+      <pubDate>Thu, 02 Apr 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://drpaneas.github.io/blog/2015/04/02/vim-plugin-for-markdown/</guid>
+      <description>
+
+&lt;p&gt;In the early beginning, I found writing posts in markdown format quite tricky.
+Things can become quite helpful by using an editor that
+comes with features such as &lt;strong&gt;syntax highlighting&lt;/strong&gt; and &lt;strong&gt;HTML
+monitoring&lt;/strong&gt;. Apparently, there are noumerous plugins out there, but for
+me, &lt;em&gt;&amp;lsquo;vim-instant-markdown&amp;rsquo;&lt;/em&gt; seems to be sufficient.&lt;/p&gt;
+
+&lt;h3 id=&#34;install:32ab7241d48fcc174c877413a917f8cf&#34;&gt;Install&lt;/h3&gt;
+
+&lt;p&gt;Proper installation via &lt;em&gt;Vundle&lt;/em&gt;, requests to edit your &lt;code&gt;.vimrc&lt;/code&gt; and put the &lt;strong&gt;git&lt;/strong&gt;
+source of the plugin:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-vim&#34;&gt; &amp;quot; plugin for MarkDown
+Plugin &#39;suan/vim-instant-markdown&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;force-md-files-to-be-treated-as-markdown:32ab7241d48fcc174c877413a917f8cf&#34;&gt;Force &lt;code&gt;.md&lt;/code&gt; files to be treated as &lt;code&gt;.markdown&lt;/code&gt;&lt;/h4&gt;
+
+&lt;p&gt;By default, only the &lt;code&gt;.markdown&lt;/code&gt; extension is typically recognized as
+markdown filetype. Given the fact that I&amp;rsquo;m one of those people who prefer to use
+ the  &lt;code&gt;.md&lt;/code&gt; extension as an alternative; VIM also needs to be configured. To
+treat the content of my &lt;em&gt;$post.md&lt;/em&gt; like any other &lt;em&gt;$post.markdown&lt;/em&gt;, add this to &lt;code&gt;.vimrc&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-vim&#34;&gt;&amp;quot; Detect *.md as *.markdown
+autocmd BufNewFile,BufReadPost *.md set filetype=markdown
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To test, edit/create a file with &lt;code&gt;.md&lt;/code&gt; extension and observe if the syntax has been
+highlighted or not. Also, your web-browser should immediately pop-up and start
+generating &amp;ndash; &lt;em&gt;on-the-fly&lt;/em&gt; &amp;ndash; a webpage, based on the markdown syntax of the file.&lt;/p&gt;
 </description>
     </item>
     
