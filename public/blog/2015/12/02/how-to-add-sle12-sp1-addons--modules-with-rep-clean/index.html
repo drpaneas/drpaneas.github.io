@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>How to add SLE12 SP1 addons &amp; modules with rep-clean &middot; Panos Georgiadis</title>
+
+  
+  <link rel="stylesheet" href="https://w3.suse.de/~pgeorgiadis/public/css/poole.css">
+  
+  
+  
+  
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link href="/favicon.png" rel="icon">
+
+  
+  
+  
+
+  <meta name="description" content="Get rid of the dependency conflicts.">
+  <meta name="keywords" content="panos georgiadis, panos, drpaneas, linux, programming, guitar, paok, opensuse, suse">
+  
+</head>
+<body class="theme-base-08">
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+        <img src="https://w3.suse.de/~pgeorgiadis/publicpanos.png" alt="panos" height="200" width="200" >
+        <h1>Panos Georgiadis</h1>
+      
+    </div>
+
+    <ul class="sidebar-nav">
+      <li class="sidebar-nav-item"><a href="https://w3.suse.de/~pgeorgiadis/public/">Blog</a></li>
+      
+      <li class="sidebar-nav-item"><a href="/~pgeorgiadis/public/about/">About Me</a></li>
+      
+    </ul>
+
+    <ul class="sidebar-nav">
+      
+      
+      
+      
+      
+    </ul>
+
+   <p>Copyleft &copy; 2016 <a href="https://w3.suse.de/~pgeorgiadis/public/license">License</a></p>
+  </div>
+</div>
+
+
+<div class="content container">
+  <div class="post">
+    <h1>How to add SLE12 SP1 addons &amp; modules with rep-clean</h1>
+    <span class="post-date">Dec 2, 2015 &middot; 5 minute read
+    </span>
+    <div class="document">
+
+
+<p>This document guides you though the two ways of installing Addons or modules
+on SLE12 higher than SP0 and how to overcome potential dependency conflicts.</p>
+<div class="section" id="basic-addons">
+<h1>Basic Addons</h1>
+<p>The basic addons:</p>
+<ul class="simple">
+<li>HAE</li>
+<li>RT</li>
+<li>STIDIOONSITE</li>
+<li>SMT</li>
+<li>STUDIOONSITERUNNER</li>
+<li>SDK</li>
+<li>WE</li>
+</ul>
+<p>are happily installed via rep-clean without any problems. Here's how to do
+it:</p>
+<pre class="code bash literal-block">
+/mounts/qam/rep-clean/rep-clean.sh -A &lt;ADDON&gt;
+/mounts/qam/rep-clean/rep-clean.sh -f
+</pre>
+<div class="section" id="explanatory-output">
+<h2>Explanatory Output</h2>
+<p>Let's do the process step-by-step to make sure we are all in the same page:</p>
+<pre class="code bash literal-block">
+hellblazer:~ <span class="comment"># /mounts/qam/rep-clean/rep-clean.sh -A SDK
+</span>INFO: Config: /mounts/qam/rep-clean/rep-clean.conf
+INFO: Switching UPDATE sources
+INFO: SLE12SP1-SERVER-UPDATE ENABLED
+INFO: Switching TESTING sources
+
+The following 2 NEW packages are going to be installed:
+   sle-sdk-release sle-sdk-release-DVD
+
+The following NEW product is going to be installed:
+   <span class="literal string double">&quot;SUSE Linux Enterprise Software Development Kit 12 SP1&quot;</span>
+
+The following 2 packages are not supported by their vendor:
+   sle-sdk-release sle-sdk-release-DVD
+
+2 new packages to install.
+Overall download size: 9.1 KiB. Already cached: 0 B. After the operation, additional 2.3 KiB will be used.
+Continue? <span class="operator">[</span>y/n/? shows all options<span class="operator">]</span> <span class="operator">(</span>y<span class="operator">)</span>: y
+INFO: sle-sdk were added to the system, rerun rep-clean -f to add sle-sdk repositories
+</pre>
+<p>At this point you should be able to see the new repository:</p>
+<pre class="code bash literal-block">
+hellblazer:~ <span class="comment"># zypper lr -U
+# | Alias                  | Name                   | Enabled | GPG Check | Refresh | URI
+</span>--+------------------------+------------------------+---------+-----------+---------+--------------------------------------------------------------------------
+3 | SLE12SP1-SDK           | SLE12SP1-SDK           | Yes     | <span class="operator">(</span> p<span class="operator">)</span> Yes  | No      | http://dist.suse.de/install/SLP/SLE-12-SP1-SDK-GMC3/x86_64/DVD1/
+5 | SLE12SP1-SERVER        | SLE12SP1-SERVER        | Yes     | <span class="operator">(</span> p<span class="operator">)</span> Yes  | No      | http://dist.suse.de/install/SLP/SLE-12-SP1-Server-GMC3/x86_64/DVD1/
+1 | SLE12SP1-INFRA         | SLE12SP1-INFRA         | Yes     | <span class="operator">(</span> p<span class="operator">)</span> Yes  | Yes     | http://download.suse.de/ibs/QA:/Maintenance:/Infrastructure/SLE_12/
+2 | SLE12SP1-QA            | SLE12SP1-QA            | Yes     | <span class="operator">(</span> p<span class="operator">)</span> Yes  | Yes     | http://download.suse.de/ibs/QA:/SLE12/standard/
+4 | SLE12SP1-SDK-UPDATE    | SLE12SP1-SDK-UPDATE    | Yes     | <span class="operator">(</span> p<span class="operator">)</span> Yes  | Yes     | http://download.suse.de/ibs/SUSE/Updates/SLE-SDK/12-SP1/x86_64/update/
+6 | SLE12SP1-SERVER-UPDATE | SLE12SP1-SERVER-UPDATE | Yes     | <span class="operator">(</span> p<span class="operator">)</span> Yes  | Yes     | http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/
+</pre>
+<p>Now run the second command to add sources from scratch:</p>
+<pre class="code bash literal-block">
+hellblazer:~ <span class="comment"># /mounts/qam/rep-clean/rep-clean.sh -f
+</span> INFO: Adding sources from scratch
+ INFO: Config: /mounts/qam/rep-clean/rep-clean.conf
+ INFO: accessible http://dist.suse.de/install/SLP/SLE-12-SP1-Server-GMC3/x86_64/DVD1/
+ INFO: accessible http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP1/x86_64/update/
+ INFO: accessible http://download.suse.de/ibs/QA:/SLE12/standard/
+ INFO: accessible http://download.suse.de/ibs/QA:/Maintenance:/Infrastructure/SLE_12/
+ INFO: accessible http://dist.suse.de/install/SLP/SLE-12-SP1-SDK-GMC3/x86_64/DVD1/
+ INFO: accessible http://download.suse.de/ibs/SUSE/Updates/SLE-SDK/12-SP1/x86_64/update/
+ INFO: Deleting ZYPP sources
+ INFO: Deleted SLE12SP1-INFRA
+ INFO: Deleted SLE12SP1-QA
+ INFO: Deleted SLE12SP1-SDK
+ INFO: Deleted SLE12SP1-SERVER
+ INFO: Deleted SLE12SP1-SERVER-UPDATE
+ INFO: Adding sources:
+ INFO: added SLE12SP1-SERVER
+ INFO: added SLE12SP1-SERVER-UPDATE
+ INFO: added SLE12SP1-QA
+ INFO: added SLE12SP1-INFRA
+ INFO: added SLE12SP1-SDK
+ INFO: added SLE12SP1-SDK-UPDATE
+ INFO: Elapsed <span class="name builtin">time</span>: 0 minutes 1 seconds
+</pre>
+<p>Don't forget to verify that the SDK is now included into the system:</p>
+<pre class="code bash literal-block">
+hellblazer:~ <span class="comment"># zypper products -i
+</span>Loading repository data...
+Reading installed packages...
+S | Repository | Internal Name     | Name                                                  | Version | Arch   | Is Base
+--+------------+-------------------+-------------------------------------------------------+---------+--------+--------
+i | &#64;System    | sle-sdk           | SUSE Linux Enterprise Software Development Kit 12 SP1 | 12.1-0  | x86_64 | No
+i | &#64;System    | SLES              | SUSE Linux Enterprise Server 12 SP1                   | 12.1-0  | x86_64 | Yes
+</pre>
+<p>That's it. SDK has bee successfully added into SLES12 SP1 ref-host.</p>
+</div>
+</div>
+<div class="section" id="extra-modules">
+<h1>EXTRA MODULES</h1>
+<p>There are other modules, such as Public Cloud, Legacy etc having issues
+with rep-clean. The problem is that that these <em>modules</em> were built only
+for SP0, so they throw dependency errors with newer service packs. This
+problem is now fixed, but it's only for the customers that are using
+the Registration process. For us, the QAM engineers we need first to break
+the product (which is known and accepted).</p>
+<p>But, before we start let's see the problem itself. Let's say that I want to
+install <em>Legacy</em> module. First off, I need to know what modules are
+supported by rep-clean. Here's how you can find this out:</p>
+<pre class="code bash literal-block">
+hellblazer:~ <span class="comment"># cat /mounts/qam/rep-clean/rep-clean.sh | grep 'ADDONS='
+</span><span class="name variable">ADDONS</span><span class="operator">=</span><span class="literal string double">&quot;SDK SMT HAE WEBYAST SLMS STUDIOONSITE ONSITERUNNER MANAGER MANAGERPROXY RT TC CLOUD HAGEO&quot;</span>
+<span class="name variable">ADDONS</span><span class="operator">=</span><span class="literal string double">&quot;$ADDONS WE LEGACY MGMT PUBCLOUD SCRIPTING KGRAFT STORAGE COMPUTE CONTAINERS SECURITY TOOLCHAIN&quot;</span>
+<span class="name variable">ADDONS</span><span class="operator">=</span><span class="literal string double">&quot;$ADDONS MANAGERTOOLS SAPAIO&quot;</span>
+<span class="name variable">LTSS_ADDONS</span><span class="operator">=</span><span class="literal string double">&quot;HAE&quot;</span>
+</pre>
+<p>Let's try to install it:</p>
+<pre class="code bash literal-block">
+hellblazer:~ <span class="comment"># /mounts/qam/rep-clean/rep-clean.sh -A LEGACY
+</span> INFO: Config: /mounts/qam/rep-clean/rep-clean.conf
+ INFO: Switching UPDATE sources
+ INFO: SLE12SP1-SDK-UPDATE ENABLED
+ INFO: SLE12SP1-SERVER-UPDATE ENABLED
+ INFO: SLE12SP1-WE-UPDATE ENABLED
+ INFO: Switching TESTING sources
+Problem: nothing provides product<span class="operator">(</span>SLES<span class="operator">)</span> <span class="operator">=</span> 12 needed by product:sle-module-legacy-12-0.x86_64
+ Solution 1: <span class="keyword">do </span>not install product:sle-module-legacy-12-0.x86_64
+ Solution 2: <span class="name builtin">break </span>sle-module-legacy-release-12-1.118.x86_64 by ignoring some of its dependencies
+
+Choose from above solutions by number or skip, retry or cancel <span class="operator">[</span>1/2/s/r/c<span class="operator">]</span> <span class="operator">(</span>c<span class="operator">)</span>: c
+</pre>
+<p>We want to break it, but rep-clean automatically cancels the dialog. So,
+we have to manually run it. One way to find the exact command that rep-clean
+runs it to use the <cite>bash -x</cite> in front of the script:</p>
+<pre class="code bash literal-block">
+hellblazer:~ <span class="comment"># bash -x /mounts/qam/rep-clean/rep-clean.sh -A LEGACY
+</span><span class="operator">[</span>...<span class="operator">]</span>
+- <span class="keyword">for </span>product in <span class="literal string single">'$($ZYPPER se -tproduct -u|sed -e '</span><span class="literal string escape">\'</span><span class="literal string single">'1,3d'</span><span class="literal string escape">\'</span><span class="literal string single">' -e '</span><span class="literal string escape">\'</span><span class="literal string single">'/migration/d'</span><span class="literal string escape">\'</span><span class="literal string single">'|awk -F &quot;|&quot; '</span><span class="literal string escape">\'</span><span class="literal string single">'{print $2}'</span><span class="literal string escape">\'</span><span class="literal string single">')'</span>
+- zypper -q install -n -y -l sle-module-legacy-release
+Problem: nothing provides product<span class="operator">(</span>SLES<span class="operator">)</span> <span class="operator">=</span> 12 needed by product:sle-module-legacy-12-0.x86_64
+ Solution 1: <span class="keyword">do </span>not install product:sle-module-legacy-12-0.x86_64
+ Solution 2: <span class="name builtin">break </span>sle-module-legacy-release-12-1.118.x86_64 by ignoring some of its dependencies
+<span class="operator">[</span>...<span class="operator">]</span>
+</pre>
+<p>Looking into the above output, the pkg we need is
+<cite>sle-module-legacy-release</cite> and that what we will manually install and
+select <cite>Solution 2: break sle-module-legacy-release by ignoring some of
+its dependencies</cite>. Zypper is going to ask twice to accept this breakage.
+So, the commands we need are:</p>
+<pre class="code bash literal-block">
+zypper -q install -n -l sle-module-legacy-release
+/mounts/qam/rep-clean/rep-clean.sh -f
+</pre>
+<p>Let's verify this:</p>
+<pre class="code bash literal-block">
+hellblazer:~ <span class="comment"># zypper products -i
+</span>Loading repository data...
+Reading installed packages...
+S | Repository | Internal Name     | Name                                                  | Version | Arch   | Is Base
+--+------------+-------------------+-------------------------------------------------------+---------+--------+--------
+i | &#64;System    | sle-sdk           | SUSE Linux Enterprise Software Development Kit 12 SP1 | 12.1-0  | x86_64 | No
+i | &#64;System    | SLES              | SUSE Linux Enterprise Server 12 SP1                   | 12.1-0  | x86_64 | Yes
+i | &#64;System    | sle-module-legacy | Legacy Module                                         | 12-0    | x86_64 | No
+</pre>
+<p>Last but not least, once you have finished adding <strong>all</strong> the modules you
+wanted to add, please do a <cite>zypper patch</cite>:</p>
+<pre class="code bash literal-block">
+hellblazer:~ <span class="comment"># zypper patch
+</span>Loading repository data...
+Reading installed packages...
+Resolving package dependencies...
+
+The following 4 NEW patches are going to be installed:
+  SUSE-SLE-Module-Adv-Systems-Management-12-2015-427 SUSE-SLE-Module-Containers-12-2015-427 SUSE-SLE-Module-Public-Cloud-12-2015-427 SUSE-SLE-Module-Web-Scripting-12-2015-427
+
+The following 4 packages are going to be upgraded:
+  sle-module-adv-systems-management-release sle-module-containers-release sle-module-public-cloud-release sle-module-web-scripting-release
+
+The following 4 products are going to be reinstalled:
+  <span class="literal string double">&quot;Advanced Systems Management Module&quot;</span> <span class="literal string double">&quot;Containers module&quot;</span> <span class="literal string double">&quot;Public Cloud Module&quot;</span> <span class="literal string double">&quot;Web and Scripting Module&quot;</span>
+</pre>
+</div>
+</div>
+  </div>
+  
+</div>
+
+
+
+
+<script src="https://w3.suse.de/~pgeorgiadis/public/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+</body>
+</html>

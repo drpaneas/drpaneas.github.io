@@ -1,0 +1,56 @@
+##########
+# update #
+##########
+
+   1. Add the LTSS repos
+   ~~~~~~~~~~~~~~~~~~~~~~
+
+      --------------------------------------------------------------------------------------------------------
+    | Repclean fails to add the required LTSS repos for SLE10SP4. It seems that there will be no fix for that |
+    | since SLE10SP4 is going out of maintenance by the end of June 2016. This is how to add these repos      |
+    | by yourself.                                                                                            |
+      --------------------------------------------------------------------------------------------------------
+
+      zypper sa http://you.suse.de/download/i386/update/SLE-SERVER/10-SP4-LTSS/ SLE10SP4-LTSS-TESTING  (32-bit)
+      zypper sa http://you.suse.de/download/s390x/update/SLE-SERVER/10-SP4-LTSS/ SLE10SP4-LTSS-TESTING (390)
+      zypper as http://you.suse.de/download/x86_64/update/SLE-SERVER/10-SP4-LTSS/ SLE10SP4-LTSS-TESTING (64-bit)
+
+
+   2. Toggle (enable TESTING / disable UPDATES):
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      /mounts/qam/rep-clean/rep-clean.sh -t
+
+
+
+  3. Verify the previous command worked:
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      zypper -r sl | grep TESTING
+
+
+
+  4. Start the update:
+  ~~~~~~~~~~~~~~~~~~~~
+
+      mtui > update all
+
+          or:       zypper refresh;       zypper patches | grep 9202-0;      zypper -n in -l -y -t patch slesp4-java-1_6_0-ibm;
+
+
+
+#############
+# Downgrade #
+#############
+
+  Disable TESTING repos and enable UPDATES:
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  /mounts/qam/rep-clean/rep-clean.sh -n
+
+
+  Make sure we are on the same page:
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  zypper -r sl | grep TESTING
+  zypper -r sl | grep UPDATE
+
+  mtui > downgrade all

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>How to RPM package your script using OBS RST post &middot; Panos Georgiadis</title>
+
+  
+  <link rel="stylesheet" href="https://w3.suse.de/~pgeorgiadis/public/css/poole.css">
+  
+  
+  
+  
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link href="/favicon.png" rel="icon">
+
+  
+  
+  
+
+  <meta name="description" content="A simple guide for beginners getting familiar with obs">
+  <meta name="keywords" content="panos georgiadis, panos, drpaneas, linux, programming, guitar, paok, opensuse, suse">
+  
+</head>
+<body class="theme-base-08">
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+        <img src="https://w3.suse.de/~pgeorgiadis/publicpanos.png" alt="panos" height="200" width="200" >
+        <h1>Panos Georgiadis</h1>
+      
+    </div>
+
+    <ul class="sidebar-nav">
+      <li class="sidebar-nav-item"><a href="https://w3.suse.de/~pgeorgiadis/public/">Blog</a></li>
+      
+      <li class="sidebar-nav-item"><a href="/~pgeorgiadis/public/about/">About Me</a></li>
+      
+    </ul>
+
+    <ul class="sidebar-nav">
+      
+      
+      
+      
+      
+    </ul>
+
+   <p>Copyleft &copy; 2015 <a href="https://w3.suse.de/~pgeorgiadis/public/license">License</a></p>
+  </div>
+</div>
+
+
+<div class="content container">
+  <div class="post">
+    <h1>How to RPM package your script using OBS RST post</h1>
+    <span class="post-date">Sep 17, 2015 &middot; 4 minute read
+    </span>
+    <div class="document">
+
+
+<p>The purpose of this tutorial is to teach you the very basics of
+OpenBuild service and RPM packaging using a dummy hello world script.
+Suppose that you have a script that you want to package it and share it
+with your friends. This is how to do it:</p>
+<div class="section" id="write-the-script">
+<h1>Write the Script</h1>
+<p>Make a folder called <tt class="docutils literal">building</tt> or whatever you prefer and inside of
+it, create your bash script <tt class="docutils literal">hello.sh</tt>:</p>
+<pre class="code bash literal-block">
+pgeorgiadis&#64;panos:~&gt; <span class="name builtin">cd </span>building/
+pgeorgiadis&#64;panos:~/building&gt; vi hello.sh
+</pre>
+<p><tt class="docutils literal">hello.sh</tt> source code:</p>
+<pre class="code bash literal-block">
+<span class="comment">#!/bin/bash
+</span><span class="name builtin">echo</span> <span class="literal string double">&quot;Hello World&quot;</span>
+</pre>
+</div>
+<div class="section" id="create-the-spec-file">
+<h1>Create the spec file</h1>
+<p>After writing the script, then it’s time to create the spec file. This
+is the file that contains <em>all</em> the necessary information about building
+the package. The trick here is that there’s an already made template for
+the spec file; all you have to do is just create the <tt class="docutils literal">hello.spec</tt>
+file.</p>
+<p>The default template is like that:</p>
+<pre class="code spec literal-block">
+<span class="generic heading">Name</span><span class="punctuation">:</span>           hello
+<span class="generic heading">Version</span><span class="punctuation">:</span>
+<span class="generic heading">Release</span><span class="punctuation">:</span>
+<span class="generic heading">License</span><span class="punctuation">:</span>
+<span class="generic heading">Summary</span><span class="punctuation">:</span>
+<span class="generic heading">Url</span><span class="punctuation">:</span>
+<span class="generic heading">Group</span><span class="punctuation">:</span>
+<span class="generic heading">Source</span><span class="punctuation">:</span>
+<span class="generic heading">Patch</span><span class="punctuation">:</span>
+<span class="generic heading">BuildRequires</span><span class="punctuation">:</span>
+<span class="generic heading">PreReq</span><span class="punctuation">:</span>
+<span class="generic heading">Provides</span><span class="punctuation">:</span>
+<span class="generic heading">BuildRoot</span><span class="punctuation">:</span>      <span class="keyword pseudo">%{_tmppath}</span>/<span class="keyword constant">%{name}</span>-<span class="keyword constant">%{version}</span>-build
+
+<span class="name decorator">%description</span>
+
+<span class="name decorator">%prep</span>
+<span class="keyword">%setup</span> -q
+
+<span class="name decorator">%build</span>
+<span class="keyword">%configure</span>
+make <span class="name variable">%{?_smp_mflags}</span>
+
+<span class="name decorator">%install</span>
+make install DESTDIR=<span class="keyword constant">%{buildroot}</span> <span class="name variable">%{?_smp_mflags}</span>
+
+<span class="name decorator">%post</span>
+
+<span class="name decorator">%postun</span>
+
+<span class="name decorator">%files</span>
+<span class="keyword">%defattr</span>(-,root,root)
+<span class="keyword">%doc</span> ChangeLog README COPYING
+</pre>
+<p>and modify it accordingly into this:</p>
+<pre class="code spec literal-block">
+<span class="generic heading">Name</span><span class="punctuation">:</span>           hello
+<span class="generic heading">Version</span><span class="punctuation">:</span>        1.1
+<span class="generic heading">Release</span><span class="punctuation">:</span>        0
+<span class="generic heading">License</span><span class="punctuation">:</span>        GPL-2.0
+<span class="generic heading">Summary</span><span class="punctuation">:</span>        TODO
+<span class="generic heading">Url</span><span class="punctuation">:</span>            TODO
+<span class="generic heading">Group</span><span class="punctuation">:</span>          TODO
+<span class="generic heading">Source</span><span class="punctuation">:</span>         hello.sh
+<span class="comment">#Patch:
+#BuildRequires:
+</span><span class="comment preproc">%if</span> 0%{?suse_version}
+<span class="generic heading">PreReq</span><span class="punctuation">:</span>         nfs-client
+<span class="comment preproc">%endif</span>
+<span class="comment">#Provides:
+</span><span class="generic heading">BuildRoot</span><span class="punctuation">:</span>      <span class="keyword pseudo">%{_tmppath}</span>/<span class="keyword constant">%{name}</span>-<span class="keyword constant">%{version}</span>-build
+
+<span class="name decorator">%description</span>
+TODO
+
+<span class="name decorator">%prep</span>
+<span class="comment">#setup -q
+</span>
+<span class="name decorator">%build</span>
+<span class="comment">#configure
+#make %{?_smp_mflags}
+</span>
+<span class="name decorator">%install</span>
+<span class="comment">#make install DESTDIR=%{buildroot} %{?_smp_mflags}
+</span>install -D -m 755 %{S:0} <span class="keyword constant">%{buildroot}</span><span class="keyword pseudo">%{_bindir}</span>/hello.sh
+
+<span class="name decorator">%files</span>
+<span class="keyword">%defattr</span>(-,root,root)
+<span class="keyword pseudo">%{_bindir}</span>/hello.sh
+</pre>
+<p>If you are interested to know what’s all these macros, feel free to
+google theand make sure that they are supported by your system. For
+example what’s <tt class="docutils literal">bindir</tt> ?</p>
+<pre class="code bash literal-block">
+pgeorgiadis&#64;panos:~&gt; rpm --eval <span class="literal string double">&quot;%_bindir&quot;</span>
+/usr/bin
+</pre>
+</div>
+<div class="section" id="create-project-on-obs">
+<h1>Create project on OBS</h1>
+<p>Go to <a href="#id1"><span class="problematic" id="id2">`Open Build Service`_</span></a> and log in. Then click on your
+<tt class="docutils literal">Home Project</tt> (if you don’t have one, then create it). Over there,
+you can create as many packages as you want. In our case, we are going
+to create the dummy <tt class="docutils literal">hello</tt> package, so we click on <tt class="docutils literal">Create package</tt>
+and populate the required fields respectively:</p>
+<ol class="arabic simple">
+<li>name : <tt class="docutils literal">hello</tt></li>
+<li>title: <tt class="docutils literal">hello</tt></li>
+<li>description: <tt class="docutils literal">dummy package</tt></li>
+</ol>
+<p>Next, we leave the tickbox <tt class="docutils literal">Disable build results publishing.</tt>
+deactivated and finally click on <tt class="docutils literal">Save changes</tt> button.</p>
+<div class="section" id="connect-our-remote-project-with-our-local-files">
+<h2>Connect our remote project with our local files</h2>
+<p>Normally, we should have created the project first on OBS, then check-it
+out locally (even empty) and then add files in it. Now, we are going to
+do it backwards, but this is not going to be a problem.</p>
+<p>In order to be able to interactive with OBS via command line we have to
+provide the required authetication (username, password) and API that we
+are going to use. Before that, let’s edit the <tt class="docutils literal">.bashrc</tt> file and
+create an alias:</p>
+<pre class="code bash literal-block">
+vim ~/.bashrc
+</pre>
+<p>create an alias to ioscrc</p>
+<pre class="code bash literal-block">
+<span class="name builtin">test</span> -s ~/.alias <span class="operator">&amp;&amp;</span> . ~/.alias <span class="operator">||</span> <span class="name builtin">true
+alias </span><span class="name variable">obs</span><span class="operator">=</span><span class="literal string single">'osc --apiurl=https://api.opensuse.org'</span>
+</pre>
+<p>So, instead of having to type the whole
+<tt class="docutils literal">osc <span class="pre">--apiurl=https://api.opensuse.org</span></tt> command, you can just type
+<tt class="docutils literal">obs</tt>, which is faster and easy to remember. Last but not least, don’t
+forget to do <tt class="docutils literal">source <span class="pre">~/.bashrc</span></tt> in order for the changes to take
+immediate effect.</p>
+<p>Next, we proceed by defining our login username &amp; password, used for the
+OBS. We do that, by editing the <tt class="docutils literal"><span class="pre">~/.oscrc</span></tt> file.</p>
+<pre class="code bash literal-block">
+<span class="operator">[</span>https://api.opensuse.org<span class="operator">]</span>
+<span class="name variable">user</span><span class="operator">=</span>&lt;username&gt;
+<span class="name variable">pass</span><span class="operator">=</span>&lt;password&gt;
+</pre>
+<p>Finally, you should be able to checkout (download) your project from OBS
+into our local hard disk. To do that, you need to know the URL of your
+project. In my case, that is
+<tt class="docutils literal"><span class="pre">https://build.opensuse.org/package/show/home:pgeorgiadis/hello</span></tt>.</p>
+<pre class="code bash literal-block">
+pgeorgiadis&#64;panos:~/building&gt; obs co home:pgeorgiadis/hello
+A    home:pgeorgiadis
+A    home:pgeorgiadis/hello
+At revision None.
+</pre>
+<p>Now, let’s put them all together, like that:
+<tt class="docutils literal"><span class="pre">home:pgeorgiadis/hello/&lt;myfiles&gt;</span></tt></p>
+<pre class="code bash literal-block">
+pgeorgiadis&#64;panos:~/building&gt; ls
+hello.sh  hello.spec  home:pgeorgiadis
+pgeorgiadis&#64;panos:~/building&gt; mv hello.s* home:pgeorgiadis/
+pgeorgiadis&#64;panos:~/building&gt; <span class="name builtin">cd </span>home:pgeorgiadis/
+pgeorgiadis&#64;panos:~/building/home:pgeorgiadis&gt; mv hello.s* hello
+pgeorgiadis&#64;panos:~/building/home:pgeorgiadis&gt; ls
+hello
+pgeorgiadis&#64;panos:~/building/home:pgeorgiadis&gt; <span class="name builtin">cd </span>hello/
+</pre>
+</div>
+</div>
+<div class="section" id="build-the-rpm-package">
+<h1>Build the RPM Package</h1>
+<p>First let’s see what Repositories I have enabled at remote OBS. This can
+be seen from the web-interface</p>
+</div>
+<div class="system-messages section">
+<h1>Docutils System Messages</h1>
+<div class="system-message" id="id1">
+<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">&lt;stdin&gt;</tt>, line 121); <em><a href="#id2">backlink</a></em></p>
+Unknown target name: &quot;open build service&quot;.</div>
+</div>
+</div>
+  </div>
+  
+</div>
+
+
+
+
+<script src="https://w3.suse.de/~pgeorgiadis/public/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+</body>
+</html>

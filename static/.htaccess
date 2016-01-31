@@ -1,0 +1,16 @@
+#### CACHING ####
+# 7 DAYS DEFAULT
+ExpiresActive On
+ExpiresDefault A604800
+
+# 1 MONTH
+<FilesMatch "\.(ico|gif|jpe?g|png|flv|pdf|swf|mov|mp3|wmv|ppt)$">
+ExpiresDefault A2419200
+Header append Cache-Control "public"
+</FilesMatch>
+
+# 14 DAYS
+<FilesMatch "\.(xml|txt|html|htm|js|css)$">
+ExpiresDefault A1209600
+Header append Cache-Control "private, must-revalidate"
+</FilesMatch>

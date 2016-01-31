@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Panos Blog</title>
+    <link>http://drpaneas.github.io/public/</link>
+    <description>Recent content on Panos Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sun, 01 Mar 2015 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://drpaneas.github.io/public/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>License</title>
+      <link>http://drpaneas.github.io/public/license/</link>
+      <pubDate>Sun, 01 Mar 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://drpaneas.github.io/public/license/</guid>
+      <description>
+
+&lt;h3 id=&#34;content-license:53e892b8b41cc4caece1cfd5ef21d6e7&#34;&gt;Content license&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-html&#34;&gt;/*
+ * ----------------------------------------------------------------------------
+ * &amp;quot;THE BEER-WARE LICENSE&amp;quot;:
+ * As long as you retain this notice you (within the internal SUSE frame)
+ * can do whatever you want with this stuff. If we meet some day, and you think
+ * this stuff is worth it, you can buy me a beer in return.   Panos Georgiadis
+ * ----------------------------------------------------------------------------
+ */
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Example of rst</title>
+      <link>http://drpaneas.github.io/public/blog/2014/10/02/example-of-rst/</link>
+      <pubDate>Thu, 02 Oct 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://drpaneas.github.io/public/blog/2014/10/02/example-of-rst/</guid>
+      <description>&lt;div class=&#34;document&#34;&gt;
+
+
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
++++
+&lt;span class=&#34;name variable&#34;&gt;date&lt;/span&gt; &lt;span class=&#34;operator&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;literal string double&#34;&gt;&amp;quot;YYYY-MM-DD&amp;quot;&lt;/span&gt;
+&lt;span class=&#34;name variable&#34;&gt;title&lt;/span&gt; &lt;span class=&#34;operator&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;literal string double&#34;&gt;&amp;quot;Write a titles&amp;quot;&lt;/span&gt;
+&lt;span class=&#34;name variable&#34;&gt;description&lt;/span&gt; &lt;span class=&#34;operator&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;literal string double&#34;&gt;&amp;quot;Write a description&amp;quot;&lt;/span&gt;
+&lt;span class=&#34;name variable&#34;&gt;menu&lt;/span&gt; &lt;span class=&#34;operator&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;literal string double&#34;&gt;&amp;quot;How-To&amp;quot;&lt;/span&gt;
++++
+&lt;/pre&gt;
+&lt;p&gt;for writing code use:&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
+.. code-block:: bash
+
+  bash code
+  ....
+  ....
+&lt;/pre&gt;
+&lt;p&gt;Test the rst syntax with:&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
+rst2html5 file.rst --strict
+&lt;/pre&gt;
+&lt;p&gt;but first, mark the Hugo metadata as comments, otherwise the validator
+is going to complain about them.&lt;/p&gt;
+&lt;p&gt;For images use this:&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
+.. image:: ../images/image.png
+&lt;/pre&gt;
+&lt;p&gt;and for links:&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
+&lt;span class=&#34;literal string backtick&#34;&gt;`&lt;/span&gt;Panos Georgiadis&lt;span class=&#34;literal string backtick&#34;&gt;`&lt;/span&gt;_
+...
+...
+.. _Panos Georgiadis: mailto:pgeorgiadis&amp;#64;suse.de
+&lt;/pre&gt;
+&lt;p&gt;for table of contents:&lt;/p&gt;
+&lt;pre class=&#34;code bash literal-block&#34;&gt;
+.. contents:: Table of Contents
+    :depth: 3
+&lt;/pre&gt;
+&lt;/div&gt;</description>
+    </item>
+    
+    <item>
+      <title>About Me</title>
+      <link>http://drpaneas.github.io/public/about/</link>
+      <pubDate>Sun, 21 Sep 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://drpaneas.github.io/public/about/</guid>
+      <description>&lt;p&gt;Thank you very much for visiting my internal SUSE blog! At this page you can find a
+huge pile of information about my personal experiences, such as workflows, technical notes,
+and other Linux stuff related to QAM.&lt;/p&gt;
+
+&lt;p&gt;First things first, my fullname is &lt;em&gt;Panagiotis Georgiadis&lt;/em&gt;, born and raised in
+&lt;em&gt;Thessaloniki&lt;/em&gt;[GR] at &lt;em&gt;13 April 1989&lt;/em&gt;. Currently, I am living in &lt;em&gt;Nürnberg&lt;/em&gt;[DE],
+where I am working as a QA Engineer for Software Maintenance at Research and
+Development department of SUSE Linux.&lt;/p&gt;
+
+&lt;p&gt;Feel free to contact me anytime at &lt;em&gt;pgeorgiadis&lt;/em&gt; [at] &lt;em&gt;suse&lt;/em&gt; [dot] &lt;em&gt;com&lt;/em&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Objectives:&lt;/strong&gt; QAM Engineer, XServer testing, SLED server maintenance.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;interests:&lt;/strong&gt; Technical editor in many IT websites, overclocking, BASH,
+C/C++ and Python programming, play piano and guitar, sketching and reading comics, sports.
+Always willing to share knowledge and help friends.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;languages:&lt;/strong&gt; Greek (native) | English (proficient) | German (studying for B1
+level)&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
