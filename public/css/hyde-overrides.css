@@ -1,0 +1,16 @@
+/*
+ * Tweaks and overrides to hyde.css
+ */
+
+.sidebar-about h1 {
+  color: #ffcc33;
+  margin-top: 0;
+  font-family: inherit;
+  font-size: 1.5rem;
+}
+
+.sidebar-nav {
+  padding-left: 0;
+  list-style: none;
+  margin-bottom: 1rem;
+}

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>Static blog using Go &middot; Panos Georgiadis</title>
+
+  
+  <link rel="stylesheet" href="http://localhost:1313//css/poole.css">
+  
+  
+  
+  
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link href="/favicon.png" rel="icon">
+
+  
+  
+  
+
+  <meta name="description" content="Migration from Wordpress to Hugo">
+  <meta name="keywords" content="panos georgiadis,hugo,blog,static,html generator">
+  
+</head>
+<body class="theme-base-08">
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+        <img src="http://localhost:1313/panos.png" alt="panos" height="200" width="200" >
+        <h1>Panos Georgiadis</h1>
+      <p class="lead">~~~~~~~~~~~~~~~~~~~</p>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li class="sidebar-nav-item"><a href="http://localhost:1313//">Blog</a></li>
+      
+      <li class="sidebar-nav-item"><a href="/about/">About Me</a></li>
+      
+    </ul>
+
+    <ul class="sidebar-nav">
+      
+      
+      
+      
+      
+    </ul>
+
+   <p>Copyleft &copy; 2015 <a href="http://localhost:1313//license">License</a></p>
+  </div>
+</div>
+
+
+<div class="content container">
+  <div class="post">
+    <h1>Static blog using Go</h1>
+    <span class="post-date">Apr 2, 2015 &middot; 1 minute read
+    </span>
+    
+
+<h2 id="vim-plugin-for-writing-in-markdown:32ab7241d48fcc174c877413a917f8cf">VIM plugin for writing in Markdown</h2>
+
+<p>In the early beginning, I found writing posts in markdown format quite tricky.
+Things can become quite helpful by using an editor that
+provides you with features such as <strong>syntax highlighting</strong> and <strong>HTML
+monitoring</strong>. Apparently, there are noumerous plugins out there, but for
+me, <em>&lsquo;vim-instant-markdown&rsquo;</em> seems to do the job, <em>just</em> great.</p>
+
+<h3 id="install:32ab7241d48fcc174c877413a917f8cf">Install</h3>
+
+<p>In order to install it through <em>Vundle</em>, edit your <code>.vimrc</code> and put the <strong>git</strong>
+source of the plugin:</p>
+
+<pre><code class="language-vim"> &quot; plugin for MarkDown
+Plugin 'suan/vim-instant-markdown'
+</code></pre>
+
+<h4 id="force-md-files-to-be-treated-as-markdown:32ab7241d48fcc174c877413a917f8cf">Force <code>.md</code> files to be treated as <code>.markdown</code></h4>
+
+<p>By default, only the <code>.markdown</code> extension is typically recognized as
+markdown filetype. Given the fact that I&rsquo;m one of those people who prefer to use
+ the  <code>.md</code> extension as an alternative; VIM also needs to be configured, so to
+treat the content of my <em>posts</em> like any other <code>.markdown</code> file.</p>
+
+<p>That has been said, edit your <code>.vimrc</code> file and add this:</p>
+
+<pre><code class="language-vim">&quot; Detect *.md as *.markdown
+autocmd BufNewFile,BufReadPost *.md set filetype=markdown
+</code></pre>
+
+<p>To test if it works, edit (or create) a file with <code>.md</code> extension and observe if the syntax has been
+highlighted or not. Also, your web-browser should immediately pop-up and start
+generating &ndash; <em>on-the-fly</em> &ndash; a webpage, based on the markdown syntax of the file.</p>
+
+  </div>
+  
+</div>
+
+
+
+
+<script src="http://localhost:1313//js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+</body>
+</html>
