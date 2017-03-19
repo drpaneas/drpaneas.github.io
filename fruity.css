@@ -78,5 +78,5 @@ pre.code .vm { color: #fb660a } /* Name.Variable.Magic */
 pre.code .il { color: #0086f7; font-weight: bold } /* Literal.Number.Integer.Long */ 
 @font-face {
     font-family: 'monaco';
-    src: url('monaco.ttf') format('truetype');
+    src: url('https://raw.githubusercontent.com/drpaneas/drpaneas.github.io/master/monaco.ttf') format('truetype');
 }
