@@ -1,0 +1,6 @@
+.. code:: bash
+
+    pip install docutils
+    pip install pygments
+    ./rst2html5.py --strict --verbose --stylesheet=minimal.css,fruity.css --syntax-highlight=short example2.rst > index.html
+    rsync -vhza * drpaneas@n1nlhftpg030.shr.prod.ams1.secureserver.net:html
