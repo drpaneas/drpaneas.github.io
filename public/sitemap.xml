@@ -2,133 +2,133 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://panosgeorgiadis.com/about/</loc>
+    <loc>http://drpaneas.github.io/about/</loc>
     <lastmod>2021-04-26T01:29:05+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/api/</loc>
+    <loc>http://drpaneas.github.io/tags/api/</loc>
     <lastmod>2020-03-15T03:29:35+01:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/categories/</loc>
+    <loc>http://drpaneas.github.io/categories/</loc>
     <lastmod>2020-03-15T03:29:35+01:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/controllers/</loc>
+    <loc>http://drpaneas.github.io/tags/controllers/</loc>
     <lastmod>2020-03-15T03:29:35+01:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/</loc>
+    <loc>http://drpaneas.github.io/</loc>
     <lastmod>2020-03-15T03:29:35+01:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/golang/</loc>
+    <loc>http://drpaneas.github.io/tags/golang/</loc>
     <lastmod>2020-03-15T03:29:35+01:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/google/</loc>
+    <loc>http://drpaneas.github.io/tags/google/</loc>
     <lastmod>2020-03-15T03:29:35+01:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/kubernetes/</loc>
+    <loc>http://drpaneas.github.io/tags/kubernetes/</loc>
     <lastmod>2020-03-15T03:29:35+01:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/categories/kubernetes/</loc>
+    <loc>http://drpaneas.github.io/categories/kubernetes/</loc>
     <lastmod>2020-03-15T03:29:35+01:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/post/</loc>
+    <loc>http://drpaneas.github.io/post/</loc>
     <lastmod>2020-03-15T03:29:35+01:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/</loc>
+    <loc>http://drpaneas.github.io/tags/</loc>
     <lastmod>2020-03-15T03:29:35+01:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/blog/2020/03/15/write-a-google-gcp-client-with-go/</loc>
+    <loc>http://drpaneas.github.io/blog/2020/03/15/write-a-google-gcp-client-with-go/</loc>
     <lastmod>2020-03-15T03:29:35+01:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/blog/2020/02/25/how-to-write-your-own-kubernetes-controller/</loc>
+    <loc>http://drpaneas.github.io/blog/2020/02/25/how-to-write-your-own-kubernetes-controller/</loc>
     <lastmod>2020-02-25T03:29:35+01:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/blog/2019/01/16/how-to-run-traefik-ingress-controller-as-non-root/</loc>
+    <loc>http://drpaneas.github.io/blog/2019/01/16/how-to-run-traefik-ingress-controller-as-non-root/</loc>
     <lastmod>2019-01-16T15:39:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/ingress/</loc>
+    <loc>http://drpaneas.github.io/tags/ingress/</loc>
     <lastmod>2019-01-16T15:39:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/minikube/</loc>
+    <loc>http://drpaneas.github.io/tags/minikube/</loc>
     <lastmod>2019-01-16T15:39:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/non-root/</loc>
+    <loc>http://drpaneas.github.io/tags/non-root/</loc>
     <lastmod>2019-01-16T15:39:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/opensuse/</loc>
+    <loc>http://drpaneas.github.io/tags/opensuse/</loc>
     <lastmod>2019-01-16T15:39:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/traefik/</loc>
+    <loc>http://drpaneas.github.io/tags/traefik/</loc>
     <lastmod>2019-01-16T15:39:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/tutorial/</loc>
+    <loc>http://drpaneas.github.io/tags/tutorial/</loc>
     <lastmod>2019-01-16T15:39:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/categories/tutorial/</loc>
+    <loc>http://drpaneas.github.io/categories/tutorial/</loc>
     <lastmod>2019-01-16T15:39:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/blog/2018/09/28/contribute-to-minikube-in-a-nutshell/</loc>
+    <loc>http://drpaneas.github.io/blog/2018/09/28/contribute-to-minikube-in-a-nutshell/</loc>
     <lastmod>2018-09-28T16:29:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/cron/</loc>
+    <loc>http://drpaneas.github.io/tags/cron/</loc>
     <lastmod>2018-09-28T16:29:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/packaging/</loc>
+    <loc>http://drpaneas.github.io/tags/packaging/</loc>
     <lastmod>2018-09-28T16:29:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/go/</loc>
+    <loc>http://drpaneas.github.io/tags/go/</loc>
     <lastmod>2018-09-27T17:34:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/helloworld/</loc>
+    <loc>http://drpaneas.github.io/tags/helloworld/</loc>
     <lastmod>2018-09-27T17:34:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/blog/2018/09/27/my-personal-go-environment-setup/</loc>
+    <loc>http://drpaneas.github.io/blog/2018/09/27/my-personal-go-environment-setup/</loc>
     <lastmod>2018-09-27T17:34:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/vscode/</loc>
+    <loc>http://drpaneas.github.io/tags/vscode/</loc>
     <lastmod>2018-09-27T17:34:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/blog/2018/03/15/deploy-opensuse-leap15-vm-in-kubernetes-using-kubevirt/</loc>
+    <loc>http://drpaneas.github.io/blog/2018/03/15/deploy-opensuse-leap15-vm-in-kubernetes-using-kubevirt/</loc>
     <lastmod>2018-03-15T20:46:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/kubevirt/</loc>
+    <loc>http://drpaneas.github.io/tags/kubevirt/</loc>
     <lastmod>2018-03-15T20:46:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/kvm/</loc>
+    <loc>http://drpaneas.github.io/tags/kvm/</loc>
     <lastmod>2018-03-15T20:46:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/cluster/</loc>
+    <loc>http://drpaneas.github.io/tags/cluster/</loc>
     <lastmod>2017-11-08T22:08:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/containers/</loc>
+    <loc>http://drpaneas.github.io/tags/containers/</loc>
     <lastmod>2017-11-08T22:08:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/docker/</loc>
+    <loc>http://drpaneas.github.io/tags/docker/</loc>
     <lastmod>2017-11-08T22:08:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/blog/2017/11/08/how-to-start-with-openfaas/</loc>
+    <loc>http://drpaneas.github.io/blog/2017/11/08/how-to-start-with-openfaas/</loc>
     <lastmod>2017-11-08T22:08:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/openfaas/</loc>
+    <loc>http://drpaneas.github.io/tags/openfaas/</loc>
     <lastmod>2017-11-08T22:08:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/serverless/</loc>
+    <loc>http://drpaneas.github.io/tags/serverless/</loc>
     <lastmod>2017-11-08T22:08:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/blog/2017/05/08/kubernetes-basics/</loc>
+    <loc>http://drpaneas.github.io/blog/2017/05/08/kubernetes-basics/</loc>
     <lastmod>2017-05-08T22:08:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/blog/2017/05/08/new_site/</loc>
+    <loc>http://drpaneas.github.io/blog/2017/05/08/new_site/</loc>
     <lastmod>2017-05-08T22:08:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/tags/personal/</loc>
+    <loc>http://drpaneas.github.io/tags/personal/</loc>
     <lastmod>2017-05-08T22:08:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/categories/personal/</loc>
+    <loc>http://drpaneas.github.io/categories/personal/</loc>
     <lastmod>2017-05-08T22:08:35+02:00</lastmod>
   </url><url>
-    <loc>https://panosgeorgiadis.com/blog/1/01/01/</loc>
+    <loc>http://drpaneas.github.io/blog/1/01/01/</loc>
   </url><url>
-    <loc>https://panosgeorgiadis.com/blog/1/01/01/</loc>
+    <loc>http://drpaneas.github.io/blog/1/01/01/</loc>
   </url><url>
-    <loc>https://panosgeorgiadis.com/blog/1/01/01/</loc>
+    <loc>http://drpaneas.github.io/blog/1/01/01/</loc>
   </url>
 </urlset>
