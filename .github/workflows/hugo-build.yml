@@ -17,5 +17,5 @@ jobs:
         uses: chabad360/hugo-gh-pages@master
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-          repo: drpaneas/drpaneas.github.io
-          siteDir: /github/workspace/public
+          branch: master # use this otherwise uses gh-pages branch
+          siteDir: /github/workspace/public # where the HTML files are
