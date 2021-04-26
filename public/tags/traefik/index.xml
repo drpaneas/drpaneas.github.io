@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>traefik on drpaneas</title>
+    <link>https://panosgeorgiadis.com/tags/traefik/</link>
+    <description>Recent content in traefik on drpaneas</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 16 Jan 2019 15:39:35 +0200</lastBuildDate><atom:link href="https://panosgeorgiadis.com/tags/traefik/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>How to run Traefik ingress controller as non-root</title>
+      <link>https://panosgeorgiadis.com/blog/2019/01/16/how-to-run-traefik-ingress-controller-as-non-root/</link>
+      <pubDate>Wed, 16 Jan 2019 15:39:35 +0200</pubDate>
+      
+      <guid>https://panosgeorgiadis.com/blog/2019/01/16/how-to-run-traefik-ingress-controller-as-non-root/</guid>
+      <description>What is ingress? Ingress are (in a sense) reverse-proxies. But to understand, you need to know first what a proxy is &amp;ndash; and only then will be able to understand the reverse of it.
+What is a proxy? For those of you who do not know what a proxy is, the word proxy describes someone/something acting on behalf of someone/something else. In terms on networking, when we are talking about a proxy server we are talking about one server that is acting on behalf of another server.</description>
+    </item>
+    
+  </channel>
+</rss>

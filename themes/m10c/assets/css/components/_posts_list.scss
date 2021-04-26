@@ -1,0 +1,27 @@
+.posts-list {
+  padding: 0;
+  color: $title-color;
+}
+
+.posts-list-item {
+  list-style: none;
+  padding: 0.4em 0;
+  color: $primary-color;
+
+  &:not(:last-child) {
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+  }
+}
+
+.posts-list-item-description {
+  display: block;
+  font-size: 0.8em;
+}
+
+.posts-list-item-title {
+  color: $title-color;
+}
+
+li::marker {
+  color: $primary-color;
+}

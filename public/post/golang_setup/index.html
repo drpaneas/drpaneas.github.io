@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>My personal Go environment setup :: Terminal</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="How many go version do you have installed? The default upstream location for the binary is: /usr/local/go. But in SUSE it is: /usr/bin/go. This is a symlink created via update-alternatives.
+# update-alternatives --list go /usr/lib64/go/1.10/bin/go /usr/lib64/go/1.8/bin/go /usr/lib64/go/1.9/bin/go I want to keep only the 1.10 so I will remove the others:
+# zypper rm $(rpm -qf /usr/lib64/go/1.8/bin/go) $(rpm -qf /usr/lib64/go/1.9/bin/go) To verify, try update-alternatives once more. There should be only one version:" />
+<meta name="keywords" content="" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="/post/golang_setup/" />
+
+
+
+
+<link rel="stylesheet" href="/assets/style.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="/img/favicon/orange.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="My personal Go environment setup">
+<meta property="og:description" content="How many go version do you have installed? The default upstream location for the binary is: /usr/local/go. But in SUSE it is: /usr/bin/go. This is a symlink created via update-alternatives.
+# update-alternatives --list go /usr/lib64/go/1.10/bin/go /usr/lib64/go/1.8/bin/go /usr/lib64/go/1.9/bin/go I want to keep only the 1.10 so I will remove the others:
+# zypper rm $(rpm -qf /usr/lib64/go/1.8/bin/go) $(rpm -qf /usr/lib64/go/1.9/bin/go) To verify, try update-alternatives once more. There should be only one version:" />
+<meta property="og:url" content="/post/golang_setup/" />
+<meta property="og:site_name" content="Terminal" />
+
+  
+    <meta property="og:image" content="/img/favicon/orange.png">
+  
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+  <meta property="article:section" content="tutorial" />
+
+
+  <meta property="article:published_time" content="2018-09-27 17:34:35 &#43;0200 CEST" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="orange">
+
+
+<div class="container headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="/showcase">Showcase</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="/showcase">Showcase</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="/post/golang_setup/">My personal Go environment setup</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2018-09-27 
+      </span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="/tags/tutorial/">tutorial</a>&nbsp;
+    
+    #<a href="/tags/go/">go</a>&nbsp;
+    
+    #<a href="/tags/golang/">golang</a>&nbsp;
+    
+    #<a href="/tags/vscode/">vscode</a>&nbsp;
+    
+    #<a href="/tags/helloworld/">helloworld</a>&nbsp;
+    
+  </span>
+  
+
+  
+
+  
+
+  <div class="post-content"><div>
+        <h2 id="how-many-go-version-do-you-have-installed">How many go version do you have installed?<a href="#how-many-go-version-do-you-have-installed" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>The default upstream location for the binary is: <code>/usr/local/go</code>.
+But in SUSE it is: <code>/usr/bin/go</code>. This is a symlink created
+via <code>update-alternatives</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># update-alternatives --list go</span>
+/usr/lib64/go/1.10/bin/go
+/usr/lib64/go/1.8/bin/go
+/usr/lib64/go/1.9/bin/go
+</code></pre></div><p>I want to keep only the <em>1.10</em> so I will remove the others:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># zypper rm $(rpm -qf /usr/lib64/go/1.8/bin/go) $(rpm -qf /usr/lib64/go/1.9/bin/go)</span>
+</code></pre></div><p>To verify, try <code>update-alternatives</code> once more. There should be only <em>one</em> version:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># update-alternatives --list go</span>
+/usr/lib64/go/1.10/bin/go
+</code></pre></div><p>The full should look like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># update-alternatives --display go</span>
+go - auto mode
+  link best version is /usr/lib64/go/1.10/bin/go
+  link currently points to /usr/lib64/go/1.10/bin/go
+  link go is /usr/bin/go
+  slave go.gdb is /etc/gdbinit.d/go.gdb
+  slave go.sh is /etc/profile.d/go.sh
+  slave gofmt is /usr/bin/gofmt
+/usr/lib64/go/1.10/bin/go - priority <span style="color:#ae81ff">30</span>
+  slave go.gdb: /usr/lib64/go/1.10/bin/gdbinit.d/go.gdb
+  slave go.sh: /usr/lib64/go/1.10/bin/profile.d/go.sh
+  slave gofmt: /usr/lib64/go/1.10/bin/gofmt
+</code></pre></div><p>This automatically created the following env vars:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># env | grep GO</span>
+GOPATH<span style="color:#f92672">=</span>/usr/share/go/1.10/contrib
+GOROOT<span style="color:#f92672">=</span>/usr/lib64/go/1.10
+GOBIN<span style="color:#f92672">=</span>/usr/bin
+GOOS<span style="color:#f92672">=</span>linux
+GOARCH<span style="color:#f92672">=</span>amd6
+</code></pre></div><h2 id="setup-the-go-variables">Setup the Go variables<a href="#setup-the-go-variables" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Change <em>.bashrc</em> to know what is going on:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># Go stuff</span>
+<span style="color:#75715e"># Where is the go binary</span>
+export GOROOT<span style="color:#f92672">=</span>/usr/lib64/go/1.10
+export PATH<span style="color:#f92672">=</span>$PATH:$GOROOT/bin
+
+<span style="color:#75715e"># Libraries with executables</span>
+export GOPATH<span style="color:#f92672">=</span>/home/tux/golib
+export PATH<span style="color:#f92672">=</span>$PATH:$GOPATH/bin
+</code></pre></div><p>Now <code>source</code> the <em>.bashrc</em> to take changes into effect.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">source .bashrc
+</code></pre></div><p>This might create a problem if you update to a new-er version of go.
+As a result you better lock that package.</p>
+<p>So next time you update your system, <em>go</em> will not be updated.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># zypper addlock go</span>
+Specified lock has been successfully added.
+</code></pre></div><p>To verify this, try to <em>dup</em> and see that <em>go</em> pkg stays locked:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># zypper dup</span>
+Warning: You are about to <span style="color:#66d9ef">do</span> a distribution upgrade with all enabled repositories. Make sure these repositories are compatible before you <span style="color:#66d9ef">continue</span>. See <span style="color:#e6db74">&#39;man zypper&#39;</span> <span style="color:#66d9ef">for</span> more information about this command.
+Loading repository data...
+Reading installed packages...
+Computing distribution upgrade...
+
+The following item is locked and will not be changed by any action:
+ Installed:
+  go
+
+Nothing to <span style="color:#66d9ef">do</span>.
+</code></pre></div><h2 id="set-a-compound-gopath-for-3rd-party-libs-and-personal-ones">Set a compound GOPATH for 3rd party libs and personal ones<a href="#set-a-compound-gopath-for-3rd-party-libs-and-personal-ones" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Let us add a library for auto-completion:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">nsf</span><span style="color:#f92672">/</span><span style="color:#a6e22e">gocode</span>
+</code></pre></div><p>Now check at the <em>GOPATH</em> folder:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ls -l ~/golib/
+total <span style="color:#ae81ff">0</span>
+drwxr-xr-x <span style="color:#ae81ff">1</span> tux users <span style="color:#ae81ff">12</span> Sep <span style="color:#ae81ff">11</span> 16:23 bin
+drwxr-xr-x <span style="color:#ae81ff">1</span> tux users <span style="color:#ae81ff">20</span> Sep <span style="color:#ae81ff">11</span> 16:16 src
+
+$ ls -l golib/bin/
+total <span style="color:#ae81ff">11044</span>
+-rwxr-xr-x <span style="color:#ae81ff">1</span> tux users <span style="color:#ae81ff">11305958</span> Sep <span style="color:#ae81ff">11</span> 16:23 gocode
+
+$ ls -l golib/src/github.com/nsf/
+total <span style="color:#ae81ff">0</span>
+drwxr-xr-x <span style="color:#ae81ff">1</span> tux users <span style="color:#ae81ff">798</span> Sep <span style="color:#ae81ff">11</span> 16:23 gocode
+</code></pre></div><p>Apart from the 3rd party libraries, you might want
+to create your own when you are developing an app.
+For this, you can create a second place that
+points to GOPATH. Open your <em>.bashrc</em> and add:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">export GOPATH<span style="color:#f92672">=</span>$GOPATH:/home/tux/code
+</code></pre></div><p>Then source it and check again:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ source .bashrc 
+$ env | grep GOPATH
+GOPATH<span style="color:#f92672">=</span>/home/tux/golib:/home/tux/code
+</code></pre></div><p>So if I remove now the <em>gocode</em> binary&hellip;</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cd golib; rm -rf *
+$ ls -lah
+total <span style="color:#ae81ff">0</span>
+drwxr-xr-x <span style="color:#ae81ff">1</span> tux users    <span style="color:#ae81ff">0</span> Sep <span style="color:#ae81ff">11</span> 16:35 ./
+drwxr-xr-x <span style="color:#ae81ff">1</span> tux users <span style="color:#ae81ff">2418</span> Sep <span style="color:#ae81ff">11</span> 16:32 ../
+</code></pre></div><p>Now download it again:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">nsf</span><span style="color:#f92672">/</span><span style="color:#a6e22e">gocode</span>
+</code></pre></div><p>Now, let&rsquo;s see the two locations of <em>GOPATH</em>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># First</span>
+$ ls -l golib/
+total <span style="color:#ae81ff">0</span>
+drwxr-xr-x <span style="color:#ae81ff">1</span> tux users <span style="color:#ae81ff">12</span> Sep <span style="color:#ae81ff">11</span> 16:36 bin
+drwxr-xr-x <span style="color:#ae81ff">1</span> tux users <span style="color:#ae81ff">20</span> Sep <span style="color:#ae81ff">11</span> 16:36 src
+
+<span style="color:#75715e"># Second</span>
+$ ls -l code/
+total 
+</code></pre></div><p>So the 3rd party lib, stored only at the <em>golib</em>
+folder. The second one, does not have it. This is
+fine, because the second one will be used
+only by our own libs &ndash; not 3rd party ones.</p>
+<h2 id="setup-your-workspace">Setup your Workspace<a href="#setup-your-workspace" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>To have a workspace for Go, you need to have an expected
+structure. This workspace is the location where <em>GOPATH</em>
+is going to look for this specific tree structure.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cd code; ls
+</code></pre></div><p>We have nothing so far. Let&rsquo;s create the necessarry folders:</p>
+<ul>
+<li><strong>src</strong>: where you keep your source-code</li>
+<li><strong>bin</strong>: where you build your binaries (<code>/home/tux/golib/bin</code>)</li>
+<li><strong>pkg</strong>: where you keep your packages</li>
+</ul>
+<p>So, let&rsquo;s create those:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ mkdir -p code/<span style="color:#f92672">{</span>bin,pkg,src<span style="color:#f92672">}</span>
+
+$ ls -l code/
+total <span style="color:#ae81ff">0</span>
+drwxr-xr-x <span style="color:#ae81ff">1</span> tux users <span style="color:#ae81ff">0</span> Sep <span style="color:#ae81ff">11</span> 16:53 bin
+drwxr-xr-x <span style="color:#ae81ff">1</span> tux users <span style="color:#ae81ff">0</span> Sep <span style="color:#ae81ff">11</span> 16:53 pkg
+drwxr-xr-x <span style="color:#ae81ff">1</span> tux users <span style="color:#ae81ff">0</span> Sep <span style="color:#ae81ff">11</span> 16:53 src
+</code></pre></div><h2 id="setup-microsoft-vs">Setup Microsoft VS<a href="#setup-microsoft-vs" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>To setup:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+sudo sh -c <span style="color:#e6db74">&#39;echo -e &#34;[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ntype=rpm-md\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc&#34; &gt; /etc/zypp/repos.d/vscode.repo&#39;</span>
+sudo zypper ref
+sudo zypper install code
+</code></pre></div><p>Learn more about it: <code>https://code.visualstudio.com/docs/getstarted/introvideos</code></p>
+<p>More information related to setup: <code>https://code.visualstudio.com/docs/setup/linux</code></p>
+<p>At first I&rsquo;ve got the following error:</p>
+<pre><code>The &quot;go-outline&quot; command is not available. Use &quot;go get-v github.com/ramya-rao-a/go-outoline&quot; to install
+Click &quot;install all&quot;.
+</code></pre><p>What VS code did, was to install <strong>10 tools</strong> at <em>/home/tux/golib:/home/tux/code/bin</em>. This
+is what whappens behind the scenes:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">u</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">v</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">nsf</span><span style="color:#f92672">/</span><span style="color:#a6e22e">gocode</span>
+<span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">u</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">v</span> <span style="color:#a6e22e">golang</span>.<span style="color:#a6e22e">org</span><span style="color:#f92672">/</span><span style="color:#a6e22e">x</span><span style="color:#f92672">/</span><span style="color:#a6e22e">tools</span><span style="color:#f92672">/</span><span style="color:#a6e22e">cmd</span><span style="color:#f92672">/</span><span style="color:#a6e22e">godoc</span>
+<span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">u</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">v</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">ramya</span><span style="color:#f92672">-</span><span style="color:#a6e22e">rao</span><span style="color:#f92672">-</span><span style="color:#a6e22e">a</span><span style="color:#f92672">/</span><span style="color:#66d9ef">go</span><span style="color:#f92672">-</span><span style="color:#a6e22e">outline</span>
+<span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">u</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">v</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">acroca</span><span style="color:#f92672">/</span><span style="color:#66d9ef">go</span><span style="color:#f92672">-</span><span style="color:#a6e22e">symbols</span>
+<span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">u</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">v</span> <span style="color:#a6e22e">golang</span>.<span style="color:#a6e22e">org</span><span style="color:#f92672">/</span><span style="color:#a6e22e">x</span><span style="color:#f92672">/</span><span style="color:#a6e22e">tools</span><span style="color:#f92672">/</span><span style="color:#a6e22e">cmd</span><span style="color:#f92672">/</span><span style="color:#a6e22e">guru</span>
+<span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">u</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">v</span> <span style="color:#a6e22e">golang</span>.<span style="color:#a6e22e">org</span><span style="color:#f92672">/</span><span style="color:#a6e22e">x</span><span style="color:#f92672">/</span><span style="color:#a6e22e">tools</span><span style="color:#f92672">/</span><span style="color:#a6e22e">cmd</span><span style="color:#f92672">/</span><span style="color:#a6e22e">gorename</span>
+<span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">u</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">v</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">rogpeppe</span><span style="color:#f92672">/</span><span style="color:#a6e22e">godef</span>
+<span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">u</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">v</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">uudashr</span><span style="color:#f92672">/</span><span style="color:#a6e22e">gopkgs</span><span style="color:#f92672">/</span><span style="color:#a6e22e">cmd</span><span style="color:#f92672">/</span><span style="color:#a6e22e">gopkgs</span>
+<span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">u</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">v</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">derekparker</span><span style="color:#f92672">/</span><span style="color:#a6e22e">delve</span><span style="color:#f92672">/</span><span style="color:#a6e22e">cmd</span><span style="color:#f92672">/</span><span style="color:#a6e22e">dlv</span>
+<span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">u</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">v</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">sqs</span><span style="color:#f92672">/</span><span style="color:#a6e22e">goreturns</span>
+<span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">u</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">v</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">golang</span><span style="color:#f92672">/</span><span style="color:#a6e22e">lint</span><span style="color:#f92672">/</span><span style="color:#a6e22e">golint</span>
+</code></pre></div><h2 id="what-can-i-import">What can I import?<a href="#what-can-i-import" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>The <strong>official</strong> go packages (<em>e.g. fmt</em>) are located under <em>src</em> folder
+of your <em>GOROOT</em>:</p>
+<pre><code>$ cd $GOROOT/src; ls
+archive  bytes     container  database  errors  fmt   html   internal  math  os      reflect  sort     sync     text     unsafe
+bufio    cmd       context    debug     expvar  go    image  io        mime  path    regexp   strconv  syscall  time     vendor
+builtin  compress  crypto     encoding  flag    hash  index  log       net   plugin  runtime  strings  testing  unicode
+</code></pre><p>The <strong>3rd party ones</strong> are located at:</p>
+<pre><code>$ ls -l ~/golib/src/
+total 0
+drwxr-xr-x 1 tux users 130 Sep 11 17:32 github.com
+drwxr-xr-x 1 tux users   2 Sep 11 17:27 golang.org
+</code></pre><p>My <strong>personal</strong> packages under development can be found at:</p>
+<pre><code>$ ls -l ~/code/src/
+total 0
+drwxr-xr-x 1 tux users 16 Sep 11 17:18 github.com
+</code></pre><h2 id="hello-world-in-go-and-vs">Hello world in Go and VS<a href="#hello-world-in-go-and-vs" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Go to the workspace and create the following folder structure:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cd ~/code
+$ mkdir -p github.com/drpaneas/firstapp
+</code></pre></div><p>At the VS code, create the following <strong>Main.go</strong>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Hello Go!&#34;</span>)
+}
+</code></pre></div><h3 id="go-run-compile-in-vs-code">Go run (compile) in VS Code<a href="#go-run-compile-in-vs-code" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Open terminal inside VSCode type: <code>ctrl+backtick</code> and compile
+it: <code>go run src/github.com/drpaneas/firstapp/Main.go</code></p>
+<h3 id="go-build-in-vs-code">Go build in VS Code<a href="#go-build-in-vs-code" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Go build is different from compilation. It expects to find specific stuff
+at specific directories. It takes takes the <strong>actual package path</strong>. It tries to find
+the package into the following:</p>
+<pre><code>        /usr/lib64/go/1.10/src/whater_you_put (from $GOROOT)
+        /home/tux/golib/src/whatever_you_put (from $GOPATH)
+        /home/tux/code/src/whatever_you_put
+</code></pre><p>That means, the correct build command would be:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">build</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">drpaneas</span><span style="color:#f92672">/</span><span style="color:#a6e22e">firstapp</span><span style="color:#f92672">/</span>
+</code></pre></div><p>Notice that while building I am <strong>not using</strong> <code>src</code> in the path
+and I also don&rsquo;t put <code>Main.go</code> at the end. You can run this
+command not matter in whatever directory you are into.
+This compiles a package into an executable, so you can pass it
+to others and run it like <code>./firstapp</code>.</p>
+<h3 id="go-install-in-vs-code">Go install in VS Code<a href="#go-install-in-vs-code" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>The other tools, is <code>go install</code>. This is expected to be pointing
+to a package that has an entry point and it&rsquo;s going to install
+that into your <em>bin</em> folder. So, once again you have to use
+the package address and not the folder path.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">install</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">drpaneas</span><span style="color:#f92672">/</span><span style="color:#a6e22e">firstapp</span>
+</code></pre></div><p>This creates a binary into my <em>bin</em> folder:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ls -l ~/code/bin/
+total <span style="color:#ae81ff">1968</span>
+-rwxr-xr-x <span style="color:#ae81ff">1</span> tux users <span style="color:#ae81ff">2011612</span> Sep <span style="color:#ae81ff">12</span> 11:13 firstapp
+</code></pre></div><p>Happy coding :)
+Panos</p>
+
+      </div></div>
+
+  
+
+  
+
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2021 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+<script src="/assets/main.js"></script>
+<script src="/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

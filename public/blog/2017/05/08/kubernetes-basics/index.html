@@ -1,0 +1,1492 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <title>Kubernetes Basics // drpaneas</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.82.1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="Panos Georgiadis" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="https://panosgeorgiadis.com/css/main.min.9babd84a07aaa904f1f9ad086b6855185c57a7814f72f68650eba6b68ad71834.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kubernetes Basics"/>
+<meta name="twitter:description" content="What is Kubernetes By definition, Kubernetes is an open source container cluster manager, and it is usually referred to by its internal name withing Google development - k8s. Google donated it to the open source world as a &ldquo;seed technology&rdquo; at 2015, to the newly formed CNCF - Cloud Native Computing Foundation, which established partnership with The Linux Foundation. The primary goal of Kubernetes is to provide a platform for automating deployment, scaling and operations of application containers across a cluster of hosts."/>
+
+    <meta property="og:title" content="Kubernetes Basics" />
+<meta property="og:description" content="What is Kubernetes By definition, Kubernetes is an open source container cluster manager, and it is usually referred to by its internal name withing Google development - k8s. Google donated it to the open source world as a &ldquo;seed technology&rdquo; at 2015, to the newly formed CNCF - Cloud Native Computing Foundation, which established partnership with The Linux Foundation. The primary goal of Kubernetes is to provide a platform for automating deployment, scaling and operations of application containers across a cluster of hosts." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://panosgeorgiadis.com/blog/2017/05/08/kubernetes-basics/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2017-05-08T22:08:35&#43;02:00" />
+<meta property="article:modified_time" content="2017-05-08T22:08:35&#43;02:00" />
+
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://panosgeorgiadis.com/"><img class="app-header-avatar" src="https://www.gravatar.com/avatar/a98d3abef556df10b9dfd4710e368f0e?s=200" alt="Panos Georgiadis" /></a>
+      <h1>drpaneas</h1>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">Home</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">Tags</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">About</a>
+      </nav>
+      <p>Open Source developer.</p>
+      <div class="app-header-social">
+        
+          <a href="https://github.com/drpaneas" target="_blank" rel="noreferrer noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-github">
+  <title>Github</title>
+  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+</svg>
+          </a>
+        
+          <a href="https://twitter.com/PanosGeorgiadis" target="_blank" rel="noreferrer noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-twitter">
+  <title>Twitter</title>
+  <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
+</svg>
+          </a>
+        
+          <a href="https://www.linkedin.com/in/panosgeorgiadis/" target="_blank" rel="noreferrer noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-linkedin">
+  <title>LinkedIn</title>
+  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle>
+</svg>
+          </a>
+        
+      </div>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">Kubernetes Basics</h1>
+      <div class="post-meta">
+        <div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          May 8, 2017
+        </div>
+        <div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          48 min read
+        </div>
+        <div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://panosgeorgiadis.com/tags/tutorial/">tutorial</a>
+              <a class="tag" href="https://panosgeorgiadis.com/tags/kubernetes/">kubernetes</a>
+              <a class="tag" href="https://panosgeorgiadis.com/tags/docker/">docker</a>
+              <a class="tag" href="https://panosgeorgiadis.com/tags/containers/">containers</a>
+              <a class="tag" href="https://panosgeorgiadis.com/tags/cluster/">cluster</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <h2 id="what-is-kubernetes">What is Kubernetes</h2>
+<p>By definition, Kubernetes is an open source container cluster manager, and it is
+usually referred to by its internal name withing Google development - <strong>k8s</strong>.
+Google donated it to the open source world as a <em>&ldquo;seed technology&rdquo;</em> at 2015, to
+the newly formed <em>CNCF - Cloud Native Computing Foundation</em>, which established
+partnership with <em>The Linux Foundation</em>. The primary goal of Kubernetes is to
+provide a platform for automating deployment, scaling and operations of
+application containers across a cluster of hosts. In fact, withing Google they
+have been using Kubernetes-like tools in order to run daily billions of
+containers within their services.</p>
+<h3 id="design-overview">Design Overview</h3>
+<p>Kubernetes is built through a set of components (building blocks or
+<em>primitives</em>), which when they are used collectively, then they provide a
+method for the deployment, maintenance and scalability or container based
+application clusters. These <em>primitives</em> are designed to operate without
+requiring any kind of special knowledge from the user. They are really easy to
+work with and they are also highly extensible through an API. All the
+components of Kubernetes (internal, extensions and containers) are making use
+of the API.</p>
+<p>Although Kubernetes was originally designed withing Google&rsquo;s infrastructure,
+nowadays it&rsquo;s considered the default option for other majer public cloud
+providers, such as AWS and Azure.</p>
+<h3 id="components">Components</h3>
+<p>So, what are the components (building blocks) that are going into to
+Kubernetes:</p>
+<ul>
+<li>Nodes (often referred to as minions)</li>
+<li>Pods</li>
+<li>Labels</li>
+<li>Selectors</li>
+<li>Controllers (multiple kinds of them)</li>
+<li>Services</li>
+<li>Control Pane (the master controller)</li>
+<li>API</li>
+</ul>
+<p>Some of these topics are relatively involved, so you need to practice by
+yourself and manage your own Kubernetes environment, in order to be able to
+understand at &lsquo;experience&rsquo; level, how these things work.</p>
+<h3 id="architecture">Architecture</h3>
+<p>In a very-very high-level view, we have these kubernetes building-blocks we
+talked about. This is really how the whole environment looks like:</p>
+<p><img src="/images/kubernetes_architecture.png" alt="Kubernetes Architecture"></p>
+<p>We have <em>one</em> <strong>master/controller</strong>  and we have <em>1-to-N</em> <strong>nodes</strong> which can
+have <em>1-to-N</em> <strong>pods</strong> and each pod can have <em>1-to-N</em> <strong>containers</strong>. How many
+of those <em>N</em> things you need, it is based upon the desired state of the
+configuration which is located in the <em>master/controller</em> via <em>YAML</em> form.
+Also, this depends on the minion resources (either physical or virtual) that
+you can allocate.</p>
+<p>Each node has to have at least some container management engine installed, such
+as Docker.</p>
+<h4 id="nodes-minions">Nodes (Minions)</h4>
+<p>You can think of these as <em>container clients</em> and they can be either physical
+or virtual. Also, your container management engine has to be installed on, (such
+as Docker) and hosts the various containers within your managed cluster.</p>
+<p>Furthermore, each minion will run <strong>ETCD</strong>, as well as the <em>master/controller</em>.
+ETCD is a key-pair management and communication service, used by Kubernetes
+for exchanging messages and reporting on cluster status. It&rsquo;s a way for us to
+keep everything in-sync and exchange information from the individual minions to
+our master controller and as well as our Kubernetes Proxy &ndash; that&rsquo;s the other
+item that runs on each of the minions. So, for each minion there are two things
+that are running and are specific to Kubernetes, which is ETCD and Kubernetes
+Proxy, and last but not least, Docker has to be installed as well. During this
+tutorial we will go over all these packages and install them.</p>
+<h4 id="pods">Pods</h4>
+<p>The simplest definition is that a pod consists of one or more containers. Going
+further, these containers are then guaranteed (by the master controller) to be
+located on the same host machine in order to facilitate shared resources
+(volumes, services mapped through ports). Pods are assigned with unique IPs
+within each cluster, so these allow our application to use ports for the Pod
+without having to worry about conflicting port utilization. In another words, I
+can have multiple Pods running at port <code>80</code> or <code>443</code> or <code>whatever</code>, on the same
+host, because I am not re-mapping those ports but I am giving each Pod a unique
+IP address within the cluster, so I don&rsquo;t have to worry about port conflicts.</p>
+<p>Pods can contain definitions of disk volumes or share, and then provide
+access from those to all the containers within the pod.</p>
+<p>An the finally, pod management is done through the API or delegated to a
+controller.</p>
+<h4 id="labels">Labels</h4>
+<p>Clients can attach &ldquo;key-value pairs&rdquo; to any object in the system (like Pods or
+Nodes). These become the labels that identify them in the configuration and
+management of them. And this is where <em>Selectors</em> come in, because they are
+used in conjuction.</p>
+<h4 id="selectors">Selectors</h4>
+<p>Label Selectors represent queries that are made against those labels. They
+resolve to the corresponding matching objects and will show when we are
+managing our Pods in our cluster how we use the built-in API and tools for
+Kubernetes in order to get a selection of objects based on these label
+selectors.</p>
+<p>These two items (Labels and Selectors) are the primary way that grouping is
+done in Kubernetes and determine which components that a given operation
+applies to when indicated.</p>
+<h4 id="controllers">Controllers</h4>
+<p>These are used in the management of your cluster. Controllers are the mechanism
+by which your desired configuration state is enforced. In fact the controllers
+main purpose is to enforce the desired state of your configuration to your
+cluster. They manage a set of pods and, depending on the desired configuration
+state, may engage other controllers to handle replication and scaling (through the
+<strong>Replication Controller</strong>) of XX number of containers and pods across the cluster.
+It is also responsible for replacing any container in a pod that fails or any
+container in the cluster that fails (based on the desired state of the cluster).
+And again, all these are representing a desired state written in YAML files.</p>
+<p>Other controllers that can be engaged include <strong>DaemonSet Controller</strong> which
+enforces a 1:1 ration of pods to minions and a <strong>Job Controller</strong> that runs
+pods to &ldquo;completion&rdquo;, such as in batch jobs. Each set of pods any controller
+manages, is determined by the label selectors that are part of its definition.</p>
+<h2 id="setup-and-configuration">Setup and Configuration</h2>
+<h3 id="packages-and-dependencies">Packages and Dependencies</h3>
+<p>One of the first things we need to do is to install NTP. NTP has to be
+enabled and running in <strong>all</strong> of the servers we are going to have in
+our cluster. In this example, I have four terminals open:</p>
+<pre><code>- centos-master		[172.31.28.38] 		[54.154.199.96]
+- centos-minion1	[172.31.120.121]	[54.171.6.143]
+- centos-minion2	[54.246.160.157]	[172.31.110.96]
+- centos-minion3	[54.246.220.156]	[172.31.23.169]
+</code></pre><p>So we are going to use 3 minions as worker nodes, and then 1 server as the
+master in our cluster. So, lets us install ntp:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">yum install -y ntp
+</code></pre></div><p>We want to be sure that all the servers in our cluster are time-synchronised
+down to the second. This is because we are going to use a service that logs
+what happen to our cluster upon special conditions and it is important that
+our servers are reporting as close and as accurate as possible.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">systemctl enable ntpd
+systemctl start ntpd
+</code></pre></div><p>Feel free to check the status in order to verify that is running:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">systemctl status ntpd
+</code></pre></div><p>As soon as we finish with the installation of <code>ntp</code> in all of our servers in
+the cluster, then we need to make sure that we have full name resolution for
+the servers in our environment. If you are installing this locally and you
+do not port-forward this ports externally, then it is best to use your internal
+IP addresses rather than the external ones. Similarly, this means that you cannot
+use the name of the server, because this will refer to the external IP address.
+But, to make things look as they supposed to be, I am going to create a file
+<code>/etc/hosts</code> with the corrersponding nickname of these servers. This file has to
+be into each server that is part of my cluster and it has to resolve the nicknames
+against the internal/private IP address. In that case, I will be able to use those
+internal hostnames in my configuration file:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim /etc/hosts
+
+172.31.28.38    centos-master
+172.31.120.121  centos-minion1
+172.31.110.96   centos-minion2
+172.31.23.169   centos-minion3
+</code></pre></div><p>Put this into every server and then make sure that all of them can ping each other
+based on those nicknames:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ping centos-master
+ping centos-minion1
+ping centos-minion2
+ping centos-minion3
+</code></pre></div><p>As soon as you finished this and your verified that all server can ping each other
+based on their internal IP address, it is about time to add a repository that we
+can use to install the latest version of <code>Docker</code> and <code>Kubernetes</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim /etc/yum.repos.d/virt7-docker-common-release.repo
+<span style="color:#f92672">[</span>virt7-docker-common-release<span style="color:#f92672">]</span>
+name<span style="color:#f92672">=</span>virt7-docker-common-release
+baseurl<span style="color:#f92672">=</span>https://cbs.centos.org/repos/virt7-docker-common-release/x86_64/os/
+gpgcheck<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+</code></pre></div><p>Save it and then update the cache of the system:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">yum update
+</code></pre></div><p>Make sure you do this for all the server in the cluster.</p>
+<p>Next, make sure that all firewalls are disabled, since this is a demo and not
+a production environment, so we need to avoid problems of port filtering.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">systemctl status iptables  --&gt; disabled
+systemctl status firewalld --&gt; disabled
+</code></pre></div><p>Ok, now it is about time to install <code>etcd</code>. This is the mechanism that helps
+all the members of the cluster to communicate and advertise their status,
+availability, and their logs. So, we need to install <code>etcd</code> and <code>kubernetes</code>.
+These two, will also pull <code>cadvisor</code> which for containers and containerized
+apps. Then we will, start configuring the master and the minion, but right
+now I will finish by installing the software:</p>
+<pre><code>yum install -y --enablerepo=virt7-docker-common-release kubernetes docker
+</code></pre><h3 id="configure-the-master">Configure the Master</h3>
+<p>Since we are into the master, we first need to configure the Kubernetes
+itself:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim /etc/kubernetes/config
+
+<span style="color:#75715e"># If you want to log errors in the systemd-journal for Kubernetes</span>
+KUBE_LOGTOSTDERR<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--logtostderr=true&#34;</span>
+
+<span style="color:#75715e"># If you want to have debug level log files in your systemd journal</span>
+<span style="color:#75715e"># 0 is the most verbose (debug level)</span>
+KUBE_LOG_LEVEL<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--v=0&#34;</span>
+
+<span style="color:#75715e"># Disable privileged docker containers within the cluster</span>
+KUBE_ALLOW_PRIV<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--allow-privileged=false&#34;</span>
+
+<span style="color:#75715e"># Define the API Server</span>
+<span style="color:#75715e"># How the controller-manager, scheduler, and proxy find the apiserver</span>
+KUBE_MASTER<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--master=https://centos-master:8080&#34;</span>
+
+<span style="color:#75715e"># Define the ETCD Server</span>
+KUBE_ETCD_SERVER<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--etcd-servers=https://centos-master:2379&#34;</span>
+</code></pre></div><p>This is the initial configuration for our master kubernetes node. Notice
+that I used domain names, and not IP address, in that way if the IP address
+of the Kubernetes ETCD server changes, the cluster will still be able to
+resolve it, using the DNS server.</p>
+<h4 id="configure-etcd">Configure ETCD</h4>
+<p>Install it:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">yum install -y etcd
+</code></pre></div><p>Configure it:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim /etc/etcd/etcd.conf
+
+<span style="color:#75715e"># It is OK to leave these two with their default values</span>
+ETCD_NAME<span style="color:#f92672">=</span>default
+ETCD_DATA_DIR<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/var/lib/etcd/default.etcd&#34;</span>
+
+<span style="color:#75715e"># Listen on all interfaces and accept connections from anywhere</span>
+ETCD_LISTEN_CLIENT_URLS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;https://0.0.0.0:2379&#34;</span>
+
+<span style="color:#75715e"># Listen on all interfaces and accept connections from anywhere</span>
+ETCD_ADVERTISE_CLIENT_URLS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;https://0.0.0.0:2379&#34;</span>
+</code></pre></div><p>The master kubernetes nodes is the only place where we are going
+to be running ETCD.</p>
+<h4 id="configure-api">Configure API</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim /etc/kubernetes/apiserver
+
+<span style="color:#75715e"># Accept connections from all interfaces</span>
+KUBE_API_ADDRESS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--address=0.0.0.0&#34;</span>
+
+<span style="color:#75715e"># Make sure that port for API is listening on 8080</span>
+KUBE_API_PORT<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--port=8080&#34;</span>
+
+<span style="color:#75715e"># Make sure that port for Kubelet is listing on 10250</span>
+KUBELET_PORT<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--kubelet-port=10250&#34;</span>
+
+<span style="color:#75715e"># Comma separated list of nodes in the etcd cluster</span>
+KUBE_ETCD_SERVERS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--etcd-servers=https://127.0.0.1:2379&#34;</span>
+
+<span style="color:#75715e"># Address range to use for services (Feel free to change it based on your environment)</span>
+KUBE_SERVICE_ADDRESSES<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--service-cluster-ip-range=10.254.0.0/16&#34;</span>
+
+<span style="color:#75715e"># Add your own!</span>
+KUBE_API_ARGS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;&#34;</span>
+</code></pre></div><h4 id="start-the-services">Start the services</h4>
+<p>First, you need to start with <code>etcd</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">systemctl enable etcd
+systemctl start etcd
+systemctl status etcd
+</code></pre></div><p>Then, follow up with <code>kube-apiserver</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">systemctl enable kube-apiserver
+systemctl start kube-apiserver
+systemctl status kube-apiserver
+</code></pre></div><p>Follow up with <code>kube controller manager</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">systemctl enable kube-controller-manager
+systemctl start kube-controller-manager
+systemctl status kube-controller-manager
+</code></pre></div><p>Last, <code>kube-scheduler</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">systemctl enable kube-scheduler
+systemctl start kube-scheduler
+systemctl status kube-scheduler
+</code></pre></div><p>Make sure that all of these 4 services are started. They <strong>have</strong> to be up and running
+otherwise, it makes no sense to ignore them and configure the minions. This is the univeral
+configuration for our cluster.</p>
+<h3 id="configure-minions">Configure Minions</h3>
+<p>The following configuration has to be applied to all the minions
+of the cluster. The first thing we want to do is to apply our
+Kubernetes configuration:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim /etc/kubernetes/config
+<span style="color:#75715e"># logging to stderr means we get it in the systemd journal</span>
+KUBE_LOGTOSTDERR<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--logtostderr=true&#34;</span>
+
+<span style="color:#75715e"># journal message level, 0 is debug</span>
+KUBE_LOG_LEVEL<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--v=0&#34;</span>
+
+<span style="color:#75715e"># Disable privileged docker containers from running into the cluster</span>
+KUBE_ALLOW_PRIV<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--allow-privileged=false&#34;</span>
+
+<span style="color:#75715e"># How the minion talks with the API Server</span>
+KUBE_MASTER<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--master=https://centos-master:8080&#34;</span>
+
+<span style="color:#75715e"># How the minion talks with the ETCD Server</span>
+KUBE_ETCD_SERVERe<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--etcd-servers=https://centos-master:2379&#34;</span>
+</code></pre></div><p>Next, we are going to edit the <code>kubelet</code> configuration:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim /etc/kubernetes/kubelet
+
+<span style="color:#75715e"># kubernetes kubelet (minion) config</span>
+
+<span style="color:#75715e"># The address for the info server to serve on (set to 0.0.0.0 or &#34;&#34; for all interfaces)</span>
+KUBELET_ADDRESS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--address=0.0.0.0&#34;</span>
+
+<span style="color:#75715e"># The port for the info server to serve on (it has to corresponds the port of the master)</span>
+KUBELET_PORT<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--port=10250&#34;</span>
+
+<span style="color:#75715e"># You may leave this blank to use the actual hostname</span>
+KUBELET_HOSTNAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--hostname-override=centos-minion1&#34;</span>
+
+<span style="color:#75715e"># location of the api-server</span>
+KUBELET_API_SERVER<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--api-servers=https://centos-master:8080&#34;</span>
+
+<span style="color:#75715e"># Add your own!</span>
+KUBELET_ARGS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;&#34;</span>
+</code></pre></div><p>Now start and enable the services:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">systemctl enable kube-proxy
+systemctl start kube-proxy
+systemctl status kube-proxy
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">systemctl enable kubelet
+systemctl start kubelet
+systemctl status kubelet
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">systemctl enable docker
+systemctl start docker
+systemctl status docker
+</code></pre></div><p>As soon as we verify that all of the are working as expedted, now we have
+to verify also that docker works. To do, I am going to use a simple
+containerized app, called <code>hello world</code> &ndash; what a surprise.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker pull hello-world
+docker images
+docker run hello-world
+docker ps
+docker ps -a
+</code></pre></div><p>Now we have our minion configuration complete and actually it has to
+be registered against our master. Please make sure that the same config
+exists in the rest 2 minions, before you proceed.</p>
+<h3 id="interact-with-the-cluster">Interact with the cluster</h3>
+<p>The main utility for interacting with the kubernetes cluster, is called
+<code>kubectl</code> &ndash; kubecontrol.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">man kubectl
+</code></pre></div><p>Usually, either you <strong>get</strong> sth or <strong>set</strong> something. For example,
+if you want to see the nodes which are registerested againsto our
+master:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">kubectl get nodes
+</code></pre></div><p>But, how do I know what are the potential parameteres for that command?</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">man kubectl-get
+</code></pre></div><p>For example, I can get some information about those nodes:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">kubectl describe nodes
+</code></pre></div><p>I can also request this in JSON format:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">kubectl get nodes -o jsonpath<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;pattern&#39;</span>
+</code></pre></div><p>In the future, we will do <code>kubectl get pods</code>. A minion is a node
+that is registered in our cluster in which we can install pods on.
+Pods contain containers of things, such as services (apache, ngix, etc).</p>
+<h2 id="run-containers-in-pods">Run Containers in Pods</h2>
+<p>So, after having our environment set and all of our nodes are registered
+against the master node, it is about time to run containers inside of
+Pod in our cluster. For now, we are going to go through the initial
+configuration of setting up Pods in our 3 minions. For the shake of
+less complexity, I am going to turn-off the 2 out of the 3 minions,
+so I am going to to deploy Pods into a single node.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 ~<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get nodes</span>
+NAME             STATUS     AGE
+centos-minion1   Ready      19h
+centos-minion2   NotReady   19h
+centos-minion3   NotReady   19h
+</code></pre></div><p>As I said, 3 minions are registered, but only one of them is ready
+to use.</p>
+<h3 id="create-a-pod">Create a Pod</h3>
+<p>First of all, we need to create a Build directory:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mkdir Builds
+cd Builds
+</code></pre></div><p>Now there are two ways that we can begin to generate Pods which will
+contain Docker containers in our environment.</p>
+<ol>
+<li>We can create configuration file using JSON</li>
+<li>We can create configuration file using YAML</li>
+</ol>
+<p>From the configuration point of view, I am going to focus only to YAML.
+From a definition stand point, YAML is better for configuration and
+JSON is preffered as output. But, for input and configuration, I like
+to use YAML because I think it is simpler to use.</p>
+<p>So, to create a Pod, we need to create a <em>definition</em>. So, <em>keep in mind</em>
+that a Pod Definition is like telling Kubernetes the <em>desired state of
+our Pod</em>. It is really important to understand that the desired state
+is a key concept, because it is the key reponsibility of Kubernetes to
+ensure that the current state of the cluster matches the defined as
+desired state. So, if any of the things in desired state is not functioning
+then it us up to Kubernetes to relocate them or recreated them in order
+to drive our cluster to the desired state until the administrator says
+otherwise (e.g. delete the Pod). So, I am going to create a very simple
+configuration for out first Pod, a <code>nginx</code> yaml configuration and also
+follow the examples from kubernetes documentation. Make sure you are
+into the <code>Builds</code> directory and create our first Pod definition:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim nginx.yaml
+</code></pre></div><p>I will create a Pod that has just one single container in it. The Pod will
+be named after <code>nginx</code> and so does the container also. In the container, I
+would like to run <code>nginx version 1.7.9</code> and port forward (expose) <code>TCP 80</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Pod</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">containers</span>:
+  - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx</span>
+    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">nginx:1.7.9</span>
+    <span style="color:#f92672">ports</span>:
+    - <span style="color:#f92672">containerPort</span>: <span style="color:#ae81ff">80</span>
+</code></pre></div><p>Now, if you remember, using <code>kubectl</code> we can see what <code>pods</code> we have. So, right
+now we should not have any pods created yet. Also, if I go to our minion and
+look for currently active containers <code>docker ps</code> there will be none. So, the
+current state is that I have no <code>pods</code>, no <code>services</code>, no <code>replication controllers</code>.
+So, now, I am going to launch a Pod within my cluster, and Kubernetes is going
+to determine based on the current available worker nodes (minions) where to launch
+the container. It is very easy to do:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">kubectl create -f ./nginx.yaml
+pod <span style="color:#e6db74">&#34;nginx&#34;</span> created
+</code></pre></div><p>So, if I check for Pod now in my cluster:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl get pods</span>
+NAME      READY     STATUS    RESTARTS   AGE
+nginx     1/1       Running   <span style="color:#ae81ff">0</span>          26s
+</code></pre></div><p>As you can see, my Pod called <code>nginx</code> is already running. Let us go to the minion
+and verify that the container <code>nginx</code> is also running:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas2 ~<span style="color:#f92672">]</span><span style="color:#75715e"># docker ps</span>
+CONTAINER ID        IMAGE                                      COMMAND                  CREATED              STATUS              PORTS               NAMES
+9fc275cd7597        nginx:1.7.9                                <span style="color:#e6db74">&#34;nginx -g &#39;daemon off&#34;</span>   About a minute ago   Up About a minute                       k8s_nginx.b0df00ef_nginx_default_d4dfb568-45ec-11e7-91f
+e-0a35c9149e00_ece8325b
+bef1f611ff9b        gcr.io/google_containers/pause-amd64:3.0   <span style="color:#e6db74">&#34;/pause&#34;</span>                 About a minute ago   Up About a minute                       k8s_POD.b2390301_nginx_default_d4dfb568-45ec-11e7-91fe-
+0a35c9149e00_3ce7af06
+</code></pre></div><p>Now there is our <code>nginx</code> container, but there is also another container that is
+neccessarry for Kubernetes, which is a <code>google_container</code> and it is under <code>pause</code>.
+If for example we want describe our current Pod, we can do:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl describe pod nginx</span>
+Name:           nginx
+Namespace:      default
+Node:           centos-minion1/172.31.120.121
+Start Time:     Wed, <span style="color:#ae81ff">31</span> May <span style="color:#ae81ff">2017</span> 10:35:14 +0000
+Labels:         &lt;none&gt;
+Status:         Running
+IP:             172.17.0.2
+Controllers:    &lt;none&gt;
+Containers:
+  nginx:
+    Container ID:               docker://9fc275cd7597e315a90826ac4558a5120fdca913bcc46e2895c608d0a0c36c1c
+    Image:                      nginx:1.7.9
+    Image ID:                   docker-pullable://docker.io/nginx@sha256:e3456c851a152494c3e4ff5fcc26f240206abac0c9d794affb40e0714846c451
+    Port:                       80/TCP
+    State:                      Running
+      Started:                  Wed, <span style="color:#ae81ff">31</span> May <span style="color:#ae81ff">2017</span> 10:35:31 +0000
+    Ready:                      True
+    Restart Count:              <span style="color:#ae81ff">0</span>
+    Volume Mounts:              &lt;none&gt;
+    Environment Variables:      &lt;none&gt;
+Conditions:
+  Type          Status
+  Initialized   True 
+  Ready         True 
+  PodScheduled  True 
+No volumes.
+QoS Class:      BestEffort
+Tolerations:    &lt;none&gt;
+Events:
+  FirstSeen     LastSeen        Count   From                            SubObjectPath           Type 	     	 Reason                   Message
+  ---------     --------        -----   ----                            -------------           --------     	 ------                   -------
+  4m            4m              <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>default-scheduler <span style="color:#f92672">}</span>                                    Normal           Scheduled 	          Successfully assigned nginx to centos-minion1
+  4m            4m              <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>kubelet centos-minion1<span style="color:#f92672">}</span>        spec.containers<span style="color:#f92672">{</span>nginx<span style="color:#f92672">}</span>  Normal           Pulling           	  pulling image <span style="color:#e6db74">&#34;nginx:1.7.9&#34;</span>
+  4m            4m              <span style="color:#ae81ff">2</span>       <span style="color:#f92672">{</span>kubelet centos-minion1<span style="color:#f92672">}</span>                                Warning          MissingClusterDNS        kubelet does not have ClusterDNS IP configured and cannot create Pod using <span style="color:#e6db74">&#34;ClusterFirst&#34;</span> policy. Falling back to DNSDefault policy.
+  4m            4m              <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>kubelet centos-minion1<span style="color:#f92672">}</span>        spec.containers<span style="color:#f92672">{</span>nginx<span style="color:#f92672">}</span>  Normal           Pulled                  Successfully pulled image <span style="color:#e6db74">&#34;nginx:1.7.9&#34;</span>
+  4m            4m              <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>kubelet centos-minion1<span style="color:#f92672">}</span>        spec.containers<span style="color:#f92672">{</span>nginx<span style="color:#f92672">}</span>  Normal           Created                 Created container with docker id 9fc275cd7597; Security:<span style="color:#f92672">[</span>seccomp<span style="color:#f92672">=</span>unconfined<span style="color:#f92672">]</span>
+  4m            4m              <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>kubelet centos-minion1<span style="color:#f92672">}</span>        spec.containers<span style="color:#f92672">{</span>nginx<span style="color:#f92672">}</span>  Normal           Started                 Started container with docker id 9fc275cd7597
+</code></pre></div><p>Some important information here is that you see the docker container <code>ID</code>
+that is running, the <code>minion</code> that is running and its IP Address. So far
+there are no <code>labels</code>, no <code>controllers</code> (e.g. we are not doing any
+replication). Just to be clear though:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl describe pod nginx | grep &#39;Node:\|IP:&#39;</span>
+Node:           centos-minion1/172.31.120.121 &lt;-- IP of the minion
+IP:             172.17.0.2 &lt;-- IP of the container inside the Pod
+</code></pre></div><p>So, can I do anything with the IP of the container?</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># ping 172.17.0.2</span>
+PING 172.17.0.2 <span style="color:#f92672">(</span>172.17.0.2<span style="color:#f92672">)</span> 56<span style="color:#f92672">(</span>84<span style="color:#f92672">)</span> bytes of data.
+^C
+--- 172.17.0.2 ping statistics ---
+<span style="color:#ae81ff">20</span> packets transmitted, <span style="color:#ae81ff">0</span> received, 100% packet loss, time 18999ms
+</code></pre></div><p>The answer is <em>No</em>. There is no route externally to that Pod. But what
+I can do, is to run other containers within my Pod and as long as they
+are in the same host they can see those containers which are defined
+within that Pod. So, I am going to run another container: <code>busybox</code> image.
+This is very minimal installation of Linux running Busybox, that will
+allows us to connect/test our <code>nginx</code> container.</p>
+<p>Instead of creating a proper YAML file, this is just a shortcut, mostly
+because this is just for test reasons. So this is going to create a Pod
+called <code>busybox</code> and create also inside of it a docker container with
+the docker image <code>--image=busybox</code> and it will be also be
+an ephemeral <code>--restart=Never</code>. As soon as it will be ready it will be
+spawn interactivly here <code>--tty -i</code> and it runs in api version 1.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl run busybox --image=busybox --restart=Never --tty -i --generator=run-</span>
+pod/v1
+Waiting <span style="color:#66d9ef">for</span> pod default/busybox to be running, status is Pending, pod ready: false
+Waiting <span style="color:#66d9ef">for</span> pod default/busybox to be running, status is Pending, pod ready: false
+If you dont see a command prompt, try pressing enter.
+/ <span style="color:#75715e"># </span>
+</code></pre></div><p>So, now we have two Pods into the same minion:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 ~<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get nodes</span>
+NAME             STATUS     AGE
+centos-minion1   Ready      20h
+centos-minion2   NotReady   20h
+centos-minion3   NotReady   20h
+
+<span style="color:#f92672">[</span>root@drpaneas1 ~<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods</span>
+NAME      READY     STATUS    RESTARTS   AGE
+busybox   1/1       Running   <span style="color:#ae81ff">0</span>          14m
+nginx     1/1       Running   <span style="color:#ae81ff">0</span>          44m
+</code></pre></div><p>This command prompt indicates that I am actually in the Pod <code>busybox</code> running a
+container in it. The point is that this container can now see the <code>nginx</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">/ <span style="color:#75715e"># wget --quiet --output-document - https://172.17.0.2</span>
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Welcome to nginx!&lt;/title&gt;
+&lt;style&gt;
+    body <span style="color:#f92672">{</span>
+        width: 35em;
+        margin: <span style="color:#ae81ff">0</span> auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    <span style="color:#f92672">}</span>
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h1&gt;Welcome to nginx!&lt;/h1&gt;
+&lt;p&gt;If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.&lt;/p&gt;
+&lt;p&gt;For online documentation and support please refer to
+&lt;a href<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;https://nginx.org/&#34;</span>&gt;nginx.org&lt;/a&gt;.&lt;br/&gt;
+Commercial support is available at
+&lt;a href<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;https://nginx.com/&#34;</span>&gt;nginx.com&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Thank you <span style="color:#66d9ef">for</span> using nginx.&lt;/em&gt;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre></div><p>In order to delete the <code>busybox</code> Pod, first we <code>exit</code> and then we issue
+the <code>delete</code> command:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl delete pod busybox</span>
+pod <span style="color:#e6db74">&#34;busybox&#34;</span> deleted
+</code></pre></div><p>So now if we go back to the minion and look for the busybox container, we will
+see that it has been already stopped:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas2 ~<span style="color:#f92672">]</span><span style="color:#75715e"># docker ps</span>
+CONTAINER ID        IMAGE                                      COMMAND                  CREATED             STATUS              PORTS               NAMES
+9fc275cd7597        nginx:1.7.9                                <span style="color:#e6db74">&#34;nginx -g &#39;daemon off&#34;</span>   <span style="color:#ae81ff">47</span> minutes ago      Up <span style="color:#ae81ff">47</span> minutes                           k8s_nginx.b0df00ef_nginx_default_d4dfb568-45ec-11e7-91fe-0a35c9149e00_ece8325b
+bef1f611ff9b        gcr.io/google_containers/pause-amd64:3.0   <span style="color:#e6db74">&#34;/pause&#34;</span>                 <span style="color:#ae81ff">47</span> minutes ago      Up <span style="color:#ae81ff">47</span> minutes                           k8s_POD.b2390301_nginx_default_d4dfb568-45ec-11e7-91fe-0a35c9149e00_3ce7af06
+</code></pre></div><p>Now let us also remove the nginx container:</p>
+<p>``bash
+kubectl delete pod nginx
+[root@drpaneas1 Builds]# kubectl delete pod nginx
+pod &ldquo;nginx&rdquo; deleted</p>
+<pre><code>
+I can also `cheat` in a way in order to get access to the services that might be
+running on one of my containers. This is by port-forwarding locally to a remote
+copy of what happens to be happen within our Pod. So, because we already removed
+the `nginx` pod. I am going to create one again:
+
+```bash
+[root@drpaneas1 Builds]# kubectl create -f ./nginx.yaml 
+pod &quot;nginx&quot; created
+[root@drpaneas1 Builds]# kubectl get pods
+NAME      READY     STATUS    RESTARTS   AGE
+nginx     1/1       Running   0          17s
+</code></pre><p>So, now let us port forward it locally:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl port-forward nginx :80 &amp;</span>
+<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> <span style="color:#ae81ff">2512</span>
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># Forwarding from 127.0.0.1:43873 -&gt; 80</span>
+Forwarding from <span style="color:#f92672">[</span>::1<span style="color:#f92672">]</span>:43873 -&gt; <span style="color:#ae81ff">80</span>
+</code></pre></div><p>As you can see I am now port forwarding the port 80 from the Pod
+<code>nginx</code> into my local port <code>43873</code>. So, I should be able to do:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># curl https://localhost:43873</span>
+Handling connection <span style="color:#66d9ef">for</span> <span style="color:#ae81ff">43873</span>
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Welcome to nginx!&lt;/title&gt;
+&lt;style&gt;
+    body <span style="color:#f92672">{</span>
+        width: 35em;
+        margin: <span style="color:#ae81ff">0</span> auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    <span style="color:#f92672">}</span>
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h1&gt;Welcome to nginx!&lt;/h1&gt;
+&lt;p&gt;If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.&lt;/p&gt;
+&lt;p&gt;For online documentation and support please refer to
+&lt;a href<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;https://nginx.org/&#34;</span>&gt;nginx.org&lt;/a&gt;.&lt;br/&gt;
+Commercial support is available at
+&lt;a href<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;https://nginx.com/&#34;</span>&gt;nginx.com&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Thank you <span style="color:#66d9ef">for</span> using nginx.&lt;/em&gt;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre></div><p>So now we have a Pod Definition created but one of the things we do not have
+is an easy way to talk about what that Pod is all about and what it might
+contain. So, I am goin to apply labels and selectors.</p>
+<h3 id="labels-and-selectors">Labels and Selectors</h3>
+<p>Labels are often reffered to as <code>tags</code> in order to differentiate more easily
+the Pods running in our system. Because you might run some thousands of Pods
+in your system, so it makes sense to apply some common naming scheme to know
+how you can sort the information that is available. All that a label does
+is to give us a easy-readable plain text to something we can refer to later.
+It is a key value that we can also define in our YAML file, and we can also
+use it later to get or set information.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cp nginx.yaml nginx-pod-label.yaml </span>
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># vim nginx-pod-label.yam</span>
+</code></pre></div><p>All we are going to add is a section <code>labels</code> and give a name for the <code>app</code>
+that we are going to run (in that case <code>nginx</code>).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Pod</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx</span>
+  <span style="color:#f92672">labels</span>:
+    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">containers</span>:
+  - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx</span>
+    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">nginx:1.7.9</span>
+    <span style="color:#f92672">ports</span>:
+    - <span style="color:#f92672">containerPort</span>: <span style="color:#ae81ff">80</span>
+</code></pre></div><p>And create the Pod:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl create -f nginx-pod-label.yaml </span>
+pod <span style="color:#e6db74">&#34;nginx&#34;</span> created
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods</span>
+NAME      READY     STATUS    RESTARTS   AGE
+nginx     1/1       Running   <span style="color:#ae81ff">0</span>          9s
+</code></pre></div><p>Now, what I can do (that I could not do it before) is to ask
+for a specific key-value pair, called <code>nginx</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods -l app=nginx</span>
+NAME      READY     STATUS    RESTARTS   AGE
+nginx     1/1       Running   <span style="color:#ae81ff">0</span>          1m
+</code></pre></div><p>Let us create another nginx app:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># cp nginx-pod-label.yaml nginx2-pod-label.yaml </span>
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># vim nginx2-pod-label.yaml </span>
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx2
+  labels:
+    app: nginx2
+spec:
+  containers:
+  - name: nginx2
+    image: nginx:1.7.9
+    ports:
+    - containerPort: <span style="color:#ae81ff">80</span>
+</code></pre></div><p>As you can see I had to change <code>nginx</code> into <code>nginx2</code>. Let us create is also:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl create -f nginx2-pod-label.yaml </span>
+pod <span style="color:#e6db74">&#34;nginx2&#34;</span> created
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods</span>
+NAME      READY     STATUS    RESTARTS   AGE
+nginx     1/1       Running   <span style="color:#ae81ff">0</span>          4m
+nginx2    1/1       Running   <span style="color:#ae81ff">0</span>          9s
+</code></pre></div><p>This also means that in our minion, we are running now 4 containers:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas2 ~<span style="color:#f92672">]</span><span style="color:#75715e"># docker ps</span>
+CONTAINER ID        IMAGE                                      COMMAND                  CREATED             STATUS              PORTS               NAMES
+f9007379f757        nginx:1.7.9                                <span style="color:#e6db74">&#34;nginx -g &#39;daemon off&#34;</span>   <span style="color:#ae81ff">50</span> seconds ago      Up <span style="color:#ae81ff">49</span> seconds                           k8s_nginx2.428f0121_nginx2_default_5f91234f-45f6-11e7-91fe-0a35c9149e00_ad9421e1
+75c528f64f3f        gcr.io/google_containers/pause-amd64:3.0   <span style="color:#e6db74">&#34;/pause&#34;</span>                 <span style="color:#ae81ff">50</span> seconds ago      Up <span style="color:#ae81ff">49</span> seconds                           k8s_POD.b2390301_nginx2_default_5f91234f-45f6-11e7-91fe-0a35c9149e00_1cf67320
+b1582754a595        nginx:1.7.9                                <span style="color:#e6db74">&#34;nginx -g &#39;daemon off&#34;</span>   <span style="color:#ae81ff">5</span> minutes ago       Up <span style="color:#ae81ff">5</span> minutes                            k8s_nginx.b0df00ef_nginx_default_b4dcc3c9-45f5-11e7-91fe-0a35c9149e00_8810d6a3
+e98169846a83        gcr.io/google_containers/pause-amd64:3.0   <span style="color:#e6db74">&#34;/pause&#34;</span>                 <span style="color:#ae81ff">5</span> minutes ago       Up <span style="color:#ae81ff">5</span> minutes                            k8s_POD.b2390301_nginx_default_b4dcc3c9-45f5-11e7-91fe-0a35c9149e00_e2f1104f
+</code></pre></div><p>So, why would I do it that way? We might have thousands of pods running.
+So let us use again the listing for the <code>app</code> key-pair-value:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods -l app=nginx2</span>
+NAME      READY     STATUS    RESTARTS   AGE
+nginx2    1/1       Running   <span style="color:#ae81ff">0</span>          2m
+</code></pre></div><p>This is cool, because now I can only get the description per app, in that
+case <code>nginx2</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl describe pods -l app=nginx2</span>
+Name:           nginx2
+Namespace:      default
+Node:           centos-minion1/172.31.120.121
+Start Time:     Wed, <span style="color:#ae81ff">31</span> May <span style="color:#ae81ff">2017</span> 11:43:32 +0000
+Labels:         app<span style="color:#f92672">=</span>nginx2
+Status:         Running
+IP:             172.17.0.3
+Controllers:    &lt;none&gt;
+Containers:
+  nginx2:
+    Container ID:               docker://f9007379f7572c49769164d9b31d9814cd30404ab93c8b73258b672fba449205
+    Image:                      nginx:1.7.9
+    Image ID:                   docker-pullable://docker.io/nginx@sha256:e3456c851a152494c3e4ff5fcc26f240206abac0c9d794affb40e0714846c451
+    Port:                       80/TCP
+    State:                      Running
+      Started:                  Wed, <span style="color:#ae81ff">31</span> May <span style="color:#ae81ff">2017</span> 11:43:33 +0000
+    Ready:                      True
+    Restart Count:              <span style="color:#ae81ff">0</span>
+    Volume Mounts:              &lt;none&gt;
+    Environment Variables:      &lt;none&gt;
+Conditions:
+  Type          Status
+  Initialized   True 
+  Ready         True 
+  PodScheduled  True 
+No volumes.
+QoS Class:      BestEffort
+Tolerations:    &lt;none&gt;
+Events:
+  FirstSeen     LastSeen        Count   From                            SubObjectPath           Type 		Reason                   Message
+  ---------     --------        -----   ----                            -------------           --------      	------      	         -------
+  4m            4m              <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>default-scheduler <span style="color:#f92672">}</span>                                    Normal		Scheduled               Successfully assigned nginx2 to centos-minion1
+  4m            4m              <span style="color:#ae81ff">2</span>       <span style="color:#f92672">{</span>kubelet centos-minion1<span style="color:#f92672">}</span>                                Warning         MissingClusterDNS       kubelet does not have ClusterDNS IP configured and cannot create Pod using <span style="color:#e6db74">&#34;ClusterFirst&#34;</span> policy. Falling back to DNSDefault policy.
+  4m            4m              <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>kubelet centos-minion1<span style="color:#f92672">}</span>        spec.containers<span style="color:#f92672">{</span>nginx2<span style="color:#f92672">}</span> Normal		Pulled                  Container image <span style="color:#e6db74">&#34;nginx:1.7.9&#34;</span> already present on machine
+  4m            4m              <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>kubelet centos-minion1<span style="color:#f92672">}</span>        spec.containers<span style="color:#f92672">{</span>nginx2<span style="color:#f92672">}</span> Normal		Created                 Created container with docker id f9007379f757; Security:<span style="color:#f92672">[</span>seccomp<span style="color:#f92672">=</span>unconfined<span style="color:#f92672">]</span>
+  4m            4m              <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>kubelet centos-minion1<span style="color:#f92672">}</span>        spec.containers<span style="color:#f92672">{</span>nginx2<span style="color:#f92672">}</span> Normal		Started                 Started container with docker id f9007379f757
+</code></pre></div><p>This is an easy way to refer to complex infrastucture that I am  virtualizing as
+a container in my cluster. So these tags or labels are what is called selectors
+when we are getting information or when we apply information to a pod. This is because
+we can selectively apply things like deployments to a specific Pod in my environment.
+That is all what labels are for, to differentiate key-value pairs in YAML that later
+I can identify various parts. We can assign any label we want that we can refer to later.</p>
+<h3 id="deployment">Deployment</h3>
+<p>One of the advantages of labelling is that we can use deployment type. Before, we just
+launched a Pod, but now we are going to launch a Deployment. The reason we are going to
+differenciate launching a Pod from a Deployment is because it gives us felxibility
+and easier management over our cluter. This means that we are going to deploy a Pod
+that is goint to be a <em>production</em> <code>nginx server</code> container, and then we are going to
+deploy one that is going to be the development. Then we are going to label them
+appropriately so we can update one, and not the other. So let us copy the current
+configuration and modify it later on:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cp nginx-pod-label.yaml nginx-deployment-prod.yaml
+</code></pre></div><p>Well, obviously the <code>kind</code> is going to change from <code>Pod</code> into <code>Deployment</code>, but before
+we do that, we have to change the <code>API</code> version. This is because we are not going to
+use the standard API but some of the extensions which is available for Kubernetes.
+This extension gives us the ability to create a kind of deployment, as right now is
+only available to beta. Then, we are going to change the name into <code>nginx-deployment-prod</code>
+and also the same for the <code>app</code>. In addition, we are going to introduce a new key-value
+per, called <code>replicas</code> because deployments usually deploy multiple Pods in the same time.
+However, currently we just need only 1. The next thing we are going to add is a <code>template</code>.
+In this way, I am going to create <code>metadata</code> that are going to be specific to this item
+(template). All the others are intendted into the template. In that way we converted a
+Pod definition into a production deployment.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim nginx-deployment-prod.yaml
+
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># cat nginx-deployment-prod.yaml </span>
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deployment-prod
+spec:
+  replicas: <span style="color:#ae81ff">1</span>
+  template:
+    metadata:
+      labels:
+        app: nginx-deployment-prod
+    spec:
+     containers:
+     - name: nginx
+       image: nginx:1.7.9
+       ports:
+       - containerPort: <span style="color:#ae81ff">80</span>
+</code></pre></div><p>Now let us create the deployment and list our Pods:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl create -f nginx-deployment-prod.yaml </span>
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods</span>
+NAME                                    READY     STATUS    RESTARTS   AGE
+nginx                                   1/1       Running   <span style="color:#ae81ff">0</span>          2h
+nginx-deployment-prod-872137609-z8n9m   1/1       Running   <span style="color:#ae81ff">0</span>          24s
+nginx2                                  1/1       Running   <span style="color:#ae81ff">0</span>          2h
+</code></pre></div><p>Do you notice that next to the name, there is a <code>-872137609-z8n9m</code> string? Why is that?
+This is because it ends with the ID of the deployment:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get deployments</span>
+NAME                    DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment-prod   <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">1</span>            <span style="color:#ae81ff">1</span>           1m
+</code></pre></div><p>So now I have a deployment called <code>nginx-deployment-prod</code> which has a Pod
+called <code>nginx-deployment-prod-872137609-z8n9m</code>, which runs an <code>nginx</code>
+container. Looks like we made things even more complicated &hellip; Indeed.
+This is because nobody uses a deployment structure for just one nod
+with just one worker, with just one container. So, let us create another
+deployment so to see the benefit of it:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cp nginx-deployment-prod.yaml nginx-deployment-dev.yaml</span>
+</code></pre></div><p>And let just modify the <code>nginx-deployment-prod</code> into <code>nginx-deployment-dev</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deployment-dev
+spec:
+  replicas: <span style="color:#ae81ff">1</span>
+  template:
+    metadata:
+      labels:
+        app: nginx-deployment-dev
+    spec:
+     containers:
+     - name: nginx
+       image: nginx:1.7.9
+       ports:
+       - containerPort: <span style="color:#ae81ff">80</span>
+</code></pre></div><p>So, now both deployments are running:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get deployments</span>
+NAME                    DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment-dev    <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">1</span>            <span style="color:#ae81ff">1</span>           15s
+nginx-deployment-prod   <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">1</span>            <span style="color:#ae81ff">1</span>           7m
+</code></pre></div><p>and I can also do:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl describe deployments -l app=nginx-deployment-dev</span>
+Name:                   nginx-deployment-dev
+Namespace:              default
+CreationTimestamp:      Wed, <span style="color:#ae81ff">31</span> May <span style="color:#ae81ff">2017</span> 14:45:33 +0000
+Labels:                 app<span style="color:#f92672">=</span>nginx-deployment-dev
+Selector:               app<span style="color:#f92672">=</span>nginx-deployment-dev
+Replicas:               <span style="color:#ae81ff">1</span> updated | <span style="color:#ae81ff">1</span> total | <span style="color:#ae81ff">1</span> available | <span style="color:#ae81ff">0</span> unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        <span style="color:#ae81ff">0</span>
+RollingUpdateStrategy:  <span style="color:#ae81ff">1</span> max unavailable, <span style="color:#ae81ff">1</span> max surge
+Conditions:
+  Type          Status  Reason
+  ----          ------  ------
+  Available     True    MinimumReplicasAvailable
+OldReplicaSets: &lt;none&gt;
+NewReplicaSet:  nginx-deployment-dev-3607872275 <span style="color:#f92672">(</span>1/1 replicas created<span style="color:#f92672">)</span>
+Events:
+  FirstSeen     LastSeen        Count   From                            SubObjectPath   Type            Reason                  Message
+  ---------     --------        -----   ----                            -------------   --------        ------                  -------
+  1m            1m              <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>deployment-controller <span style="color:#f92672">}</span>                        Normal          ScalingReplicaSet       Scaled up replica set nginx-deployment-dev-3607872275 to <span style="color:#ae81ff">1</span>
+</code></pre></div><p>So, we have 4 containers runnings, the dev and the prod. Why we did that?
+By using the deployment type, we can now do updates to any of our pods
+just by applying a deployment update to that specific pod. What this means?
+For example, we are going to update the <code>nginx</code> version to 1.8.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cp nginx-deployment-dev.yaml nginx-deployment-dev-update.yaml</span>
+</code></pre></div><p>All we want to do is to update the nginx version from 1.7.9 up to 1.8 and I
+am going to do that by changing the image. Everything else will be the same.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim nginx-deployment-dev-update.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deployment-dev
+spec:
+  replicas: <span style="color:#ae81ff">1</span>
+  template:
+    metadata:
+      labels:
+        app: nginx-deployment-dev
+    spec:
+     containers:
+     - name: nginx
+       image: nginx:1.8
+       ports:
+       - containerPort: <span style="color:#ae81ff">80</span>
+</code></pre></div><p>In that way we are going to <code>apply</code> this change into our <code>dev</code> deployment:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl apply -f nginx-deployment-dev-update.yaml </span>
+deployment <span style="color:#e6db74">&#34;nginx-deployment-dev&#34;</span> configured
+</code></pre></div><p>Now, the deployment has successfully created the Pod that now runs a
+container with <code>nginx 1.8</code>. To verify this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl describe deployments -l app=nginx-deployment-dev</span>
+Name:                   nginx-deployment-dev
+Namespace:              default
+CreationTimestamp:      Wed, <span style="color:#ae81ff">31</span> May <span style="color:#ae81ff">2017</span> 14:45:33 +0000
+Labels:                 app<span style="color:#f92672">=</span>nginx-deployment-dev
+Selector:               app<span style="color:#f92672">=</span>nginx-deployment-dev
+Replicas:               <span style="color:#ae81ff">1</span> updated | <span style="color:#ae81ff">1</span> total | <span style="color:#ae81ff">1</span> available | <span style="color:#ae81ff">0</span> unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        <span style="color:#ae81ff">0</span>
+RollingUpdateStrategy:  <span style="color:#ae81ff">1</span> max unavailable, <span style="color:#ae81ff">1</span> max surge
+Conditions:
+  Type          Status  Reason
+  ----          ------  ------
+  Available     True    MinimumReplicasAvailable
+OldReplicaSets: &lt;none&gt;
+NewReplicaSet:  nginx-deployment-dev-3767386797 <span style="color:#f92672">(</span>1/1 replicas created<span style="color:#f92672">)</span>
+Events:
+  FirstSeen     LastSeen        Count   From                            SubObjectPath   Type            Reason                  Message
+  ---------     --------        -----   ----                            -------------   --------        ------                  -------
+  13m           13m             <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>deployment-controller <span style="color:#f92672">}</span>                        Normal          ScalingReplicaSet       Scaled up replica set nginx-deployment-dev-3607872275 to <span style="color:#ae81ff">1</span>
+  6m            6m              <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>deployment-controller <span style="color:#f92672">}</span>                        Normal          ScalingReplicaSet       Scaled up replica set nginx-deployment-dev-3767386797 to <span style="color:#ae81ff">1</span>
+  6m            6m              <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>deployment-controller <span style="color:#f92672">}</span>                        Normal          ScalingReplicaSet       Scaled down replica set nginx-deployment-dev-3607872275 to <span style="color:#ae81ff">0</span>
+</code></pre></div><p>As you can see the <code>StrategyType</code> has changed into <code>RollingUpdate</code> and the
+<code>Replicas</code> say <code>1 updates</code> which means that it got succeded. Of course if
+we had mutliple replicas running, they will be updated as well. So, with one
+command I would be able to update the whole container infrastructure even
+though running in multiple places.</p>
+<h3 id="replication-controller">Replication Controller</h3>
+<p>So far, we have been using only one Pod, but it is about time to use
+multiple pod (containers). There are two ways to run a Pod, either via
+a deployment or directly by referring to the Pod. The first way allows
+us to have multiple containers doing different things, for example
+you have a layered application running within a Pod, so you have a
+webserver and a fileserver and also a database server, and I use
+server in terms of individual containers. All those three run in a Pod,
+and this Pod might be called a webserver environment. Howerver, the
+second thing that you can do is t haty ou  can run multiple containers
+within a Pod, or at least you can defined multiuple containers within
+a single definition. They way we do that, is something called the
+replication controller. This is a different type of <code>kind</code> of the deployment
+kind in order to deploy 1-N pods for a particular container.</p>
+<p>First of all, let us start the other two minions. Just make sure that the
+VMs are online and <code>kubelet</code>, <code>kube-proxy</code> services are running:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">systemctl start kubelet kube-proxy
+</code></pre></div><p>then make sure you can see their online status from the master node:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl get nodes</span>
+NAME             STATUS    AGE
+centos-minion1   Ready     1d
+centos-minion2   Ready     1d
+centos-minion3   Ready     1d
+</code></pre></div><p>Now let us create the configuration:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim nginx-multi-label.yaml
+</code></pre></div><p>As I said earlier, we are going to use a different kind of kind, called
+<code>ReplicationController</code>. Then we define the name of this one as <code>nginx-www</code>
+and then we are writing the specifications. Over there, the first thing we do
+is to specify the <code>replicas</code>. In this case I am going to use <em>3</em> Pods per
+selector. Speaking of selector, we specify it as <code>app: nginx</code>. Next, we
+define our template. Nothing new here. In the end, the file looks like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cat nginx-multi-label.yaml </span>
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: nginx-www
+spec:
+  replicas: <span style="color:#ae81ff">3</span>
+  selector:
+    app: nginx
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: <span style="color:#ae81ff">80</span>
+</code></pre></div><p>Fire this up:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl create -f nginx-multi-label.yaml </span>
+replicationcontroller <span style="color:#e6db74">&#34;nginx-www&#34;</span> created
+</code></pre></div><p>Now if I ask for the pods:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods</span>
+NAME              READY     STATUS    RESTARTS   AGE
+nginx-www-m8x9q   1/1       Running   <span style="color:#ae81ff">0</span>          9m
+nginx-www-vkvw5   1/1       Running   <span style="color:#ae81ff">0</span>          9m
+nginx-www-xvjvb   1/1       Running   <span style="color:#ae81ff">0</span>          9m
+</code></pre></div><p>I see 3 replicated copies being deployed all three of our container
+in all of three of our minions.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl get pods</span>
+NAME              READY     STATUS    RESTARTS   AGE
+nginx-www-m8x9q   1/1       Running   <span style="color:#ae81ff">0</span>          9m
+nginx-www-vkvw5   1/1       Running   <span style="color:#ae81ff">0</span>          9m
+nginx-www-xvjvb   1/1       Running   <span style="color:#ae81ff">0</span>          9m
+
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl describe replicationcontroller</span>
+Name:           nginx-www
+Namespace:      default
+Image<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>:       nginx
+Selector:       app<span style="color:#f92672">=</span>nginx
+Labels:         app<span style="color:#f92672">=</span>nginx
+Replicas:       <span style="color:#ae81ff">3</span> current / <span style="color:#ae81ff">3</span> desired
+Pods Status:    <span style="color:#ae81ff">3</span> Running / <span style="color:#ae81ff">0</span> Waiting / <span style="color:#ae81ff">0</span> Succeeded / <span style="color:#ae81ff">0</span> Failed
+No volumes.
+Events:
+  FirstSeen     LastSeen        Count   From                            SubObjectPath   Type            Reason                  Message
+  ---------     --------        -----   ----                            -------------   --------        ------                  -------
+  10m           10m             <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>replication-controller <span style="color:#f92672">}</span>                       Normal          SuccessfulCreate        Created pod: nginx-www-xvjvb
+  10m           10m             <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>replication-controller <span style="color:#f92672">}</span>                       Normal          SuccessfulCreate        Created pod: nginx-www-vkvw5
+  10m           10m             <span style="color:#ae81ff">1</span>       <span style="color:#f92672">{</span>replication-controller <span style="color:#f92672">}</span>                       Normal          SuccessfulCreate        Created pod: nginx-www-m8x9q
+</code></pre></div><p>The replication controller tells me that I have 3 of these running,
+but Ialso have 3 pods.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl describe pods | grep Node</span>
+Node:           centos-minion3/172.31.23.169
+Node:           centos-minion2/172.31.110.96
+Node:           centos-minion1/172.31.120.121
+</code></pre></div><p>As you can see, these 3 Pods are running into 3 different nodes. So, in every minion
+I have 2 containers as individual items, but they are all being controller by my
+YAML file for Kubernetes as replication controller. Now, as a replication controller
+Kubernetes gets services, but we have not defined any so far:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl get services</span>
+NAME         CLUSTER-IP   EXTERNAL-IP   PORT<span style="color:#f92672">(</span>S<span style="color:#f92672">)</span>   AGE
+kubernetes   10.254.0.1   &lt;none&gt;        443/TCP   1d
+</code></pre></div><p>Thus, the only service available is Kubernetes itself. In my cluster I have 3 pods,
+one pod per minion:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods</span>
+NAME              READY     STATUS    RESTARTS   AGE
+nginx-www-m8x9q   1/1       Running   <span style="color:#ae81ff">0</span>          15m
+nginx-www-vkvw5   1/1       Running   <span style="color:#ae81ff">0</span>          15m
+nginx-www-xvjvb   1/1       Running   <span style="color:#ae81ff">0</span>          15m
+</code></pre></div><p>So, what happens if I delete on of those Pods?</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods</span>
+NAME              READY     STATUS    RESTARTS   AGE
+nginx-www-m8x9q   1/1       Running   <span style="color:#ae81ff">0</span>          15m  &lt;--- delete this one
+nginx-www-vkvw5   1/1       Running   <span style="color:#ae81ff">0</span>          15m
+nginx-www-xvjvb   1/1       Running   <span style="color:#ae81ff">0</span>          15m
+
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl delete pod nginx-www-m8x9q</span>
+pod <span style="color:#e6db74">&#34;nginx-www-m8x9q&#34;</span> deleted
+
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods</span>
+NAME              READY     STATUS    RESTARTS   AGE
+nginx-www-b5h6t   1/1       Running   <span style="color:#ae81ff">0</span>          3s	&lt;--- new pod
+nginx-www-vkvw5   1/1       Running   <span style="color:#ae81ff">0</span>          16m
+nginx-www-xvjvb   1/1       Running   <span style="color:#ae81ff">0</span>          16m
+</code></pre></div><p>As you can see Kubernetes detected that a Pod got remoded from one of our minions
+and immediately detected that this is wrong, because it has to always run 3 of
+those. So, it automatically created a new one in order to apply the desired state
+in the cluster. No matter what I do, unless I delete the replication controller
+these Pods are going to be spawned up again again until it matches my YAML definition.
+This is:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl get replicationcontrollers</span>
+NAME        DESIRED   CURRENT   READY     AGE
+nginx-www   <span style="color:#ae81ff">3</span>         <span style="color:#ae81ff">3</span>         <span style="color:#ae81ff">3</span>         19m
+</code></pre></div><p>As you can see the desired state is <code>3</code> and I currently have <code>3</code>. So, Kubernetes
+is fine. But as I said, If I delete the replicationcontroller itself:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl delete replicationcontroller nginx-www</span>
+replicationcontroller <span style="color:#e6db74">&#34;nginx-www&#34;</span> deleted
+
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods</span>
+No resources found.
+</code></pre></div><p>Then I have none. Also, in the individual minions, the containers are stopped.</p>
+<h3 id="deploy-services">Deploy Services</h3>
+<p>We learned how to create, pods, deployments, replication controller, so far we can
+deploy one or more containers in a node replicated in our multi-node cluster. So
+lets us go ahead and re-run our configuration for our replication controller:</p>
+<p>Our <code>nginx-multi-label.yaml</code> deploys 3 replicas of an <code>nginx</code> container accross
+all 3 of our minions. Actually it does not neccessarrilly deploys that in all
+of our minions; if our minions are doing other things, it would round-robin
+those connections: if we had 4 minions, it would use 3, if we had 10 it would use
+3, etc. In this case, we have 3 minions completely empty, so it makes sense for
+Kubernetes to run one Pod on them:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl create -f nginx-multi-label.yaml </span>
+replicationcontroller <span style="color:#e6db74">&#34;nginx-www&#34;</span> created
+</code></pre></div><p>Since we have created the <code>replicationcontroller</code> we see our pods:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get replicationcontrollers</span>
+NAME        DESIRED   CURRENT   READY     AGE
+nginx-www   <span style="color:#ae81ff">3</span>         <span style="color:#ae81ff">3</span>         <span style="color:#ae81ff">3</span>         44s
+
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods</span>
+NAME              READY     STATUS    RESTARTS   AGE
+nginx-www-9v2lq   1/1       Running   <span style="color:#ae81ff">0</span>          50s
+nginx-www-ljpsz   1/1       Running   <span style="color:#ae81ff">0</span>          50s
+nginx-www-wcd1s   1/1       Running   <span style="color:#ae81ff">0</span>          50s
+</code></pre></div><p>that are running. Now, We need to create a service definition. A service
+definition starts to tighted together. The services are not exposed outside
+of their host. However, when we define a service, we actually referring to
+a resource that can exist in any of our minions. It shoulds a little bit confusing.
+All I am doing is abstracting what is running behind the scenes, providing a mechanism
+for Kubernetes to simply assign a single IP address to those multiple Pods that we
+reffered to by name or label (in our <code>selector</code> field in YAML) so that we can
+connect to them and do something. They are going to have unique IP address and the
+subsquent assign port, so any of the hosts can use these and work with the entire cluster
+instead of just into their own local host.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim nginx-service.yaml
+</code></pre></div><pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  ports:
+  - port: 8000
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: nginx
+</code></pre><p>So once again, here we are defining a kind <code>Service</code> that we are calling it <code>nginx-service</code>
+and then in the specification we are port forwarding the TCP 80 of nginx into our cluster
+port 8000 (I have to manually verify that nothing is running there). Then the application
+that I am going to run and provide access to, is defined by the label app. called <code>nginx</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl  create -f nginx-service.yaml </span>
+service <span style="color:#e6db74">&#34;nginx-service&#34;</span> created
+</code></pre></div><p>So, let us see the services:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get services</span>
+NAME            CLUSTER-IP     EXTERNAL-IP   PORT<span style="color:#f92672">(</span>S<span style="color:#f92672">)</span>    AGE
+kubernetes      10.254.0.1     &lt;none&gt;        443/TCP    1d
+nginx-service   10.254.78.47   &lt;none&gt;        8000/TCP   5s
+</code></pre></div><p>As you can see, I am running now 2 services. The kubernetes service and the <code>nginx-service</code>
+which runs at the port TCP 8000. Now, I can connect to any of my minions by referring just
+to this <code>10.254.78.47</code> IP Address and port 8000 and now I am load-balancing and round-robin
+among all three nginx-servers that are running in the background, without knowing their IP.
+In fact, their IP is likely the same of each of the individual minions.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl describe service nginx-service</span>
+Name:                   nginx-service
+Namespace:              default
+Labels:                 &lt;none&gt;
+Selector:               app<span style="color:#f92672">=</span>nginx
+Type:                   ClusterIP
+IP:                     10.254.78.47
+Port:                   &lt;unset&gt; 8000/TCP
+Endpoints:              172.17.0.2:80,172.17.0.2:80,172.17.0.2:80
+Session Affinity:       None
+No events.
+</code></pre></div><p>As you can see the <code>nginx-service</code> is running in my Cluster with the IP
+10.254.78.47 and it uses the port 8000 TCP. It says <code>&lt;unset&gt;</code> because
+I have not associated this port with something in my system. If I were
+using the port 80, then it would not say <code>unsert</code> by <code>http</code> instead.
+Notice that the <code>endpoints</code> for each minion, all of them have the
+very same IP Address. This would normally be a problem, but: Kubernetes
+is managing my configuration and its know manageing my connectvity on the
+backend through this cluster IP, now I have the ability to get information
+from any one of these, depending on which one is next up in the chain &ndash;
+it does not make any difference. So this is an easy way to load-balance
+your environment. You can use other load-balancers to do others things
+but what we are currently doing is round-robin load-balancing between
+these end-points on port 8000 for this particular IP.</p>
+<p>So how do I connect do? All this go back to <code>busybox</code> we did in the
+beginning.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl run busybox --generator=run-pod/v1 --image=busybox --restart=Never --tty -i</span>
+Waiting <span style="color:#66d9ef">for</span> pod default/busybox to be running, status is Pending, pod ready: false
+Waiting <span style="color:#66d9ef">for</span> pod default/busybox to be running, status is Pending, pod ready: false
+If you dont see a command prompt, try pressing enter.
+/ <span style="color:#75715e"># </span>
+</code></pre></div><p>Now we can check the IP of our cluster on port 8000 to get back the
+nginx which runs on port 80.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">/ <span style="color:#75715e"># wget --quiet --output-document - https://10.254.78.47:8000</span>
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Welcome to nginx!&lt;/title&gt;
+&lt;style&gt;
+    body <span style="color:#f92672">{</span>
+        width: 35em;
+        margin: <span style="color:#ae81ff">0</span> auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    <span style="color:#f92672">}</span>
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h1&gt;Welcome to nginx!&lt;/h1&gt;
+&lt;p&gt;If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.&lt;/p&gt;
+&lt;p&gt;For online documentation and support please refer to
+&lt;a href<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;https://nginx.org/&#34;</span>&gt;nginx.org&lt;/a&gt;.&lt;br/&gt;
+Commercial support is available at
+&lt;a href<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;https://nginx.com/&#34;</span>&gt;nginx.com&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Thank you <span style="color:#66d9ef">for</span> using nginx.&lt;/em&gt;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre></div><p>If we wanted to we could have defined the cluster to have volume mount
+so that we could indicate which container we are pointed to, but in this
+case we did not execute any commands within our YAML to mount external
+directory for any of our nginx containers. This is why we are getting
+the same page back, there is no differenciation other than knowing that this
+particular cluster IP is point to a cluster of minions that we have
+configured to reffered to the backend Pods and their containers on Port 80
+through 8000 at this cluster IP. So, regardless of how many resources are
+running the backend, our service is associated with only one cluster IP address
+and I do not have to know anything about the backend. Not the containers, not
+their ports, nothing. So, as long as I have the cluster IP which I have to
+later register it via our DNS &ndash; because this ClusterIP will be persistent
+only until it stopped. Once I stopped this, then my Cluster IP is going to go
+away:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl delete pod busybox</span>
+pod <span style="color:#e6db74">&#34;busybox&#34;</span> deleted
+
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl delete service nginx-service</span>
+service <span style="color:#e6db74">&#34;nginx-service&#34;</span> deleted
+</code></pre></div><p>This just deletes the service, but not the Pods:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get services</span>
+NAME         CLUSTER-IP   EXTERNAL-IP   PORT<span style="color:#f92672">(</span>S<span style="color:#f92672">)</span>   AGE
+kubernetes   10.254.0.1   &lt;none&gt;        443/TCP   1d
+
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get nodes</span>
+NAME             STATUS    AGE
+centos-minion1   Ready     1d
+centos-minion2   Ready     1d
+centos-minion3   Ready     1d
+</code></pre></div><p>The individual pods are continuing running as part of my multi-container
+deployment. Those individual pods are running, but now in order to communicate
+with them I have to launch busy-box and use their IP address of the particular
+container in order to access the nginx service within the Pod in the minion in
+which my busybox is running.</p>
+<h2 id="logs-logs-logs">Logs Logs Logs</h2>
+<p>How can I pull logs from my Pods? There is a facility that is provided as
+part of the <code>kubectl</code> utility.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl logs &lt;pod&gt;</span>
+</code></pre></div><p>I can also specify the number of lines I want to see:</p>
+<pre><code>bash
+# kubectl logs --tail=1 &lt;pod&gt;
+</code></pre><p>You can also specify  the time-frame you want to see the logs:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl logs --since=24h &lt;pod&gt;</span>
+</code></pre></div><p>Finally, if I want to live monitor the logs:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl logs -f &lt;pod&gt;</span>
+</code></pre></div><p>If I want to see the logs on a particular container I need to now the container
+ID (CID):</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl logs -f -c CID &lt;pod&gt;</span>
+</code></pre></div><p>For example, if you try to start a docker image that does not exists
+you will see:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl run apache --image=apache --port=80 --labels=app=apache</span>
+deployment <span style="color:#e6db74">&#34;apache&#34;</span> created
+
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods</span>
+NAME                      READY     STATUS         RESTARTS   AGE
+apache-2837101164-qxqlv   0/1       ErrImagePull   <span style="color:#ae81ff">0</span>          7s
+
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl logs apache-2837101164-qxqlv</span>
+Error from server <span style="color:#f92672">(</span>BadRequest<span style="color:#f92672">)</span>: container <span style="color:#e6db74">&#34;apache&#34;</span> in pod <span style="color:#e6db74">&#34;apache-2837101164-qxqlv&#34;</span> is waiting to start: image cant be pulled
+</code></pre></div><p>This is very useful because you can generate health reports for your services.
+You can also specify things like &lsquo;if this thing happens&rsquo; then re-reploy this service.</p>
+<h2 id="scalability-of-the-cluster">Scalability of the cluster</h2>
+<p>We have control over the initial scalability of our cluster when we create Pods
+inside of either deployments, Pod definitions, Replica sets or ReplicationControllers.
+But what happens if the initial configuration that we have set inside of our definition
+needs to be adjusted for one reason or another, or we want to add scalling to a deployment
+that has not had one in the past. We can use something that is called the
+<code>autoscale</code> directive in order to add and autoscale our definition. We can define
+a minimum state (the minimum number of Pods) that should be running in any particular
+time, as well as the maximum state (the maximum number of pods) andthen we can also
+target various CPU utilization thresholds in order to deploy additional services.
+In other words, once we get to 80% CPU utilization on a minion that it has pods on it,
+then it will create the next set of Pods on a different minion for example.</p>
+<p>We could create a set of Pods based on a ReplicationController set that already has defined
+a number of replicas in it. For example, in the <code>nginx-multi-label.yaml</code> we have indicated
+that we want 3 replicas of this particular pod running in our infrastructure. Right now
+we have got two minions available to us (I have taken the 3rd minion offline), so let
+us create a temporary pod using the <code>kubectl run</code> command. We are going to create a basic
+pod that is going to have a single container in it that is going to run an <code>nginx</code> image.
+We are also going to expose port 80, so our containers will be able to connect to the
+service running there. Last but not least, I am not going to indicate a number of replicas
+on purpose.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl run myautoscale --image=nginx --port=80 --labels=app=myautoscale</span>
+deployment <span style="color:#e6db74">&#34;myautoscale&#34;</span> created
+</code></pre></div><p>As we saw before, <code>kubectl run</code> creates a deployment. A deployment is something that
+once it has been defined, we can apply changes to it.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl get deployments</span>
+NAME          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+myautoscale   <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">1</span>            <span style="color:#ae81ff">1</span>           1m
+</code></pre></div><p>This is running just one pod on the <code>minion1</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl describe pods -l app=myautoscale | grep Node:</span>
+Node:           centos-minion1/172.31.120.121
+</code></pre></div><p>Which means that is running 2 docker containers:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># docker ps</span>
+CONTAINER ID        IMAGE                                      COMMAND                  CREATED             STATUS              PORTS               NAMES
+1bd5a0915963        nginx                                      <span style="color:#e6db74">&#34;nginx -g &#39;daemon off&#34;</span>   <span style="color:#ae81ff">5</span> minutes ago       Up <span style="color:#ae81ff">5</span> minutes                            k8s_myautoscale.f898ffdc_myautoscale-3958947512-3p5l4_default_ffa4bfb9-46fa-11e7-8983-0a35c9149e00_8d846e33
+40c5b1cf3a4d        gcr.io/google_containers/pause-amd64:3.0   <span style="color:#e6db74">&#34;/pause&#34;</span>                 <span style="color:#ae81ff">5</span> minutes ago       Up <span style="color:#ae81ff">5</span> minutes                            k8s_POD.b2390301_myautoscale-3958947512-3p5l4_default_ffa4bfb9-46fa-11e7-8983-0a35c9149e00_4cb76f9d
+</code></pre></div><p>Now, I may need to autoscale this depending upon various conditions. The one that I have
+complete control is the amount of CPU that is utilized in within my cluster. For this
+I am going to use the <code>autoscale</code> directive. First I need to know the name of the deployment
+(in my case <code>myautoscale</code>) and then I need to spacify at least on parameter. I am going to
+say I need to deploy at least 2 pods (because I know already I have 2 minions to utilize)
+and I am going to also say that I would like to have a maximum deployment of 6 pods.
+And last but not least, my CPU percent is goingto be equal to some number (<code>--cpu-precent</code>)
+but since the cpu load on my minions is really low, I know that  I am not going to utlize
+this, so I am going to skip this and use the default scaling police. The default policy says
+that when the number of pods exceeds the number of resources on the minion (or it stops
+responding) then it will spin up new pods in on other minions. So, it should automatically
+scale up to at least 2 pods.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl autoscale deployments myautoscale --min=2 --max=6</span>
+deployment <span style="color:#e6db74">&#34;myautoscale&#34;</span> autoscaled
+</code></pre></div><p>That is it. My deployment called <code>myautoscale</code> is now <em>autoscalling</em>.
+I see that I have now at least two pods running:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl get pods</span>
+NAME                           READY     STATUS    RESTARTS   AGE
+myautoscale-3958947512-3p5l4   1/1       Running   <span style="color:#ae81ff">0</span>          16m
+myautoscale-3958947512-lt2cg   1/1       Running   <span style="color:#ae81ff">0</span>          43s
+</code></pre></div><p>The second pod is not running on the second minion as well:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl describe pods -l app=myautoscale | grep Node:</span>
+Node:           centos-minion1/172.31.120.121
+Node:           centos-minion2/172.31.110.96
+</code></pre></div><p>And of course the deployment has changed:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl get deployments</span>
+NAME          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+myautoscale   <span style="color:#ae81ff">2</span>         <span style="color:#ae81ff">2</span>         <span style="color:#ae81ff">2</span>            <span style="color:#ae81ff">2</span>           18m
+</code></pre></div><p>Now, if I want to have at least <em>4</em> pods as minimum in my deployments,
+I can simply re-run the previous command by changing the <code>--min</code>
+parameter.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl autoscale deployments myautoscale --min=4 --max=6</span>
+Error from server <span style="color:#f92672">(</span>AlreadyExists<span style="color:#f92672">)</span>: horizontalpodautoscalers.autoscaling <span style="color:#e6db74">&#34;myautoscale&#34;</span> already exists
+</code></pre></div><p>But I got an error. What this means? So, what that means is that I have
+changed my deployment to an <code>autoscale</code> and once the autoscale exists,
+just like a pod that is called 123, I cannot create another one called 123,
+that means that I do not have the ability to scale further my current environment
+without deleting it. I can apply a different directive called <code>scale</code>. So,
+up to these point, I already have an <em>autoscale</em> but I also need to <em>scale</em>
+it further. In that case I have first to tell it what is my current auto-scale
+plan (`&ndash;current-replicas=2) and then the target I want to scale into.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl scale --current-replicas=2 --replicas=4 deployment/myautoscale</span>
+deployment <span style="color:#e6db74">&#34;myautoscale&#34;</span> scaled
+</code></pre></div><p>This applies my new rule without changing the fact that <code>autoscale</code> has already
+been deployed. When I applied my autoscale, autoscaled was <strong>created</strong>, but all I
+am doing now is that I applying a change (I am not re-creating something).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl get deployments</span>
+NAME          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+myautoscale   <span style="color:#ae81ff">4</span>         <span style="color:#ae81ff">4</span>         <span style="color:#ae81ff">4</span>            <span style="color:#ae81ff">4</span>           26m
+</code></pre></div><p>As you can see, my deployment has not changed to 4 replicas. Two of them on
+minion1 and two of them on minion2.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl describe pods -l app=myautoscale | grep Node:</span>
+Node:           centos-minion1/172.31.120.121
+Node:           centos-minion2/172.31.110.96
+Node:           centos-minion1/172.31.120.121
+Node:           centos-minion2/172.31.110.96
+</code></pre></div><p>Now the question is: <em>can I scale down?</em>. Yes but there is a limitation
+to what you can scale down to. You cannot scale pass the point when you
+applied the autoscale to <code>--min</code> value. In other words, I cannot apply a
+scale rule that has a lower value than 2. Because when I originally applied
+the autoscale, I said that I wantto have 2 minimum pods. So, even if I now say
+that I want to scale down to 1, it will still deploy 2. But, I can scale down
+to 3.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl scale --current-replicas=4 --replicas=3 deployment/myautoscale</span>
+deployment <span style="color:#e6db74">&#34;myautoscale&#34;</span> scaled
+
+<span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods</span>
+NAME                           READY     STATUS    RESTARTS   AGE
+myautoscale-3958947512-3p5l4   1/1       Running   <span style="color:#ae81ff">0</span>          31m
+myautoscale-3958947512-lt2cg   1/1       Running   <span style="color:#ae81ff">0</span>          15m
+myautoscale-3958947512-mkqv4   1/1       Running   <span style="color:#ae81ff">0</span>          6m
+</code></pre></div><p>The cluster is terminating the instances that have been running for
+the shortest amount of time. Many people thing that Kubernetes terminates the latest
+instance, but this is not true. If you for example restart you first instance
+the running time of it is going to go back to zero, so, this is goingto be
+terminated first in a scenario like that (scale down).</p>
+<p>So what is is important to keep in mind is that as long as I have a deployment
+or a replicaset or a replication controller definition, no matter if I am
+doing this automatically or via a YAML file, I can autoscale that by applying
+an autoscale defintion into it, and then I can further scale it by using
+scale. But I cannot go lower than my original minimum limit.</p>
+<p>If now I fire up my 3rd minion, then Kubernetes will understand that my environment
+has now the capacity to run more minions:</p>
+<h2 id="failure-and-recovery">Failure and Recovery</h2>
+<p><strong>Before version 1.5</strong></p>
+<p>Kubernetes has the ability to detect when something has failed and the ability
+to recover when this failure has been corrected an then to react to that failure
+by taking action. One of the things to keep in mind, is that parts of the
+underlying functionality is that one a Pod has been deployed to a minion, it is
+guaranteed to be on that particular minion for its entire lifecycle. That means
+until the Pod is deleted, you will always have that Pod there. That means, in
+case of a failure, the Pod is just going to go down, but not picked up and moved
+somewhere else. The reason is double:</p>
+<ol>
+<li>
+<p>There might be IP Addresses and back-end services which that Pod is tight to
+that particular minion (e.g. volume mounts) &ndash; such stuff are not portable
+between minions; because it cannot depend upon minion configuration.</p>
+</li>
+<li>
+<p>Other pods that exists on that host, espect to have access to those recourses
+but if it moves somewhere else, then other Pods on that minion, if it was a
+service failure and you just re-deployed the Pod to a different minion in order
+to recover, would not neccessarrily have access to that resources.</p>
+</li>
+</ol>
+<p>But the recovery works OK, because the Pod will be re-deployed in its entirety
+and its exact configuration once the minion is available. So let us go ahead
+and deploy a deployment which has at least 2 Pod on each of the two minions
+we have in our configuration right now.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kubectl run myrecovery --image=nginx --port=80 --replicas=2 --labels=app=myrecovery</span>
+deployment <span style="color:#e6db74">&#34;myrecovery&#34;</span> created
+
+<span style="color:#f92672">[</span>root@drpaneas1 ~<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get deployments</span>
+NAME         DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+myrecovery   <span style="color:#ae81ff">2</span>         <span style="color:#ae81ff">2</span>         <span style="color:#ae81ff">2</span>            <span style="color:#ae81ff">2</span>           25s
+</code></pre></div><p>My deployment <code>myrecovery</code> has been created. Now if I want to scale this up
+or down we can apply an <code>autoscale</code> definition to it. Anyways, looking
+what is running in our minions, we see that in every minion there are
+2 containers. One for apache and one for google. So, we are running 4
+containers in total.</p>
+<p>minion_1</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas2 ~<span style="color:#f92672">]</span><span style="color:#75715e"># docker ps</span>
+CONTAINER ID        IMAGE                                      COMMAND                  CREATED             STATUS              PORTS               NAMES
+e7ce117e9c0f        nginx                                      <span style="color:#e6db74">&#34;nginx -g &#39;daemon off&#34;</span>   <span style="color:#ae81ff">31</span> seconds ago      Up <span style="color:#ae81ff">30</span> seconds                           k8s_myrecovery.1371ff8a_myrecovery-3755654676-qfc71_default_481562fa-46f2-11e7-8983-0a35c9149e00_9b42bd0c
+e1f60db6cd12        gcr.io/google_containers/pause-amd64:3.0   <span style="color:#e6db74">&#34;/pause&#34;</span>                 <span style="color:#ae81ff">32</span> seconds ago      Up <span style="color:#ae81ff">31</span> seconds                           k8s_POD.b2390301_myrecovery-3755654676-qfc71_default_481562fa-46f2-11e7-8983-0a35c9149e00_e69fa223
+</code></pre></div><p>minion_2</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">CONTAINER ID        IMAGE                                      COMMAND                  CREATED              STATUS              PORTS               NAMES
+d0cf0b3c8c3b        nginx                                      <span style="color:#e6db74">&#34;nginx -g &#39;daemon off&#34;</span>   About a minute ago   Up About a minute                      k8s_myrecovery.1371ff8a_myrecovery-3755654676-t4064_default_48158b96-46f2-11e7-8983-0a35c9149e00_e04e7997
+715206a85679        gcr.io/google_containers/pause-amd64:3.0   <span style="color:#e6db74">&#34;/pause&#34;</span>                 About a minute ago   Up About a minute                      k8s_POD.b2390301_myrecovery-3755654676-t4064_default_48158b96-46f2-11e7-8983-0a35c9149e00_ab638246
+</code></pre></div><p>Also, just to clarify that I am using only two minion, and not 3.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">kubectl get nodes
+NAME             STATUS    AGE
+centos-minion1   Ready     10m
+centos-minion2   Ready     10m
+</code></pre></div><p>So, now the question is <em>what happens if one of those servers go down?</em>
+The behavior might be a little bit different from what someone whould
+expect from Kubernetes. So let us go to the <em>minion_1</em> and shutdown
+the services: <code>docker</code>, <code>kubelet</code>, <code>kube-proxy</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># systemctl stop docker kubelet kube-proxy</span>
+</code></pre></div><p>As a result, now this minion cannot register with <code>etcd</code> daemon running
+in my master controller and cannot report to it. Back to the master
+controller, it is going to take up to <em>minute</em> to its <code>etcd</code> to pick
+up the fact that <em>minion_1</em> is no longer available. So, for some time
+frame kubectl will print wrong information about running Pods and
+connected nodes. But as I said, after some time, it picks up the failure:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get nodes</span>
+NAME             STATUS     AGE
+centos-minion1   NotReady   16m
+centos-minion2   Ready      15m
+</code></pre></div><p>So additional implementations will all go to <em>minion2</em> because it is the only
+one reporting as ready. But what I would expect from Kubernetes is to make sure
+that whatever was running minion1, it will be moved to minion2. But it does not.
+And this is for the reason I told you before. Because this pod might have containers
+which utilize dependencies on the underlying minion host and/or may have other pods
+that need access to those services. In that case the pod would have attempted to be
+restarted because I have applied replicas to it, but that <strong>only</strong> applies when a
+failed replica gets restarted on its original minion. So, in this case, if the
+original host is not available, you never gonna see the pod to move to minion1
+in order to match the desired state of replica 2.</p>
+<p>As soon as you start the services in minion1, Kubernetes will detect this
+and respawn the Pod in minion1.</p>
+<p><strong>After Kuberentes 1.5</strong></p>
+<p>With the introduction of version 1.5, there is a notable change in this behavior.
+Kubernetes quickly detects that a node is down, and it marks that Pod as in unknown
+state for some minutes. If the minion is not getting up, then Kuberentes moves this pod
+into another minion.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas1 Builds<span style="color:#f92672">]</span><span style="color:#75715e"># kubectl get pods</span>
+NAME                          READY     STATUS    RESTARTS   AGE
+myrecovery-3755654676-b7fvz   1/1       Running   <span style="color:#ae81ff">0</span>          3m
+myrecovery-3755654676-qfc71   1/1       Unknown   <span style="color:#ae81ff">0</span>          13m  &lt;--- Dead Node
+myrecovery-3755654676-t4064   1/1       Running   <span style="color:#ae81ff">0</span>          13m
+</code></pre></div><p>After re-activating the minion1, Kubernetes removes the failed pod
+(in that case <code>qfc71</code>) completely and keeps maintaining the new pod
+(with new ID <code>b7fvz</code>) on minion2. So, you end up with 4 containers
+running in the same host.</p>
+<p>minion1:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>root@drpaneas2 ~<span style="color:#f92672">]</span><span style="color:#75715e"># docker ps</span>
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+</code></pre></div><p>minion2:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># docker ps -q</span>
+d43d52fc738d
+f73b10adb841
+d0cf0b3c8c3b
+715206a85679
+</code></pre></div><p>However, if you run this as a service, then you do not actually care because
+it uses load-balancing round-robin.</p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>

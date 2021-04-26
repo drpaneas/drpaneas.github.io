@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>How to run Traefik ingress controller as non-root :: Terminal</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="What is ingress? Ingress are (in a sense) reverse-proxies. But to understand, you need to know first what a proxy is &amp;ndash; and only then will be able to understand the reverse of it.
+What is a proxy? For those of you who do not know what a proxy is, the word proxy describes someone/something acting on behalf of someone/something else. In terms on networking, when we are talking about a proxy server we are talking about one server that is acting on behalf of another server." />
+<meta name="keywords" content="" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="/post/traefik_non_root/" />
+
+
+
+
+<link rel="stylesheet" href="/assets/style.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="/img/favicon/orange.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="How to run Traefik ingress controller as non-root">
+<meta property="og:description" content="What is ingress? Ingress are (in a sense) reverse-proxies. But to understand, you need to know first what a proxy is &amp;ndash; and only then will be able to understand the reverse of it.
+What is a proxy? For those of you who do not know what a proxy is, the word proxy describes someone/something acting on behalf of someone/something else. In terms on networking, when we are talking about a proxy server we are talking about one server that is acting on behalf of another server." />
+<meta property="og:url" content="/post/traefik_non_root/" />
+<meta property="og:site_name" content="Terminal" />
+
+  
+    <meta property="og:image" content="/img/favicon/orange.png">
+  
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+  <meta property="article:section" content="tutorial" />
+
+
+  <meta property="article:published_time" content="2019-01-16 15:39:35 &#43;0200 &#43;0200" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="orange">
+
+
+<div class="container headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="/showcase">Showcase</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="/showcase">Showcase</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="/post/traefik_non_root/">How to run Traefik ingress controller as non-root</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2019-01-16 
+      </span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="/tags/tutorial/">tutorial</a>&nbsp;
+    
+    #<a href="/tags/ingress/">ingress</a>&nbsp;
+    
+    #<a href="/tags/traefik/">traefik</a>&nbsp;
+    
+    #<a href="/tags/minikube/">minikube</a>&nbsp;
+    
+    #<a href="/tags/opensuse/">opensuse</a>&nbsp;
+    
+    #<a href="/tags/non-root/">non-root</a>&nbsp;
+    
+  </span>
+  
+
+  
+
+  
+
+  <div class="post-content"><div>
+        <h2 id="what-is-ingress">What is ingress?<a href="#what-is-ingress" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Ingress are (in a sense) reverse-proxies. But to understand, you need to know first what a proxy is &ndash; and only then
+will be able to understand the <em>reverse</em> of it.</p>
+<h3 id="what-is-a-proxy">What is a proxy?<a href="#what-is-a-proxy" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>For those of you who do not know what a proxy is, the word <code>proxy</code> describes someone/something acting on behalf of
+someone/something else. In terms on networking, when we are talking about a <code>proxy server</code> we are talking about one
+server that is acting on behalf of another server. The most typical kind of proxy is the <code>web proxy</code> or <code>forward proxy</code>.
+In this case, the proxy retrieves data from another web site on behalf of the original requestee.</p>
+<p>For an example, I will list three computers connected to the internet.</p>
+<blockquote>
+<ul>
+<li><strong>A</strong> = your computer using a <code>web browser</code> (e.g. Firefox or Chrome) on the internet</li>
+<li><strong>B</strong> = the proxy web server, e.g. <code>182.253.188.180:8080</code> (google for <em>free proxy list</em>)</li>
+<li><strong>C</strong> = the web site you want to visit, <a href="http://www.example.com">www.example.com</a></li>
+</ul>
+</blockquote>
+<p>Normally, one would connect directly from <code>A --&gt; C</code></p>
+<p>However, in some scenarios, it is better to have <code>B --&gt; C</code> on behalf of <code>A</code>, which chains as follows: <code>A --&gt; B --&gt; C</code>.</p>
+<h4 id="why-would-one-need-a-proxy">Why would one need a proxy?<a href="#why-would-one-need-a-proxy" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>Using someone else to do the job for you is needed when you cannot do the job yourself. For example <code>A</code> is <em>unable</em> to
+access <code>C</code> directly because:</p>
+<blockquote>
+<ul>
+<li>He lives in North Korea and their Goverment has prohibited access to certain websites (assuming <code>C</code> is one of them)</li>
+<li>The sysadmin of the company has blocked access to <a href="facebook.com">facebook</a> during business hours because their employees are wasting too much time there.</li>
+<li>Junior school has blocked access to <a href="pornhub.com">pornhub</a></li>
+</ul>
+</blockquote>
+<p>Or another reason to use someone in the middle to do the job for you, is because you might want to hide yourself
+(especially when this is a strange/illegal job). So let&rsquo;s say that you are:</p>
+<blockquote>
+<ul>
+<li>trying to attack <code>C</code> and you want to stay (kinda) anonymous.</li>
+<li>spamming <code>C</code> and the admin has blocked you <code>A</code>.</li>
+</ul>
+</blockquote>
+<h3 id="what-is-a-reverse-proxy">What is a reverse proxy?<a href="#what-is-a-reverse-proxy" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Let us see again what we have here:</p>
+<blockquote>
+<ul>
+<li><strong>A</strong> = your computer, or &ldquo;client&rdquo; computer on the internet</li>
+<li><strong>B</strong> = the reverse proxy web site, proxy.example.com</li>
+<li><strong>C</strong> = the web site you want to visit, <a href="http://www.example.net">www.example.net</a></li>
+</ul>
+</blockquote>
+<p>Normally, one would connect directly from <code>A --&gt; C</code>.</p>
+<p>However, in some scenarios, it is better for the administrator of <code>C</code> to restrict or disallow direct access and force
+visitors to go through <code>B</code> first. So, as before, we have data being retrieved by <code>A --&gt; C</code> on behalf of <code>B</code>, which
+chains as follows: <code>X --&gt; Y --&gt; Z.</code></p>
+<p>What is <strong>different</strong> this time compared to a <code>forward proxy</code>, is that this time the <code>user A</code> <strong>does not know</strong> he is
+accessing <code>C</code>, because the user <code>A</code> only sees he is communicating with <code>B</code>. The server <code>C</code> is invisible to clients and
+only the reverse proxy <code>B</code> is visible externally. A reverse proxy requires no (proxy) configuration on the client side.</p>
+<p>The client <code>A</code> thinks he is only communicating with <code>B</code> (<code>X --&gt; Y</code>), but the reality is that <code>B</code> forwarding all
+communication (<code>A --&gt; B --&gt; C</code> again).</p>
+<h4 id="why-would-one-need-a-reverse-proxy">Why would one need a reverse proxy?<a href="#why-would-one-need-a-reverse-proxy" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>This is the case when you are not the user (<code>A) -- the visitor -- but the administrator of the website (</code>C<code>). Sometimes you might want to force all the traffic to pass through </code>B` first because:</p>
+<blockquote>
+<ul>
+<li>There are so many visitors and a single webserver cannot keep up with the <em>load</em>. So, instead of having only one single webserver, you have many webservers scuttered all over the world that only <code>B</code> knows how to access them. So, users are visiting <code>B</code> and then this server using an algorithm finds the webserver that is the closest to them and redirects them to use this one. This is part of how the <code>CDN</code> concept works.</li>
+</ul>
+</blockquote>
+<blockquote>
+<ul>
+<li>You want to run your services internall and you do not want to expose them to the world. So only <code>B</code> has access to your internal network and routes the traffic accordingly.</li>
+</ul>
+</blockquote>
+<h2 id="how-all-this-is-related-to-kubernetes">How all this is related to Kubernetes?<a href="#how-all-this-is-related-to-kubernetes" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>The only way to expose Pods to the outside world is through services. When we deploy those pods they are <strong>not</strong>
+available to the outside world. Typically, in order to be able to access the pods, you have to be part of the cluster.
+So to enable the communication of between the pods and the outside world, we need to configure services (notice that
+services are required for discovery).</p>
+<p>Some services are always meant to be used internally. For example a database. You don not want to expose your database
+to the outside world. So this would be available only internally and withing the cluster, across the pods. According
+to k8s terminology, these type of services are called <code>ClusterIP</code>.</p>
+<p>There are some other pods that need to be accessible from the outside. Which means you need to have external endpoints
+or <code>DNS names</code> or <code>CNAMES</code> so you can actually have internet access on these pods. To do that you have to configure the
+external service in order to have access to the outside world. These services are typically called <code>NodePort</code>. They are
+reachable through the <code>&lt;NODE-IP&gt; : &lt;NodePort-endpoint&gt;</code>. This is going to be available on every node. So if you know
+the IP Address of a Node, you can hit any Node and give the access any external nodeport service.</p>
+<p>Using the concept of <strong>labels</strong> and <strong>selectors</strong> we can associate the services with the appropriate back-end pods. So
+when a service end-point is hit, it will route the traffic in any of the <em>123456</em>-ports deployed in any node.</p>
+<p>In case you are deploying your nodes on a Public Cloud (eg. Google Computing, EC2 or Azure) you can also configure a
+cloud loadbalancer. This is using the cloud specific APIs to provision a load balancert and wires the NodePort to the
+LoadBalancer. So, it will &lsquo;automate&rsquo; the step of exposing Pods on a NodePort and then creating a LoadBalancer and
+manually pointing the LoadBalancer to all the NodePorts. So using the &lsquo;LoadBalancer&rsquo; type, k8s will use the underlying
+cloud provider to automatically wire up the port forwarding to appropriate Nodeports running accross the cluster.</p>
+<p>If you exposing Pods on the Internet, you are basically exposing NodePorts, and NodePorts can be forwarded to a
+LoadBalancer.</p>
+<h3 id="typical-problems">Typical Problems<a href="#typical-problems" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<ul>
+<li>External URLS:</li>
+</ul>
+<blockquote>
+<p>When you are deploying a public facing application on a k8s cluster, is creating a new loadbalancer for every service. So that means if you have multiple services you want all of them to share a Load Balancer and that is very difficult.</p>
+</blockquote>
+<ul>
+<li>Load Balancers:</li>
+</ul>
+<blockquote>
+<p>If you are using the type LoadBalancer in your services definition you will end-up creating a new LoadBalancer for every service. So it is not a very optimal way. Another way is deploying k8s in your data-center on bare-metal and you might already have a physical loadbalancer like &lsquo;F5&rsquo;. And how would you point that in your existing deployment in your k8s cluster?</p>
+</blockquote>
+<ul>
+<li>SSL-terminated endpoints:</li>
+</ul>
+<blockquote>
+<p>How do you configure SSL termination?</p>
+</blockquote>
+<ul>
+<li>Name-based virtual hosting</li>
+</ul>
+<blockquote>
+<p>How do you create a very clean mechanism of routing your traffic to appropriate service end-points without creating a lot of back-end clutter configuration?</p>
+</blockquote>
+<h3 id="solution-ingress-controller">Solution: Ingress Controller<a href="#solution-ingress-controller" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>To solve this problem, the community started building a thing called as an <code>Ingress</code>. An Ingress is nothing but a
+collection of rules that will allow inbound connections to reach the cluster services. Ingress as it itself is not a
+Load Balancer. Ingress as itself is a physical represantiona of an &lsquo;edge&rsquo; device. It is logical controller that will
+be mapped into one of your Load Balancer (either cloud or physical) and it will create a set of rules. These rules
+will route the traffic &ndash; at runtime &ndash; to an appropriate end-point. And obviously you cannot use an ingress to route
+traffic to a ClusterIP, because ClusterIP is never reachable to the outside world. So if you have a set of Pods that
+are exposed to the outside world through NodePort and you want a very clean mechanism to expose them, and create a set
+of rules, then you actually create an Ingress.</p>
+<p>An Ingress is a level above service. And it is configured to expose services through &lsquo;External URLs&rsquo;. This is the
+preferred way and the best practice, to wire-up a CNAME to your service endpoint. So if you want to configure an
+external URL using the nodeport in its raw form it is not a good idea. You should actually go for an ingress and made
+this as an intermediary between your domain name and your endpoint. So it decouples your physical deployment from your
+logical domain name. So when you are actually changing any definition you can just tweak your load balancer or ingress
+and the CNAME remains the same. That gives you a nice and clean mechanism to decouple your domain-names from your
+NodePorts. Of course a collection of LoadBalancers can be integrated in k8s through ingress you can bring multiple
+varieties of LoadBalancer like F5, HA Proxy, nginx &hellip; and you can very easily integrate that with k8s. And because you
+have a layer above the services you can also off-load SSL termination. So you can handle SSL at the ingress while
+keeping your NodePorts out of the picture. You can basically add your LetsEncrypt certificate at the Ingress level and
+this will handle the TLS termination, so you don not have to touch the NodePort. You can also do
+<code>Name-based virtual hosting</code> so basically you will have the same IP address but you will have multiple hostnames,
+for example:</p>
+<blockquote>
+<p><code>food.bar.com</code> &ndash;&gt; different service endpoint and <code>abc.bar.com</code> &ndash;&gt; to another service endpoint.</p>
+</blockquote>
+<p>So you can create a complicated routing logic but on the Ingress level. This gives you plenty of room to play with
+the configuration. And once again: <strong>Ingress cannot function if your do not have services</strong>. It is a decoupling layer
+between Internet and your NodePorts.</p>
+
+      </div></div>
+
+  
+
+  
+
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2021 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+<script src="/assets/main.js"></script>
+<script src="/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>golang on drpaneas</title>
+    <link>https://panosgeorgiadis.com/tags/golang/</link>
+    <description>Recent content in golang on drpaneas</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 15 Mar 2020 03:29:35 +0100</lastBuildDate><atom:link href="https://panosgeorgiadis.com/tags/golang/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Write a Google GCP client with Go</title>
+      <link>https://panosgeorgiadis.com/blog/2020/03/15/write-a-google-gcp-client-with-go/</link>
+      <pubDate>Sun, 15 Mar 2020 03:29:35 +0100</pubDate>
+      
+      <guid>https://panosgeorgiadis.com/blog/2020/03/15/write-a-google-gcp-client-with-go/</guid>
+      <description>In this article I will explain the mechanics of writing a client for Google GCP, pretty similar like gcloud. The purpose is to not write a full-featured client (that would make no sense, since you can use gcloud already) but to learn the how to communicate with Google&amp;rsquo;s GCP API using Go. Such a pkg can be useful in small projects where you need to talk to Google GCP API, like the OpenShift&amp;rsquo;s GCP Operator.</description>
+    </item>
+    
+    <item>
+      <title>How to write your own Kubernetes controller</title>
+      <link>https://panosgeorgiadis.com/blog/2020/02/25/how-to-write-your-own-kubernetes-controller/</link>
+      <pubDate>Tue, 25 Feb 2020 03:29:35 +0100</pubDate>
+      
+      <guid>https://panosgeorgiadis.com/blog/2020/02/25/how-to-write-your-own-kubernetes-controller/</guid>
+      <description>Write your own controller Before going down the operator framework out there, it is important to understand what is happening under the hood. Then you would be able to appreciate the generated boilerplate code and feel more comfortable to change it.
+Prereq This tutorial assumes you have a cluster up and running and you can successfully communicate with it (e.g. kubectl get pods -A should work). If you don&amp;rsquo;t have a cluster, you can setup one locally using CodeReadyContainers(used by the tutorial) or minikube.</description>
+    </item>
+    
+    <item>
+      <title>My personal Go environment setup</title>
+      <link>https://panosgeorgiadis.com/blog/2018/09/27/my-personal-go-environment-setup/</link>
+      <pubDate>Thu, 27 Sep 2018 17:34:35 +0200</pubDate>
+      
+      <guid>https://panosgeorgiadis.com/blog/2018/09/27/my-personal-go-environment-setup/</guid>
+      <description>How many go version do you have installed? The default upstream location for the binary is: /usr/local/go. But in SUSE it is: /usr/bin/go. This is a symlink created via update-alternatives.
+# update-alternatives --list go /usr/lib64/go/1.10/bin/go /usr/lib64/go/1.8/bin/go /usr/lib64/go/1.9/bin/go I want to keep only the 1.10 so I will remove the others:
+# zypper rm $(rpm -qf /usr/lib64/go/1.8/bin/go) $(rpm -qf /usr/lib64/go/1.9/bin/go) To verify, try update-alternatives once more. There should be only one version:</description>
+    </item>
+    
+  </channel>
+</rss>

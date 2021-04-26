@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>kvm on drpaneas</title>
+    <link>https://panosgeorgiadis.com/tags/kvm/</link>
+    <description>Recent content in kvm on drpaneas</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 15 Mar 2018 20:46:35 +0200</lastBuildDate><atom:link href="https://panosgeorgiadis.com/tags/kvm/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Deploy openSUSE Leap15 VM in Kubernetes using KubeVirt</title>
+      <link>https://panosgeorgiadis.com/blog/2018/03/15/deploy-opensuse-leap15-vm-in-kubernetes-using-kubevirt/</link>
+      <pubDate>Thu, 15 Mar 2018 20:46:35 +0200</pubDate>
+      
+      <guid>https://panosgeorgiadis.com/blog/2018/03/15/deploy-opensuse-leap15-vm-in-kubernetes-using-kubevirt/</guid>
+      <description>Introduction If you think that Kubernetes is a cluster for managing containers, then you are dead wrong. Kubernetes is a cluster for managing Pods. In most cases, a Pod is considered to be an abstraction of an container object, so Pod talks to Docker and they know each other. What happens though when we introduce a new guy called libvirt and we learn Pod to talk to it? We have KubeVirt.</description>
+    </item>
+    
+  </channel>
+</rss>

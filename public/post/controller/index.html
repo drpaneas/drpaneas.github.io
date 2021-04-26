@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>How to write your own Kubernetes controller :: Terminal</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Write your own controller Before going down the operator framework out there, it is important to understand what is happening under the hood. Then you would be able to appreciate the generated boilerplate code and feel more comfortable to change it.
+Prereq This tutorial assumes you have a cluster up and running and you can successfully communicate with it (e.g. kubectl get pods -A should work). If you don&amp;rsquo;t have a cluster, you can setup one locally using CodeReadyContainers(used by the tutorial) or minikube." />
+<meta name="keywords" content="" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="/post/controller/" />
+
+
+
+
+<link rel="stylesheet" href="/assets/style.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="/img/favicon/orange.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="How to write your own Kubernetes controller">
+<meta property="og:description" content="Write your own controller Before going down the operator framework out there, it is important to understand what is happening under the hood. Then you would be able to appreciate the generated boilerplate code and feel more comfortable to change it.
+Prereq This tutorial assumes you have a cluster up and running and you can successfully communicate with it (e.g. kubectl get pods -A should work). If you don&amp;rsquo;t have a cluster, you can setup one locally using CodeReadyContainers(used by the tutorial) or minikube." />
+<meta property="og:url" content="/post/controller/" />
+<meta property="og:site_name" content="Terminal" />
+
+  
+    <meta property="og:image" content="/img/favicon/orange.png">
+  
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+  <meta property="article:section" content="kubernetes" />
+
+
+  <meta property="article:published_time" content="2020-02-25 03:29:35 &#43;0100 CET" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="orange">
+
+
+<div class="container headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="/showcase">Showcase</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="/showcase">Showcase</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="/post/controller/">How to write your own Kubernetes controller</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2020-02-25 
+      </span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="/tags/kubernetes/">kubernetes</a>&nbsp;
+    
+    #<a href="/tags/controllers/">controllers</a>&nbsp;
+    
+    #<a href="/tags/golang/">golang</a>&nbsp;
+    
+  </span>
+  
+
+  
+
+  
+
+  <div class="post-content"><div>
+        <h1 id="write-your-own-controller">Write your own controller<a href="#write-your-own-controller" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Before going down the operator framework out there, it is important to understand what is happening under the hood.
+Then you would be able to appreciate the generated boilerplate code and feel more comfortable to <em>change</em> it.</p>
+<h2 id="prereq">Prereq<a href="#prereq" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>This tutorial assumes you have a cluster up and running and you can successfully communicate with it (e.g. <code>kubectl get pods -A</code> should work).
+If you don&rsquo;t have a cluster, you can setup one locally using <a href="https://code-ready.github.io/crc/#installation_gsg">CodeReadyContainers</a>(used by the tutorial) or minikube.</p>
+<h2 id="create-a-manager">Create a Manager<a href="#create-a-manager" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Every controller is technically run by a <a href="https://godoc.org/github.com/kubernetes-sigs/controller-runtime/pkg/manager#Manager">Manager</a>.
+So, the first step to write a controller is that you need to write a Manager.
+Manager is the logic reponsible for triggering the controllers.
+Managers are responsible for running controllers, doing leader elections and handling graceful termination of the controller signals.
+The Manager provides the client, the cache and a lot of dependencies the controller needs to run.</p>
+<p>You can create a Manager by creating a new instance of a Manager (<code>manager.New()</code>).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client/config&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/manager&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+
+	<span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">GetConfigOrDie</span>(), <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">Options</span>{<span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;&#34;</span>})
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Unable to setup manager. Please check if KUBECONFIG is available&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">mgr</span>)	<span style="color:#75715e">// To avoid Go complaining at mgr not getting used
+</span><span style="color:#75715e"></span>}
+</code></pre></div><blockquote>
+<p>The <code>config.GetConfigOrDie()</code> tries to get a valid <code>$KUBECONFIG</code> to talk with the <code>apiserver</code>, as defined at <a href="https://github.com/kubernetes-sigs/controller-runtime/blob/master/pkg/client/config/config.go">controller-runtime</a>.</p>
+</blockquote>
+<p>Run:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ go mod init
+$ go run main.go
+</code></pre></div><h2 id="create-a-controller">Create a controller<a href="#create-a-controller" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Every <a href="https://godoc.org/github.com/kubernetes-sigs/controller-runtime/pkg#hdr-Controller">Controller</a> needs to be bound to a Manager.
+To create a Controller, we need to pass the previously created Manager (<code>mgr</code>).
+The Controller has a set of optional parameters you can leave out.
+The controller will watch and reconcile for <code>pods</code>.
+The most important parameter when you create a controller is the reconsile logic.
+Every time the controller detects some drift in your cluster, it going to call this reconsile logic.</p>
+<blockquote>
+<p>JFYI: You can have more than one reconcilers at one time &ndash; if you like.
+By adding: <code>controller.Options{MaxConcurrentReconciles: 2}</code></p>
+</blockquote>
+<p>For now, the <code>Reconcile</code> function will have no logic.
+We just need to create it because it is needed to bound a Reconciler during the creation of a controller.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client&#34;</span>			<span style="color:#75715e">// for the client.Client
+</span><span style="color:#75715e"></span>	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client/config&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/controller&#34;</span>		<span style="color:#75715e">// for the controller.New
+</span><span style="color:#75715e"></span>	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/manager&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/reconcile&#34;</span>		<span style="color:#75715e">// for the reconcile.Result
+</span><span style="color:#75715e"></span>)
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ReconcilePod</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">client</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Client</span> <span style="color:#75715e">// it reads objects from the cache and writes to teh apiserver
+</span><span style="color:#75715e"></span>}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ReconcilePod</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">request</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+
+	<span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">GetConfigOrDie</span>(), <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">Options</span>{})
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Unable to setup manager. Please check if KUBECONFIG is available&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+
+	<span style="color:#a6e22e">ctrl</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;pod-what-crashes&#34;</span>, <span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+		<span style="color:#a6e22e">Reconciler</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">ReconcilePod</span>{<span style="color:#a6e22e">client</span>: <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetClient</span>()},
+	})
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Failed to setup controller&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">ctrl</span>)	<span style="color:#75715e">// To avoid Go complaining at ctrl not getting used
+</span><span style="color:#75715e"></span>}
+</code></pre></div><p>Run:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ go mod tidy
+$ go run main.go
+</code></pre></div><h2 id="put-a-watcher">Put a Watcher<a href="#put-a-watcher" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>A controller is watching for <a href="https://godoc.org/sigs.k8s.io/controller-runtime/pkg/event">Events</a> via a Watcher.
+The Events are produced by <a href="https://godoc.org/sigs.k8s.io/controller-runtime/pkg/source#Source">Sources</a> assigned to resources (e.g. <em>Pods</em>).
+These events are transformed into <strong>Requests</strong> by <a href="https://godoc.org/sigs.k8s.io/controller-runtime/pkg/handler#hdr-EventHandlers">EventHandlers</a> and then passed to <code>Reconcile()</code> function to trigger an action.</p>
+<p>In our case, we put a Watcher to look for Pod events (provided by source <code>{Type: &amp;v1.Pod{}</code>) and enqueue them as Requests for the <code>Reconciler()</code> with their Name and and Namespace by using an EventHandler, that is <a href="https://godoc.org/sigs.k8s.io/controller-runtime/pkg/handler#example-EnqueueRequestForObject">EnqueueRequestForObject</a>.
+For each Add/Update/Delete event the reconcile loop will be sent a reconcile Request (a namespace/name key) for that Pod object.</p>
+<blockquote>
+<p>Best Practice: Use only a single reconciler function so that reconcilers are always indepodent.</p>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+
+	<span style="color:#a6e22e">v1</span> <span style="color:#e6db74">&#34;k8s.io/api/core/v1&#34;</span>							<span style="color:#75715e">// for v1.Pod type
+</span><span style="color:#75715e"></span>	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client/config&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/controller&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/handler&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/manager&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/reconcile&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/source&#34;</span>		<span style="color:#75715e">// for source.Kind{}
+</span><span style="color:#75715e"></span>)
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ReconcilePod</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">client</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Client</span>   <span style="color:#75715e">// it reads objects from the cache and writes to teh apiserver
+</span><span style="color:#75715e"></span>}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ReconcilePod</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">request</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+
+	<span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">GetConfigOrDie</span>(), <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">Options</span>{<span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;&#34;</span>})
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Unable to setup manager. Please check if KUBECONFIG is available&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+
+	<span style="color:#a6e22e">ctrl</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;pod-what-crashes&#34;</span>, <span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+		<span style="color:#a6e22e">Reconciler</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">ReconcilePod</span>{<span style="color:#a6e22e">client</span>: <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetClient</span>()},
+	})
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Failed to setup controller&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Watch</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>{<span style="color:#a6e22e">Type</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>{}}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{}); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Failed to watch pods&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+}
+</code></pre></div><p>Run:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ go mod tidy
+$ go run main.go
+</code></pre></div><h2 id="starting-the-manager">Starting the Manager<a href="#starting-the-manager" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>The last part is to setup a <code>SIGINT</code> and <code>SIGTERM</code> signal for the graceful start and stop of the manager in combination with k8s pod termination policy.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+
+	<span style="color:#a6e22e">v1</span> <span style="color:#e6db74">&#34;k8s.io/api/core/v1&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client/config&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/controller&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/handler&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/manager&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/manager/signals&#34;</span>		<span style="color:#75715e">// for handling the signals
+</span><span style="color:#75715e"></span>	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/reconcile&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/source&#34;</span>
+)
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ReconcilePod</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">client</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Client</span>   <span style="color:#75715e">// it reads objects from the cache and writes to teh apiserver
+</span><span style="color:#75715e"></span>}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ReconcilePod</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">request</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+
+	<span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">GetConfigOrDie</span>(), <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">Options</span>{<span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;&#34;</span>})
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Unable to setup manager. Please check if KUBECONFIG is available&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+
+	<span style="color:#a6e22e">ctrl</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;pod-what-crashes&#34;</span>, <span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+		<span style="color:#a6e22e">Reconciler</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">ReconcilePod</span>{<span style="color:#a6e22e">client</span>: <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetClient</span>()},
+	})
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Failed to setup controller&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Watch</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>{<span style="color:#a6e22e">Type</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>{}}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{}); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Failed to watch pods&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Starting the manager&#34;</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">signals</span>.<span style="color:#a6e22e">SetupSignalHandler</span>()); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Failed to start manager&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+}
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">go mod tidy
+<span style="color:#66d9ef">do</span> run main.go
+</code></pre></div><p>The controller will start running outside of the cluster, using your own credentials (<code>admin</code> of the cluster).
+Press <code>ctrl+c</code> to stop it.</p>
+<h2 id="add-business-logic">Add business logic<a href="#add-business-logic" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Every time there is an event (e.g. <em>Add/Update/Delete</em>) for the Pod resource type, then the controller will display a message at its logs.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+
+	<span style="color:#a6e22e">v1</span> <span style="color:#e6db74">&#34;k8s.io/api/core/v1&#34;</span>
+	<span style="color:#e6db74">&#34;k8s.io/apimachinery/pkg/api/errors&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client/config&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/controller&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/handler&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/manager&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/manager/signals&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/reconcile&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/source&#34;</span>
+)
+
+<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">restartList</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">int32</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ReconcilePod</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">client</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Client</span> <span style="color:#75715e">// it reads objects from the cache and writes to teh apiserver
+</span><span style="color:#75715e"></span>}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ReconcilePod</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">request</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>{} <span style="color:#75715e">// Fetch the pod object
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">TODO</span>(), <span style="color:#a6e22e">request</span>.<span style="color:#a6e22e">NamespacedName</span>, <span style="color:#a6e22e">pod</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">IsNotFound</span>(<span style="color:#a6e22e">err</span>) {
+			<span style="color:#75715e">// Request object not found, could have been deleted after reconcile request.
+</span><span style="color:#75715e"></span>			<span style="color:#75715e">// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+</span><span style="color:#75715e"></span>			<span style="color:#75715e">// Return and don&#39;t requeue
+</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Pod Not Found. Could have been deleted&#34;</span>)
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+		}
+		<span style="color:#75715e">// Error reading the object - requeue the request.
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Error fetching pod. Going to requeue&#34;</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>{<span style="color:#a6e22e">Requeue</span>: <span style="color:#66d9ef">true</span>}, <span style="color:#a6e22e">err</span>
+	}
+
+	<span style="color:#75715e">// Write the business logic here
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">ContainerStatuses</span> {
+		<span style="color:#a6e22e">container</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">ContainerStatuses</span>[<span style="color:#a6e22e">i</span>].<span style="color:#a6e22e">Name</span>
+		<span style="color:#a6e22e">restartCount</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">ContainerStatuses</span>[<span style="color:#a6e22e">i</span>].<span style="color:#a6e22e">RestartCount</span>
+		<span style="color:#a6e22e">identifier</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Name</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">ContainerStatuses</span>[<span style="color:#a6e22e">i</span>].<span style="color:#a6e22e">Name</span>
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">restartList</span>[<span style="color:#a6e22e">identifier</span>]; !<span style="color:#a6e22e">ok</span> {
+			<span style="color:#a6e22e">restartList</span>[<span style="color:#a6e22e">identifier</span>] = <span style="color:#a6e22e">restartCount</span>
+		} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">restartList</span>[<span style="color:#a6e22e">identifier</span>] &lt; <span style="color:#a6e22e">restartCount</span> {
+			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Reconciling container: &#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">container</span>)
+			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">container</span>, <span style="color:#a6e22e">restartCount</span>)
+			<span style="color:#a6e22e">restartList</span>[<span style="color:#a6e22e">identifier</span>] = <span style="color:#a6e22e">restartCount</span>
+		}
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">restartList</span> = make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">int32</span>)
+
+	<span style="color:#75715e">// Create a Manager, passing the configuration for KUBECONFIG
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// To watch all namespaces leave the namespace option empty: &#34;&#34;
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">GetConfigOrDie</span>(), <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">Options</span>{<span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;&#34;</span>})
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Unable to setup manager. Please check if KUBECONFIG is available&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+
+	<span style="color:#a6e22e">ctrl</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;pod-what-crashes&#34;</span>, <span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+		<span style="color:#a6e22e">Reconciler</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">ReconcilePod</span>{<span style="color:#a6e22e">client</span>: <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetClient</span>()},
+	})
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Failed to setup controller&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Watch</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>{<span style="color:#a6e22e">Type</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>{}}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{}); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Failed to watch pods&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Starting the manager&#34;</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">signals</span>.<span style="color:#a6e22e">SetupSignalHandler</span>()); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Failed to start manager&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+}
+</code></pre></div><p>The <code>Reconcile()</code> receives the Request (<code>reconcile.Request()</code> and returns a <code>reconsile.Result()</code> and an <code>error</code> code.
+It is reading the state of the cluster by using the <code>client.Get()</code>.
+Since the controller running in my local machine, it is using my <code>$HOME/.kube/config</code> file to connect to my Kubernetes cluster.
+Since I have admin rights there, the controller is actually listing everything on the cluster.</p>
+<p>Launch 2 terminals. One terminal will run the controller and the other one will spin up a deployment that is crashing every 30s.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">---
+<span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Pod</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">controller-demo</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">containers</span>:
+  - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">example</span>
+    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">busybox</span>
+    <span style="color:#f92672">command</span>: [<span style="color:#e6db74">&#34;/bin/sh&#34;</span>]
+	<span style="color:#f92672">args</span>: [<span style="color:#e6db74">&#34;-c&#34;</span>, <span style="color:#e6db74">&#34;sleep 30&#34;</span>]
+</code></pre></div><p>Run from Terminal 1:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ go mod tidy
+$ go run main.go
+</code></pre></div><p>Run from Terminal 2:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ kubectl create -f test.yaml
+</code></pre></div><p>After 2 minutes the output would be similar to:</p>
+<pre><code>Reconciling container: example
+example 1
+
+Reconciling container: example
+example 2
+
+Reconciling container: example
+example 3
+
+...
+</code></pre><h2 id="add-a-logger">Add a logger<a href="#add-a-logger" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>It is better to watch for timestamps and dates.
+To do that, we will use <code>zap</code> pkg.
+Setup the logger like this: <code>log := zapr.NewLogger(zap.NewExample()).WithName(&quot;pod-what-crashes&quot;)</code>.
+Replace the <code>fmt.Println</code> either with <code>log.Info()</code> or <code>log.Error()</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+
+	<span style="color:#e6db74">&#34;github.com/go-logr/zapr&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/prometheus/common/log&#34;</span>
+	<span style="color:#e6db74">&#34;go.uber.org/zap&#34;</span>
+	<span style="color:#a6e22e">v1</span> <span style="color:#e6db74">&#34;k8s.io/api/core/v1&#34;</span>
+	<span style="color:#e6db74">&#34;k8s.io/apimachinery/pkg/api/errors&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client/config&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/controller&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/handler&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/manager&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/manager/signals&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/reconcile&#34;</span>
+	<span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/source&#34;</span>
+)
+
+<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">restartList</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">int32</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ReconcilePod</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">client</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Client</span> <span style="color:#75715e">// it reads objects from the cache and writes to teh apiserver
+</span><span style="color:#75715e"></span>}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ReconcilePod</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">request</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>{} <span style="color:#75715e">// Fetch the pod object
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">TODO</span>(), <span style="color:#a6e22e">request</span>.<span style="color:#a6e22e">NamespacedName</span>, <span style="color:#a6e22e">pod</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">IsNotFound</span>(<span style="color:#a6e22e">err</span>) {
+			<span style="color:#75715e">// Request object not found, could have been deleted after reconcile request.
+</span><span style="color:#75715e"></span>			<span style="color:#75715e">// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+</span><span style="color:#75715e"></span>			<span style="color:#75715e">// Return and don&#39;t requeue
+</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#e6db74">&#34;Pod Not Found. Could have been deleted&#34;</span>)
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+		}
+		<span style="color:#75715e">// Error reading the object - requeue the request.
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#e6db74">&#34;Error fetching pod. Going to requeue&#34;</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>{<span style="color:#a6e22e">Requeue</span>: <span style="color:#66d9ef">true</span>}, <span style="color:#a6e22e">err</span>
+	}
+
+	<span style="color:#75715e">// Write the business logic here
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">ContainerStatuses</span> {
+		<span style="color:#a6e22e">container</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">ContainerStatuses</span>[<span style="color:#a6e22e">i</span>].<span style="color:#a6e22e">Name</span>
+		<span style="color:#a6e22e">restartCount</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">ContainerStatuses</span>[<span style="color:#a6e22e">i</span>].<span style="color:#a6e22e">RestartCount</span>
+		<span style="color:#a6e22e">identifier</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Name</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">ContainerStatuses</span>[<span style="color:#a6e22e">i</span>].<span style="color:#a6e22e">Name</span>
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">restartList</span>[<span style="color:#a6e22e">identifier</span>]; !<span style="color:#a6e22e">ok</span> {
+			<span style="color:#a6e22e">restartList</span>[<span style="color:#a6e22e">identifier</span>] = <span style="color:#a6e22e">restartCount</span>
+		} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">restartList</span>[<span style="color:#a6e22e">identifier</span>] &lt; <span style="color:#a6e22e">restartCount</span> {
+			<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;Reconciling container: &#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">container</span>)
+			<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Info</span>(<span style="color:#a6e22e">container</span>, <span style="color:#a6e22e">restartCount</span>)
+			<span style="color:#a6e22e">restartList</span>[<span style="color:#a6e22e">identifier</span>] = <span style="color:#a6e22e">restartCount</span>
+		}
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#75715e">// Setup the Logger
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">log</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">zapr</span>.<span style="color:#a6e22e">NewLogger</span>(<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">NewExample</span>()).<span style="color:#a6e22e">WithName</span>(<span style="color:#e6db74">&#34;pod-what-crashes&#34;</span>)
+
+	<span style="color:#a6e22e">restartList</span> = make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">int32</span>)
+
+	<span style="color:#75715e">// Create a Manager, passing the configuration for KUBECONFIG
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// To watch all namespaces leave the namespace option empty: &#34;&#34;
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;Setting up the Manager&#34;</span>)
+	<span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">GetConfigOrDie</span>(), <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">Options</span>{<span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;&#34;</span>})
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Unable to setup manager. Please check if KUBECONFIG is available&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+
+	<span style="color:#a6e22e">ctrl</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;pod-what-crashes&#34;</span>, <span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+		<span style="color:#a6e22e">Reconciler</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">ReconcilePod</span>{<span style="color:#a6e22e">client</span>: <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetClient</span>()},
+	})
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Failed to setup controller&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Watch</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>{<span style="color:#a6e22e">Type</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>{}}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{}); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Failed to watch pods&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;Starting up the Manager&#34;</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">signals</span>.<span style="color:#a6e22e">SetupSignalHandler</span>()); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Failed to start manager&#34;</span>)
+		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+	}
+}
+</code></pre></div><p>Notice the verbosity of the output:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ go run main.go
+<span style="color:#f92672">{</span><span style="color:#e6db74">&#34;level&#34;</span>:<span style="color:#e6db74">&#34;info&#34;</span>,<span style="color:#e6db74">&#34;logger&#34;</span>:<span style="color:#e6db74">&#34;pod-what-crashes&#34;</span>,<span style="color:#e6db74">&#34;msg&#34;</span>:<span style="color:#e6db74">&#34;Setting up the Manager&#34;</span><span style="color:#f92672">}</span>
+<span style="color:#f92672">{</span><span style="color:#e6db74">&#34;level&#34;</span>:<span style="color:#e6db74">&#34;info&#34;</span>,<span style="color:#e6db74">&#34;logger&#34;</span>:<span style="color:#e6db74">&#34;pod-what-crashes&#34;</span>,<span style="color:#e6db74">&#34;msg&#34;</span>:<span style="color:#e6db74">&#34;Starting up the Manager&#34;</span><span style="color:#f92672">}</span>
+INFO<span style="color:#f92672">[</span>0096<span style="color:#f92672">]</span> Reconciling container: example                source<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;main.go:52&#34;</span>
+INFO<span style="color:#f92672">[</span>0096<span style="color:#f92672">]</span> example1                                      source<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;main.go:53&#34;</span>
+INFO<span style="color:#f92672">[</span>0141<span style="color:#f92672">]</span> Reconciling container: example                source<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;main.go:52&#34;</span>
+INFO<span style="color:#f92672">[</span>0141<span style="color:#f92672">]</span> example2                                      source<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;main.go:53&#34;</span>
+INFO<span style="color:#f92672">[</span>0196<span style="color:#f92672">]</span> Reconciling container: example                source<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;main.go:52&#34;</span>
+INFO<span style="color:#f92672">[</span>0196<span style="color:#f92672">]</span> example3                                      source<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;main.go:53&#34;</span>
+ERRO<span style="color:#f92672">[</span>0243<span style="color:#f92672">]</span> Pod Not Found. Could have been deleted        source<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;main.go:36&#34;</span>
+<span style="color:#75715e"># Press CTRL+C to quit</span>
+</code></pre></div><p>while at the same time:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ oc create -f test.yaml; oc get pods controller-demo -w
+pod/controller-demo created
+NAME              READY   STATUS              RESTARTS   AGE
+controller-demo   0/1     ContainerCreating   <span style="color:#ae81ff">0</span>          0s
+controller-demo   0/1     ContainerCreating   <span style="color:#ae81ff">0</span>          8s
+controller-demo   0/1     ContainerCreating   <span style="color:#ae81ff">0</span>          11s
+controller-demo   1/1     Running             <span style="color:#ae81ff">0</span>          11s
+controller-demo   0/1     Completed           <span style="color:#ae81ff">0</span>          40s
+controller-demo   1/1     Running             <span style="color:#ae81ff">1</span>          43s	<span style="color:#75715e"># Restarted. Output log.Info()</span>
+controller-demo   0/1     Completed           <span style="color:#ae81ff">1</span>          74s
+controller-demo   0/1     CrashLoopBackOff    <span style="color:#ae81ff">1</span>          86s
+controller-demo   1/1     Running             <span style="color:#ae81ff">2</span>          89s	<span style="color:#75715e"># Restarted. Output log.Info()</span>
+controller-demo   0/1     Completed           <span style="color:#ae81ff">2</span>          119s
+controller-demo   0/1     CrashLoopBackOff    <span style="color:#ae81ff">2</span>          2m10s
+controller-demo   1/1     Running             <span style="color:#ae81ff">3</span>          2m24s	<span style="color:#75715e"># Restarted. Output log.Info()</span>
+
+$ oc delete -f test.yaml 
+pod <span style="color:#e6db74">&#34;controller-demo&#34;</span> deleted									<span style="color:#75715e"># Deleted. Output log.Error()</span>
+</code></pre></div><h2 id="build-the-container">Build the container<a href="#build-the-container" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>This controller is running locally, outside of the cluster.
+Let&rsquo;s build a container image, push it to the k8s node and load it via <code>podman</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mkdir -p build/bin; cd build
+touch Dockerfile
+cd bin
+touch entrypoint; touch user_setup
+</code></pre></div><h4 id="builddockerfile">build/Dockerfile<a href="#builddockerfile" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>We will use the default base container image that <a href="https://github.com/operator-framework/operator-sdk">Operator SDK</a> is using.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker" data-lang="docker"><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> registry.access.redhat.com/ubi8/ubi-minimal:latest</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">ENV</span> OPERATOR<span style="color:#f92672">=</span>/usr/local/bin/pod-what-crashes <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    USER_UID<span style="color:#f92672">=</span><span style="color:#ae81ff">1001</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    USER_NAME<span style="color:#f92672">=</span>pod-what-crashes<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e"># install operator binary</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> pod-what-crashes <span style="color:#e6db74">${</span>OPERATOR<span style="color:#e6db74">}</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> bin /usr/local/bin<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span>  /usr/local/bin/user_setup<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">ENTRYPOINT</span> [<span style="color:#e6db74">&#34;/usr/local/bin/entrypoint&#34;</span>]<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">USER</span><span style="color:#e6db74"> ${USER_UID}</span><span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><p>Sets up 3 <code>ENV</code> variables:</p>
+<ul>
+<li><code>ENV OPERATOR</code> would be the path to your Operator binary (usually <code>/usr/local/bin/${OPERATORS_NAME}</code>)</li>
+<li><code>ENV USER_UID</code> to be a number like <code>1001</code> that corrersponds to a normal user account.</li>
+<li><code>USER_NAME</code> it passes the name of the operator as being a user (e.g. <code>$OPERATORS_NAME</code>).</li>
+</ul>
+<p>It copies the Operator&rsquo;s binary to <code>/usr/local/bin</code> and the two generated bash scripts (<code>user_setup</code> and <code>entrypoint</code>).
+It runs  the <code>user_setup</code> that creates the user as part of the <code>root</code> group along with its home directory and correct permissions
+It uses an external file for the entrypoint, that is <code>/usr/local/bin/entrypoint</code>
+Changes from the root user to the <code>USER_UID</code> user that was created before via the <code>user_setup</code> script.</p>
+<p>So when we will build our operator, <code>podman inspect</code> to the image will look like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">        <span style="color:#e6db74">&#34;Config&#34;</span><span style="color:#960050;background-color:#1e0010">:</span> {
+            <span style="color:#f92672">&#34;User&#34;</span>: <span style="color:#e6db74">&#34;1001&#34;</span>,
+            <span style="color:#f92672">&#34;Env&#34;</span>: [
+                <span style="color:#e6db74">&#34;PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&#34;</span>,
+                <span style="color:#e6db74">&#34;container=oci&#34;</span>,
+                <span style="color:#e6db74">&#34;OPERATOR=/usr/local/bin/pod-what-crashes&#34;</span>,
+                <span style="color:#e6db74">&#34;USER_UID=1001&#34;</span>,
+                <span style="color:#e6db74">&#34;USER_NAME=pod-what-crashes&#34;</span>
+            ],
+            <span style="color:#f92672">&#34;Entrypoint&#34;</span>: [
+                <span style="color:#e6db74">&#34;/usr/local/bin/entrypoint&#34;</span>
+            ],
+</code></pre></div><h4 id="buildbinentrypoint">build/bin/entrypoint<a href="#buildbinentrypoint" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>Pretty straighforward:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/sh -e
+</span><span style="color:#75715e"></span>
+exec <span style="color:#e6db74">${</span>OPERATOR<span style="color:#e6db74">}</span> $@
+</code></pre></div><ul>
+<li>The <code>sh -e</code> - exits the script if any command fails (non-zero return value)</li>
+<li>The <code>exec ${OPERATOR} $@</code> - will append any parameters to the entrypoint (which is the Operator binary).</li>
+</ul>
+<h4 id="buildbinuser_setup">build/bin/user_setup<a href="#buildbinuser_setup" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/sh
+</span><span style="color:#75715e"></span>set -x
+
+<span style="color:#75715e"># ensure $HOME exists and is accessible by group 0 (we don&#39;t know what the runtime UID will be)</span>
+echo <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>USER_NAME<span style="color:#e6db74">}</span><span style="color:#e6db74">:x:</span><span style="color:#e6db74">${</span>USER_UID<span style="color:#e6db74">}</span><span style="color:#e6db74">:0:</span><span style="color:#e6db74">${</span>USER_NAME<span style="color:#e6db74">}</span><span style="color:#e6db74"> user:</span><span style="color:#e6db74">${</span>HOME<span style="color:#e6db74">}</span><span style="color:#e6db74">:/sbin/nologin&#34;</span> &gt;&gt; /etc/passwd
+mkdir -p <span style="color:#e6db74">${</span>HOME<span style="color:#e6db74">}</span>
+chown <span style="color:#e6db74">${</span>USER_UID<span style="color:#e6db74">}</span>:0 <span style="color:#e6db74">${</span>HOME<span style="color:#e6db74">}</span>
+chmod ug+rwx <span style="color:#e6db74">${</span>HOME<span style="color:#e6db74">}</span>
+
+<span style="color:#75715e"># no need for this script to remain in the image after running</span>
+rm $0
+</code></pre></div><p>Make use of the <code>ENV</code> variables from the Dockerfile.
+Make sure <code>${USER_NAME}</code> user is part of the <code>root</code> group in order to empower him to execute restricted commands (system privileges) that an ordinary user account cannot access.
+Makes the user to be the owner of the <code>/root</code> directory (as it&rsquo;s new <code>$HOME</code>) and also gives him <code>rwx</code> persmissions on it.</p>
+<h3 id="build-the-container-1">build the container<a href="#build-the-container-1" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>The command to build:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">export OPERATOR<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;pod-what-crashes&#34;</span>
+GOOS<span style="color:#f92672">=</span>linux go build -o ./build/<span style="color:#e6db74">${</span>OPERATOR<span style="color:#e6db74">}</span>
+export IMAGE<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>OPERATOR<span style="color:#e6db74">}</span><span style="color:#e6db74">:testing&#34;</span>
+docker build -f ./build/Dockerfile -t <span style="color:#e6db74">${</span>IMAGE<span style="color:#e6db74">}</span> ./build
+</code></pre></div><p>The build-log should look similar to this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker" data-lang="docker">Sending build context to Docker daemon  82.01MB<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>Step 1/7 : FROM registry.access.redhat.com/ubi8/ubi-minimal:latest<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span> ---&gt; db39bd4846dc<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>Step 2/7 : ENV OPERATOR<span style="color:#f92672">=</span>/usr/local/bin/pod-what-crashes     USER_UID<span style="color:#f92672">=</span><span style="color:#ae81ff">1001</span>     USER_NAME<span style="color:#f92672">=</span>pod-what-crashes<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span> ---&gt; Running in faa7f2d53e16<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>Removing intermediate container faa7f2d53e16<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span> ---&gt; d3bf1178e766<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>Step 3/7 : COPY pod-what-crashes <span style="color:#e6db74">${</span>OPERATOR<span style="color:#e6db74">}</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span> ---&gt; 2e4e69c9b2aa<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>Step 4/7 : COPY bin /usr/local/bin<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span> ---&gt; 46ef33b271cb<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>Step 5/7 : RUN  /usr/local/bin/user_setup<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span> ---&gt; Running in f95375365d95<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>+ echo <span style="color:#e6db74">&#39;pod-what-crashes:x:1001:0:pod-what-crashes user:/root:/sbin/nologin&#39;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>+ mkdir -p /root<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>+ chown 1001:0 /root<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>+ chmod ug+rwx /root<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>+ rm /usr/local/bin/user_setup<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>Removing intermediate container f95375365d95<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span> ---&gt; 1d8f3160fb8b<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>Step 6/7 : ENTRYPOINT <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;/usr/local/bin/entrypoint&#34;</span><span style="color:#f92672">]</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span> ---&gt; Running in 71a0bd3f11fa<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>Removing intermediate container 71a0bd3f11fa<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span> ---&gt; b46c0c0d73b5<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>Step 7/7 : USER <span style="color:#e6db74">${</span>USER_UID<span style="color:#e6db74">}</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span> ---&gt; Running in 1683f187f7ce<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>Removing intermediate container 1683f187f7ce<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span> ---&gt; 327968c09d20<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>Successfully built 327968c09d20<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>Successfully tagged pod-what-crashes:testing<span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><p>Make sure it is loaded correctly to the docker image repository:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker" data-lang="docker">$ docker images<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>REPOSITORY                                    TAG                 IMAGE ID            CREATED              SIZE<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>pod-what-crashes                              testing             327968c09d20        About a minute ago   148MB<span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><p>Push it to the CRC VM:</p>
+<p>Make sure you can SSH into the VM created by <em>CRC</em>.
+Go to your <code>~/.zshenv</code> and add:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-zsh" data-lang="zsh">export CRCIP<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>crc ip<span style="color:#66d9ef">)</span>
+alias sshcrc<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;ssh -o ConnectionAttempts=3 -o ConnectTimeout=10 -o ControlMaster=no -o ControlPath=none -o LogLevel=quiet -o PasswordAuthentication=no -o ServerAliveInterval=60 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@</span><span style="color:#e6db74">${</span>CRCIP<span style="color:#e6db74">}</span><span style="color:#e6db74"> -o IdentitiesOnly=yes -i </span><span style="color:#e6db74">${</span>HOME<span style="color:#e6db74">}</span><span style="color:#e6db74">/.crc/machines/crc/id_rsa -p 22&#34;</span>
+</code></pre></div><p>Source it: <code>source ~/.zshenv</code>.
+To make sure there is no problem connecting to the VM, type <code>crcssh</code>.
+Proceed with copying over the image:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ docker save pod-what-crashes:testing &gt; image-name.tar
+$ scp image-name.tar core@<span style="color:#e6db74">`</span>crc ip<span style="color:#e6db74">`</span>:
+$ sshcrc
+<span style="color:#f92672">[</span>core@crc-w3434-master-0<span style="color:#f92672">]</span>$ sudo podman load -i image-name.tar
+</code></pre></div><p>Make sure it is loaded:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ sudo podman images | grep testing
+localhost/pod-what-crashes                       testing        327968c09d20   <span style="color:#ae81ff">6</span> minutes ago   <span style="color:#ae81ff">149</span> MB
+</code></pre></div><p>In case you are curious to see how the environment looks like:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ sudo podman run -it --rm --entrypoint /bin/bash localhost/pod-what-crashes:testing
+
+<span style="color:#f92672">[</span>pod-what-crashes@f46dbd39028e /<span style="color:#f92672">]</span>$ whoami
+pod-what-crashes
+
+<span style="color:#f92672">[</span>pod-what-crashes@f46dbd39028e /<span style="color:#f92672">]</span>$ id
+uid<span style="color:#f92672">=</span>1001<span style="color:#f92672">(</span>pod-what-crashes<span style="color:#f92672">)</span> gid<span style="color:#f92672">=</span>0<span style="color:#f92672">(</span>root<span style="color:#f92672">)</span> groups<span style="color:#f92672">=</span>0<span style="color:#f92672">(</span>root<span style="color:#f92672">)</span>
+
+<span style="color:#f92672">[</span>pod-what-crashes@f46dbd39028e /<span style="color:#f92672">]</span>$ groups
+root
+
+<span style="color:#f92672">[</span>pod-what-crashes@f46dbd39028e /<span style="color:#f92672">]</span>$ cat /etc/passwd | grep <span style="color:#e6db74">`</span>whoami<span style="color:#e6db74">`</span>
+pod-what-crashes:x:1001:0:pod-what-crashes user:/root:/sbin/nologin
+
+<span style="color:#f92672">[</span>pod-what-crashes@f46dbd39028e /<span style="color:#f92672">]</span>$ ls -lh /usr/local/bin
+total 40M
+-rwxr-xr-x. <span style="color:#ae81ff">1</span> root root  <span style="color:#ae81ff">34</span> Feb <span style="color:#ae81ff">24</span> 17:12 entrypoint
+-rwxr-xr-x. <span style="color:#ae81ff">1</span> root root 40M Feb <span style="color:#ae81ff">25</span> 01:51 pod-what-crashes
+
+<span style="color:#f92672">[</span>pod-what-crashes@f46dbd39028e /<span style="color:#f92672">]</span>$ ls -ld $HOME
+drwxrwx---. <span style="color:#ae81ff">1</span> pod-what-crashes root <span style="color:#ae81ff">6</span> Jan <span style="color:#ae81ff">29</span> 19:42 /root
+</code></pre></div><p>Then exit from the conainer by typing <code>exit</code> and also exit from the VM, by typing again <code>exit</code>.</p>
+<h2 id="deploy-to-k8s">Deploy to k8s<a href="#deploy-to-k8s" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>We will create:</p>
+<ul>
+<li>a namespace</li>
+<li>a serviceaccount</li>
+<li>a clusterrole</li>
+<li>a clusterrolebinding</li>
+<li>a deployment</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Namespace</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-controller</span>
+---
+<span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ServiceAccount</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">pod-what-crashes</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-controller</span>
+---
+<span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io/v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterRole</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">pod-what-crashes-role</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-controller</span>
+<span style="color:#f92672">rules</span>:
+- <span style="color:#f92672">apiGroups</span>: [<span style="color:#e6db74">&#34;&#34;</span>]
+  <span style="color:#f92672">resources</span>: [<span style="color:#e6db74">&#34;pods&#34;</span>]
+  <span style="color:#f92672">verbs</span>: [<span style="color:#e6db74">&#34;*&#34;</span>]
+---
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterRoleBinding</span>
+<span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io/v1</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">pod-what-crashes-access</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-controller</span>
+<span style="color:#f92672">subjects</span>:
+- <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ServiceAccount</span>
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">pod-what-crashes</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-controller</span>
+<span style="color:#f92672">roleRef</span>:
+  <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterRole</span>
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">pod-what-crashes-role</span>
+  <span style="color:#f92672">apiGroup</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io</span>
+---
+<span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">apps/v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Deployment</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">pod-what-crashes</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-controller</span>
+  <span style="color:#f92672">labels</span>:
+    <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">pod-what-crashes</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>
+  <span style="color:#f92672">selector</span>:
+    <span style="color:#f92672">matchLabels</span>:
+      <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">pod-what-crashes</span>
+  <span style="color:#f92672">template</span>:
+    <span style="color:#f92672">metadata</span>:
+      <span style="color:#f92672">labels</span>:
+        <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">pod-what-crashes</span>
+    <span style="color:#f92672">spec</span>:
+      <span style="color:#f92672">serviceAccountName</span>: <span style="color:#ae81ff">pod-what-crashes</span>
+      <span style="color:#f92672">containers</span>:
+      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">pod-what-crashes</span>
+        <span style="color:#f92672">image</span>: <span style="color:#ae81ff">localhost/pod-what-crashes:testing</span>
+        <span style="color:#f92672">imagePullPolicy</span>: <span style="color:#ae81ff">Never</span>
+        <span style="color:#f92672">resources</span>:
+          <span style="color:#f92672">limits</span>:
+            <span style="color:#f92672">cpu</span>: <span style="color:#ae81ff">200m</span>
+            <span style="color:#f92672">memory</span>: <span style="color:#ae81ff">300Mi</span>
+          <span style="color:#f92672">requests</span>:
+            <span style="color:#f92672">cpu</span>: <span style="color:#ae81ff">150m</span>
+            <span style="color:#f92672">memory</span>: <span style="color:#ae81ff">250Mi</span>
+</code></pre></div><p>Run:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ kubectl create -f deployment.yaml 
+
+namespace/my-controller created
+serviceaccount/pod-what-crashes created
+clusterrole.rbac.authorization.k8s.io/pod-what-crashes-role created
+clusterrolebinding.rbac.authorization.k8s.io/pod-what-crashes-access created
+deployment.apps/pod-what-crashes created
+</code></pre></div><p>Check the controller is running on the cluster:</p>
+<pre><code class="language-k" data-lang="k">$ kubectl -n my-controller get pods
+NAME                               READY   STATUS    RESTARTS   AGE
+pod-what-crashes-b9855667b-pnj28   1/1     Running   0          24s
+</code></pre><p>You can see the logs like this:</p>
+<pre><code class="language-k" data-lang="k">$ kubectl -n my-controller logs -l k8s-app=pod-what-crashes -f
+{&quot;level&quot;:&quot;info&quot;,&quot;logger&quot;:&quot;pod-what-crashes&quot;,&quot;msg&quot;:&quot;Setting up the Manager&quot;}
+{&quot;level&quot;:&quot;info&quot;,&quot;logger&quot;:&quot;pod-what-crashes&quot;,&quot;msg&quot;:&quot;Starting up the Manager&quot;}
+</code></pre><p>Notice that we are using a <code>clusterRole</code> and a <code>clusterRoleBinding</code> instead of a <code>Role</code> or a <code>RoleBinding</code>.
+Otherwise, our controller would not be able to list resources for all the Pods in the cluster in every namespace.
+We would most probably have ended up with this error message:</p>
+<pre><code class="language-k" data-lang="k">kubectl logs pod-what-crashes-5f9bc86dbd-l6849
+
+E0224 18:08:27.976036       1 reflector.go:153] pkg/mod/k8s.io/client-go@v0.17.2/tools/cache/reflector.go:105: Failed to list *v1.Pod: pods is forbidden: User &quot;system:serviceaccount:my-controller:pod-what-crashes&quot; cannot list resource &quot;pods&quot; in API group &quot;&quot; at the cluster scope
+</code></pre><p>If we wanted to look for stuff happening only in its own namespace, then we could have modified the manager:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">namespace</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;my-controller&#34;</span>
+<span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">Options</span>{<span style="color:#a6e22e">Namespace</span>: <span style="color:#a6e22e">namespace</span>})
+</code></pre></div><p>In case you want to remove the image from the VM:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo podman rmi localhost/pod-what-crashes:testing
+Untagged: localhost/pod-what-crashes:testing
+Deleted: 0f10cf2c88e9f6943385543e6e324223ec1f470b19367945d708737c1dbfc18c
+</code></pre></div><p>I will continue this tutorial by adding a CRD and CR.</p>
+
+      </div></div>
+
+  
+
+  
+
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2021 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+<script src="/assets/main.js"></script>
+<script src="/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

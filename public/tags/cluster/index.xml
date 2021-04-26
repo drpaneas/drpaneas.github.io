@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>cluster on drpaneas</title>
+    <link>https://panosgeorgiadis.com/tags/cluster/</link>
+    <description>Recent content in cluster on drpaneas</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 08 Nov 2017 22:08:35 +0200</lastBuildDate><atom:link href="https://panosgeorgiadis.com/tags/cluster/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>How to start with OpenFaaS</title>
+      <link>https://panosgeorgiadis.com/blog/2017/11/08/how-to-start-with-openfaas/</link>
+      <pubDate>Wed, 08 Nov 2017 22:08:35 +0200</pubDate>
+      
+      <guid>https://panosgeorgiadis.com/blog/2017/11/08/how-to-start-with-openfaas/</guid>
+      <description>Introduction Before we get into what is serverless or openfaas, I would like to talk about the concept behind this. So, before going into the details, I want to give you the big picture of this new way of developing applications and how the users are supposed to use them.
+Containers are now more efficient than ever So let’s go back in time, when computers were enormous things and filled complete rooms.</description>
+    </item>
+    
+    <item>
+      <title>Kubernetes Basics</title>
+      <link>https://panosgeorgiadis.com/blog/2017/05/08/kubernetes-basics/</link>
+      <pubDate>Mon, 08 May 2017 22:08:35 +0200</pubDate>
+      
+      <guid>https://panosgeorgiadis.com/blog/2017/05/08/kubernetes-basics/</guid>
+      <description>What is Kubernetes By definition, Kubernetes is an open source container cluster manager, and it is usually referred to by its internal name withing Google development - k8s. Google donated it to the open source world as a &amp;ldquo;seed technology&amp;rdquo; at 2015, to the newly formed CNCF - Cloud Native Computing Foundation, which established partnership with The Linux Foundation. The primary goal of Kubernetes is to provide a platform for automating deployment, scaling and operations of application containers across a cluster of hosts.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Posts :: Terminal</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="" />
+<meta name="keywords" content="" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="/post/" />
+
+
+
+
+<link rel="stylesheet" href="/assets/style.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="/img/favicon/orange.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Posts">
+<meta property="og:description" content="" />
+<meta property="og:url" content="/post/" />
+<meta property="og:site_name" content="Terminal" />
+
+  
+    <meta property="og:image" content="/img/favicon/orange.png">
+  
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+
+
+
+  <link href="/post/index.xml" rel="alternate" type="application/rss+xml" title="Terminal" />
+
+
+
+
+
+
+
+
+
+</head>
+<body class="orange">
+
+
+<div class="container headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="/showcase">Showcase</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="/showcase">Showcase</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+  
+  <div class="posts">
+    
+      <div class="post on-list">
+        <h1 class="post-title">
+          <a href="/post/googleclient/">Write a Google GCP client with Go</a>
+        </h1>
+        <div class="post-meta">
+          <span class="post-date">
+            2020-03-15
+          </span>
+          
+        </div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="/tags/kubernetes/">kubernetes</a>&nbsp;
+            
+            #<a href="/tags/controllers/">controllers</a>&nbsp;
+            
+            #<a href="/tags/golang/">golang</a>&nbsp;
+            
+            #<a href="/tags/google/">google</a>&nbsp;
+            
+            #<a href="/tags/api/">api</a>&nbsp;
+            
+          </span>
+        
+
+        
+
+        <div class="post-content">
+          
+          
+          In this article I will explain the mechanics of writing a client for Google GCP, pretty similar like gcloud. The purpose is to not write a full-featured client (that would make no sense, since you can use gcloud already) but to learn the how to communicate with Google&rsquo;s GCP API using Go. Such a pkg can be useful in small projects where you need to talk to Google GCP API, like the OpenShift&rsquo;s GCP Operator.
+          
+          
+        </div>
+
+        
+        <div>
+          <a class="read-more button"
+            href="/post/googleclient/">Read more →</a>
+        </div>
+        
+      </div>
+    
+      <div class="post on-list">
+        <h1 class="post-title">
+          <a href="/post/controller/">How to write your own Kubernetes controller</a>
+        </h1>
+        <div class="post-meta">
+          <span class="post-date">
+            2020-02-25
+          </span>
+          
+        </div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="/tags/kubernetes/">kubernetes</a>&nbsp;
+            
+            #<a href="/tags/controllers/">controllers</a>&nbsp;
+            
+            #<a href="/tags/golang/">golang</a>&nbsp;
+            
+          </span>
+        
+
+        
+
+        <div class="post-content">
+          
+          
+          Write your own controller Before going down the operator framework out there, it is important to understand what is happening under the hood. Then you would be able to appreciate the generated boilerplate code and feel more comfortable to change it.
+Prereq This tutorial assumes you have a cluster up and running and you can successfully communicate with it (e.g. kubectl get pods -A should work). If you don&rsquo;t have a cluster, you can setup one locally using CodeReadyContainers(used by the tutorial) or minikube.
+          
+          
+        </div>
+
+        
+        <div>
+          <a class="read-more button"
+            href="/post/controller/">Read more →</a>
+        </div>
+        
+      </div>
+    
+      <div class="post on-list">
+        <h1 class="post-title">
+          <a href="/post/traefik_non_root/">How to run Traefik ingress controller as non-root</a>
+        </h1>
+        <div class="post-meta">
+          <span class="post-date">
+            2019-01-16
+          </span>
+          
+        </div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="/tags/tutorial/">tutorial</a>&nbsp;
+            
+            #<a href="/tags/ingress/">ingress</a>&nbsp;
+            
+            #<a href="/tags/traefik/">traefik</a>&nbsp;
+            
+            #<a href="/tags/minikube/">minikube</a>&nbsp;
+            
+            #<a href="/tags/opensuse/">opensuse</a>&nbsp;
+            
+            #<a href="/tags/non-root/">non-root</a>&nbsp;
+            
+          </span>
+        
+
+        
+
+        <div class="post-content">
+          
+          
+          What is ingress? Ingress are (in a sense) reverse-proxies. But to understand, you need to know first what a proxy is &ndash; and only then will be able to understand the reverse of it.
+What is a proxy? For those of you who do not know what a proxy is, the word proxy describes someone/something acting on behalf of someone/something else. In terms on networking, when we are talking about a proxy server we are talking about one server that is acting on behalf of another server.
+          
+          
+        </div>
+
+        
+        <div>
+          <a class="read-more button"
+            href="/post/traefik_non_root/">Read more →</a>
+        </div>
+        
+      </div>
+    
+      <div class="post on-list">
+        <h1 class="post-title">
+          <a href="/post/packaging_minkube/">Contribute to minikube in a nutshell</a>
+        </h1>
+        <div class="post-meta">
+          <span class="post-date">
+            2018-09-28
+          </span>
+          
+        </div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="/tags/tutorial/">tutorial</a>&nbsp;
+            
+            #<a href="/tags/minikube/">minikube</a>&nbsp;
+            
+            #<a href="/tags/packaging/">packaging</a>&nbsp;
+            
+            #<a href="/tags/cron/">cron</a>&nbsp;
+            
+            #<a href="/tags/opensuse/">opensuse</a>&nbsp;
+            
+          </span>
+        
+
+        
+
+        <div class="post-content">
+          
+          
+          It&rsquo;s very easy to contribute to minikube (and other similar packages) when the only thing that is needed is just a version bump in the spec file. You first need to install these:
+# zypper in osc spec-cleaner Configure your ~/.oscrc file:
+[general] no_verify = 1 extra-pkgs = vim less mc [https://api.opensuse.org] user=pgeorgiadis # CHANGE email=pgeorgiadis@suse.com # CHANGE pass=123456789 # CHANGE trusted_prj=SUSE:SLE-12:GA openSUSE:13.2 openSUSE:Leap:42.3 openSUSE:Factory Base:System Virtualization:containers SUSE:SLE-12-SP3:GA SUSE:SLE-12:SLE-Module-Containers SUSE:Templates:Images:SLE-12-SP3:Base SUSE:SLE-12-SP3:Update openSUSE:Leap:42.
+          
+          
+        </div>
+
+        
+        <div>
+          <a class="read-more button"
+            href="/post/packaging_minkube/">Read more →</a>
+        </div>
+        
+      </div>
+    
+      <div class="post on-list">
+        <h1 class="post-title">
+          <a href="/post/golang_setup/">My personal Go environment setup</a>
+        </h1>
+        <div class="post-meta">
+          <span class="post-date">
+            2018-09-27
+          </span>
+          
+        </div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="/tags/tutorial/">tutorial</a>&nbsp;
+            
+            #<a href="/tags/go/">go</a>&nbsp;
+            
+            #<a href="/tags/golang/">golang</a>&nbsp;
+            
+            #<a href="/tags/vscode/">vscode</a>&nbsp;
+            
+            #<a href="/tags/helloworld/">helloworld</a>&nbsp;
+            
+          </span>
+        
+
+        
+
+        <div class="post-content">
+          
+          
+          How many go version do you have installed? The default upstream location for the binary is: /usr/local/go. But in SUSE it is: /usr/bin/go. This is a symlink created via update-alternatives.
+# update-alternatives --list go /usr/lib64/go/1.10/bin/go /usr/lib64/go/1.8/bin/go /usr/lib64/go/1.9/bin/go I want to keep only the 1.10 so I will remove the others:
+# zypper rm $(rpm -qf /usr/lib64/go/1.8/bin/go) $(rpm -qf /usr/lib64/go/1.9/bin/go) To verify, try update-alternatives once more. There should be only one version:
+          
+          
+        </div>
+
+        
+        <div>
+          <a class="read-more button"
+            href="/post/golang_setup/">Read more →</a>
+        </div>
+        
+      </div>
+    
+      <div class="post on-list">
+        <h1 class="post-title">
+          <a href="/post/kubernetes_kubevirt_leap15/">Deploy openSUSE Leap15 VM in Kubernetes using KubeVirt</a>
+        </h1>
+        <div class="post-meta">
+          <span class="post-date">
+            2018-03-15
+          </span>
+          
+        </div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="/tags/tutorial/">tutorial</a>&nbsp;
+            
+            #<a href="/tags/kubernetes/">kubernetes</a>&nbsp;
+            
+            #<a href="/tags/kubevirt/">kubevirt</a>&nbsp;
+            
+            #<a href="/tags/minikube/">minikube</a>&nbsp;
+            
+            #<a href="/tags/kvm/">kvm</a>&nbsp;
+            
+          </span>
+        
+
+        
+
+        <div class="post-content">
+          
+          
+          Introduction If you think that Kubernetes is a cluster for managing containers, then you are dead wrong. Kubernetes is a cluster for managing Pods. In most cases, a Pod is considered to be an abstraction of an container object, so Pod talks to Docker and they know each other. What happens though when we introduce a new guy called libvirt and we learn Pod to talk to it? We have KubeVirt.
+          
+          
+        </div>
+
+        
+        <div>
+          <a class="read-more button"
+            href="/post/kubernetes_kubevirt_leap15/">Read more →</a>
+        </div>
+        
+      </div>
+    
+      <div class="post on-list">
+        <h1 class="post-title">
+          <a href="/post/openfaas/">How to start with OpenFaaS</a>
+        </h1>
+        <div class="post-meta">
+          <span class="post-date">
+            2017-11-08
+          </span>
+          
+        </div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="/tags/openfaas/">openfaas</a>&nbsp;
+            
+            #<a href="/tags/serverless/">serverless</a>&nbsp;
+            
+            #<a href="/tags/tutorial/">tutorial</a>&nbsp;
+            
+            #<a href="/tags/kubernetes/">kubernetes</a>&nbsp;
+            
+            #<a href="/tags/docker/">docker</a>&nbsp;
+            
+            #<a href="/tags/containers/">containers</a>&nbsp;
+            
+            #<a href="/tags/cluster/">cluster</a>&nbsp;
+            
+          </span>
+        
+
+        
+
+        <div class="post-content">
+          
+          
+          Introduction Before we get into what is serverless or openfaas, I would like to talk about the concept behind this. So, before going into the details, I want to give you the big picture of this new way of developing applications and how the users are supposed to use them.
+Containers are now more efficient than ever So let’s go back in time, when computers were enormous things and filled complete rooms.
+          
+          
+        </div>
+
+        
+        <div>
+          <a class="read-more button"
+            href="/post/openfaas/">Read more →</a>
+        </div>
+        
+      </div>
+    
+      <div class="post on-list">
+        <h1 class="post-title">
+          <a href="/post/kubernetes_with_docker/">Kubernetes Basics</a>
+        </h1>
+        <div class="post-meta">
+          <span class="post-date">
+            2017-05-08
+          </span>
+          
+        </div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="/tags/tutorial/">tutorial</a>&nbsp;
+            
+            #<a href="/tags/kubernetes/">kubernetes</a>&nbsp;
+            
+            #<a href="/tags/docker/">docker</a>&nbsp;
+            
+            #<a href="/tags/containers/">containers</a>&nbsp;
+            
+            #<a href="/tags/cluster/">cluster</a>&nbsp;
+            
+          </span>
+        
+
+        
+
+        <div class="post-content">
+          
+          
+          What is Kubernetes By definition, Kubernetes is an open source container cluster manager, and it is usually referred to by its internal name withing Google development - k8s. Google donated it to the open source world as a &ldquo;seed technology&rdquo; at 2015, to the newly formed CNCF - Cloud Native Computing Foundation, which established partnership with The Linux Foundation. The primary goal of Kubernetes is to provide a platform for automating deployment, scaling and operations of application containers across a cluster of hosts.
+          
+          
+        </div>
+
+        
+        <div>
+          <a class="read-more button"
+            href="/post/kubernetes_with_docker/">Read more →</a>
+        </div>
+        
+      </div>
+    
+      <div class="post on-list">
+        <h1 class="post-title">
+          <a href="/post/new_site/">new_site</a>
+        </h1>
+        <div class="post-meta">
+          <span class="post-date">
+            2017-05-08
+          </span>
+          
+        </div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="/tags/personal/">personal</a>&nbsp;
+            
+          </span>
+        
+
+        
+
+        <div class="post-content">
+          
+          
+          Hugo is a static site engine written in Go.
+It makes use of a variety of open source projects including:
+ Cobra Viper J Walter Weatherman Cast  Learn more and contribute on GitHub.
+Setup Some fun facts about Hugo:
+ Built in Go Loosely inspired by Jekyll Primarily developed by spf13 on the train while commuting to and from Manhattan. Coded in Vim using spf13-vim  Have questions or suggestions?
+          
+          
+        </div>
+
+        
+        <div>
+          <a class="read-more button"
+            href="/post/new_site/">Read more →</a>
+        </div>
+        
+      </div>
+    
+      <div class="post on-list">
+        <h1 class="post-title">
+          <a href="/post/mock/"></a>
+        </h1>
+        <div class="post-meta">
+          <span class="post-date">
+            0001-01-01
+          </span>
+          
+        </div>
+
+        
+
+        
+
+        <div class="post-content">
+          
+          
+          When we are writing unit tests, we want to make sure that our unit works as expected. Simple put, for a given input it returns an expected output. Most of the tutorials are showing very simple examples (for a good reason) where there is a function that receives two integers and returns the sum of them. In that case, the programmer writes a unit test by adding two hardcoded examples, one that passes and one that is expected to fail (to test the error logging mechanism, if it exists).
+          
+          
+        </div>
+
+        
+        <div>
+          <a class="read-more button"
+            href="/post/mock/">Read more →</a>
+        </div>
+        
+      </div>
+    
+      <div class="post on-list">
+        <h1 class="post-title">
+          <a href="/post/prometheus/"></a>
+        </h1>
+        <div class="post-meta">
+          <span class="post-date">
+            0001-01-01
+          </span>
+          
+        </div>
+
+        
+
+        
+
+        <div class="post-content">
+          
+          
+          Prometheus is a monitoring system It does several things for metrics:
+https://www.youtube.com/watch?v=sHKWD8XnmmY
+ collects metrics storing metrics querying metrics alerting on metrics  The origin has been developed by SunClound 2012. At 2015 it has been become Prometheus.
+If we compare Prometheus to more traditional systems like Nagios or Zabbix, the rely on external checks for the applications they want to monitor. Prometheus expects that the applications we want to monitor are observable from the outside instead of being black boxes, they need to expose their state or something that will tell us how they behave.
+          
+          
+        </div>
+
+        
+        <div>
+          <a class="read-more button"
+            href="/post/prometheus/">Read more →</a>
+        </div>
+        
+      </div>
+    
+      <div class="post on-list">
+        <h1 class="post-title">
+          <a href="/post/telemeter/"></a>
+        </h1>
+        <div class="post-meta">
+          <span class="post-date">
+            0001-01-01
+          </span>
+          
+        </div>
+
+        
+
+        
+
+        <div class="post-content">
+          
+          
+          A valid Telemeter v2 client must package the time series it wishes to send into a Prometheus WriteRequest. This WriteRequest must use protocol buffer encoding, be compressed using Snappy, and sent via an HTTP POST request. In order for the request to be accepted, the client must include a bearer token in the Authorization HTTP header consisting of a base64 encoded JSON object with two fields:
+ cluster_id: a string holding the cluster’s unique ID; and authorization_token: a string with the cluster’s pull secret auth token  -endpoint-read string : the endpoint to which to make query requests.
+          
+          
+        </div>
+
+        
+        <div>
+          <a class="read-more button"
+            href="/post/telemeter/">Read more →</a>
+        </div>
+        
+      </div>
+    
+    <div class="pagination">
+  <div class="pagination__buttons">
+    
+      <span class="button previous">
+        <a href="/post/page/2/">
+          <span class="button__icon">←</span>
+          <span class="button__text">Newer posts</span>
+        </a>
+      </span>
+    
+    
+  </div>
+</div>
+
+  </div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2021 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+<script src="/assets/main.js"></script>
+<script src="/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

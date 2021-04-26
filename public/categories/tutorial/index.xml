@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>tutorial on drpaneas</title>
+    <link>https://panosgeorgiadis.com/categories/tutorial/</link>
+    <description>Recent content in tutorial on drpaneas</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 16 Jan 2019 15:39:35 +0200</lastBuildDate><atom:link href="https://panosgeorgiadis.com/categories/tutorial/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>How to run Traefik ingress controller as non-root</title>
+      <link>https://panosgeorgiadis.com/blog/2019/01/16/how-to-run-traefik-ingress-controller-as-non-root/</link>
+      <pubDate>Wed, 16 Jan 2019 15:39:35 +0200</pubDate>
+      
+      <guid>https://panosgeorgiadis.com/blog/2019/01/16/how-to-run-traefik-ingress-controller-as-non-root/</guid>
+      <description>What is ingress? Ingress are (in a sense) reverse-proxies. But to understand, you need to know first what a proxy is &amp;ndash; and only then will be able to understand the reverse of it.
+What is a proxy? For those of you who do not know what a proxy is, the word proxy describes someone/something acting on behalf of someone/something else. In terms on networking, when we are talking about a proxy server we are talking about one server that is acting on behalf of another server.</description>
+    </item>
+    
+    <item>
+      <title>Contribute to minikube in a nutshell</title>
+      <link>https://panosgeorgiadis.com/blog/2018/09/28/contribute-to-minikube-in-a-nutshell/</link>
+      <pubDate>Fri, 28 Sep 2018 16:29:35 +0200</pubDate>
+      
+      <guid>https://panosgeorgiadis.com/blog/2018/09/28/contribute-to-minikube-in-a-nutshell/</guid>
+      <description>It&amp;rsquo;s very easy to contribute to minikube (and other similar packages) when the only thing that is needed is just a version bump in the spec file. You first need to install these:
+# zypper in osc spec-cleaner Configure your ~/.oscrc file:
+[general] no_verify = 1 extra-pkgs = vim less mc [https://api.opensuse.org] user=pgeorgiadis # CHANGE email=pgeorgiadis@suse.com # CHANGE pass=123456789 # CHANGE trusted_prj=SUSE:SLE-12:GA openSUSE:13.2 openSUSE:Leap:42.3 openSUSE:Factory Base:System Virtualization:containers SUSE:SLE-12-SP3:GA SUSE:SLE-12:SLE-Module-Containers SUSE:Templates:Images:SLE-12-SP3:Base SUSE:SLE-12-SP3:Update openSUSE:Leap:42.</description>
+    </item>
+    
+    <item>
+      <title>My personal Go environment setup</title>
+      <link>https://panosgeorgiadis.com/blog/2018/09/27/my-personal-go-environment-setup/</link>
+      <pubDate>Thu, 27 Sep 2018 17:34:35 +0200</pubDate>
+      
+      <guid>https://panosgeorgiadis.com/blog/2018/09/27/my-personal-go-environment-setup/</guid>
+      <description>How many go version do you have installed? The default upstream location for the binary is: /usr/local/go. But in SUSE it is: /usr/bin/go. This is a symlink created via update-alternatives.
+# update-alternatives --list go /usr/lib64/go/1.10/bin/go /usr/lib64/go/1.8/bin/go /usr/lib64/go/1.9/bin/go I want to keep only the 1.10 so I will remove the others:
+# zypper rm $(rpm -qf /usr/lib64/go/1.8/bin/go) $(rpm -qf /usr/lib64/go/1.9/bin/go) To verify, try update-alternatives once more. There should be only one version:</description>
+    </item>
+    
+    <item>
+      <title>Deploy openSUSE Leap15 VM in Kubernetes using KubeVirt</title>
+      <link>https://panosgeorgiadis.com/blog/2018/03/15/deploy-opensuse-leap15-vm-in-kubernetes-using-kubevirt/</link>
+      <pubDate>Thu, 15 Mar 2018 20:46:35 +0200</pubDate>
+      
+      <guid>https://panosgeorgiadis.com/blog/2018/03/15/deploy-opensuse-leap15-vm-in-kubernetes-using-kubevirt/</guid>
+      <description>Introduction If you think that Kubernetes is a cluster for managing containers, then you are dead wrong. Kubernetes is a cluster for managing Pods. In most cases, a Pod is considered to be an abstraction of an container object, so Pod talks to Docker and they know each other. What happens though when we introduce a new guy called libvirt and we learn Pod to talk to it? We have KubeVirt.</description>
+    </item>
+    
+    <item>
+      <title>How to start with OpenFaaS</title>
+      <link>https://panosgeorgiadis.com/blog/2017/11/08/how-to-start-with-openfaas/</link>
+      <pubDate>Wed, 08 Nov 2017 22:08:35 +0200</pubDate>
+      
+      <guid>https://panosgeorgiadis.com/blog/2017/11/08/how-to-start-with-openfaas/</guid>
+      <description>Introduction Before we get into what is serverless or openfaas, I would like to talk about the concept behind this. So, before going into the details, I want to give you the big picture of this new way of developing applications and how the users are supposed to use them.
+Containers are now more efficient than ever So let’s go back in time, when computers were enormous things and filled complete rooms.</description>
+    </item>
+    
+    <item>
+      <title>Kubernetes Basics</title>
+      <link>https://panosgeorgiadis.com/blog/2017/05/08/kubernetes-basics/</link>
+      <pubDate>Mon, 08 May 2017 22:08:35 +0200</pubDate>
+      
+      <guid>https://panosgeorgiadis.com/blog/2017/05/08/kubernetes-basics/</guid>
+      <description>What is Kubernetes By definition, Kubernetes is an open source container cluster manager, and it is usually referred to by its internal name withing Google development - k8s. Google donated it to the open source world as a &amp;ldquo;seed technology&amp;rdquo; at 2015, to the newly formed CNCF - Cloud Native Computing Foundation, which established partnership with The Linux Foundation. The primary goal of Kubernetes is to provide a platform for automating deployment, scaling and operations of application containers across a cluster of hosts.</description>
+    </item>
+    
+  </channel>
+</rss>

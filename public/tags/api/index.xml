@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>api on drpaneas</title>
+    <link>https://panosgeorgiadis.com/tags/api/</link>
+    <description>Recent content in api on drpaneas</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 15 Mar 2020 03:29:35 +0100</lastBuildDate><atom:link href="https://panosgeorgiadis.com/tags/api/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Write a Google GCP client with Go</title>
+      <link>https://panosgeorgiadis.com/blog/2020/03/15/write-a-google-gcp-client-with-go/</link>
+      <pubDate>Sun, 15 Mar 2020 03:29:35 +0100</pubDate>
+      
+      <guid>https://panosgeorgiadis.com/blog/2020/03/15/write-a-google-gcp-client-with-go/</guid>
+      <description>In this article I will explain the mechanics of writing a client for Google GCP, pretty similar like gcloud. The purpose is to not write a full-featured client (that would make no sense, since you can use gcloud already) but to learn the how to communicate with Google&amp;rsquo;s GCP API using Go. Such a pkg can be useful in small projects where you need to talk to Google GCP API, like the OpenShift&amp;rsquo;s GCP Operator.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Write a Google GCP client with Go :: Terminal</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="In this article I will explain the mechanics of writing a client for Google GCP, pretty similar like gcloud. The purpose is to not write a full-featured client (that would make no sense, since you can use gcloud already) but to learn the how to communicate with Google&amp;rsquo;s GCP API using Go. Such a pkg can be useful in small projects where you need to talk to Google GCP API, like the OpenShift&amp;rsquo;s GCP Operator." />
+<meta name="keywords" content="" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="/post/googleclient/" />
+
+
+
+
+<link rel="stylesheet" href="/assets/style.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="/img/favicon/orange.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Write a Google GCP client with Go">
+<meta property="og:description" content="In this article I will explain the mechanics of writing a client for Google GCP, pretty similar like gcloud. The purpose is to not write a full-featured client (that would make no sense, since you can use gcloud already) but to learn the how to communicate with Google&amp;rsquo;s GCP API using Go. Such a pkg can be useful in small projects where you need to talk to Google GCP API, like the OpenShift&amp;rsquo;s GCP Operator." />
+<meta property="og:url" content="/post/googleclient/" />
+<meta property="og:site_name" content="Terminal" />
+
+  
+    <meta property="og:image" content="/img/favicon/orange.png">
+  
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+  <meta property="article:section" content="kubernetes" />
+
+
+  <meta property="article:published_time" content="2020-03-15 03:29:35 &#43;0100 CET" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="orange">
+
+
+<div class="container headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="/showcase">Showcase</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="/showcase">Showcase</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="/post/googleclient/">Write a Google GCP client with Go</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2020-03-15 
+      </span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="/tags/kubernetes/">kubernetes</a>&nbsp;
+    
+    #<a href="/tags/controllers/">controllers</a>&nbsp;
+    
+    #<a href="/tags/golang/">golang</a>&nbsp;
+    
+    #<a href="/tags/google/">google</a>&nbsp;
+    
+    #<a href="/tags/api/">api</a>&nbsp;
+    
+  </span>
+  
+
+  
+
+  
+
+  <div class="post-content"><div>
+        <p>In this article I will explain the mechanics of writing a client for Google GCP, pretty similar like <code>gcloud</code>.
+The purpose is to not write a full-featured client (that would make no sense, since you can use <code>gcloud</code> already) but to learn the how to communicate with Google&rsquo;s GCP API using Go.
+Such a <code>pkg</code> can be useful in small projects where you need to talk to Google GCP API, like the <a href="https://github.com/openshift/gcp-project-operator">OpenShift&rsquo;s GCP Operator</a>.
+Writing a Kubernetes operator for Google GCP, you need to teach your controllers to do basic CRUD (Create, Read, Update, Destroy) operations on the Google cloud.
+Having an individual project (like this one) it make your developer-life easier, since for testing your communication with Google, you wont have to setup any environment or CRDs.</p>
+<h2 id="create-the-struct">Create the struct<a href="#create-the-struct" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>First of all we need to create the struct that represents the type of our client.
+Since we are going to interact with Google GCP cloud, pick a relevant name, for example we are going to name it <code>GoogleGCPClient</code>.</p>
+<p>Later we have to read how to setup authentication and authorization.</p>
+<blockquote>
+<p>Authentication identifies who you are, and authorization determines what you can do.
+Grab a coffee and <a href="https://cloud.google.com/docs/authentication/production#obtaining_and_providing_service_account_credentials_manually">start reading this article</a></p>
+</blockquote>
+<h3 id="create-a-service-account">Create A Service Account<a href="#create-a-service-account" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<ol>
+<li>
+<p>In the Cloud Console, go to the <a href="https://console.cloud.google.com/apis/credentials/serviceaccountkey">Create service account key</a> page.</p>
+</li>
+<li>
+<p>From the <strong>Service Account</strong> list, select <strong>New service account</strong></p>
+</li>
+<li>
+<p>In the <strong>Service account name</strong> field, enter a name.</p>
+</li>
+<li>
+<p>From the <strong>Role</strong> list, select <strong>Project &gt; Owner</strong>.</p>
+</li>
+<li>
+<p>Click <strong>Create</strong>. A JSON file that contains your key downloads to your computer.</p>
+</li>
+</ol>
+<p>I have saved this file to my <code>$HOME</code> directory and named it <code>mypersonalgcpjsonkey.json</code>.</p>
+<h3 id="pass-the-credentials">Pass the credentials<a href="#pass-the-credentials" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Credentials
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">projectID</span> = <span style="color:#e6db74">&#34;hidden-howl-252922&#34;</span>                                         <span style="color:#75715e">// Your ProjectID, replace it with yours
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">jsonPath</span> = <span style="color:#a6e22e">filepath</span>.<span style="color:#a6e22e">Join</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Getenv</span>(<span style="color:#e6db74">&#34;HOME&#34;</span>), <span style="color:#e6db74">&#34;mypersonalgcpjsonkey.json&#34;</span>) <span style="color:#75715e">// path to your JSON file, replace it with yours
+</span></code></pre></div><h3 id="client-for-cloud-resource-manager">Client for Cloud Resource Manager<a href="#client-for-cloud-resource-manager" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>The package <a href="google.golang.org/api/cloudresourcemanager/v1">cloudresourcemanager</a> provides access to the (Cloud Resource Manager API)[https://cloud.google.com/resource-manager/docs].
+It is used to create, read, and update metadata for Google Cloud Platform resource containers.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;log&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+	<span style="color:#e6db74">&#34;path/filepath&#34;</span>
+
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/option&#34;</span>
+)
+
+<span style="color:#75715e">// Credentials
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">projectID</span> = <span style="color:#e6db74">&#34;hidden-howl-252922&#34;</span>                                         <span style="color:#75715e">// Your ProjectID
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">jsonPath</span> = <span style="color:#a6e22e">filepath</span>.<span style="color:#a6e22e">Join</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Getenv</span>(<span style="color:#e6db74">&#34;HOME&#34;</span>), <span style="color:#e6db74">&#34;mypersonalgcpjsonkey.json&#34;</span>) <span style="color:#75715e">// path to your JSON file
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+	<span style="color:#a6e22e">cloudresourcemanagerService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">cloudresourcemanagerService</span>.<span style="color:#a6e22e">BasePath</span>)
+}
+</code></pre></div><p>As a verification that our credentials work, this will print the following:</p>
+<pre><code>2020/03/12 23:38:57 https://cloudresourcemanager.googleapis.com/
+</code></pre><h3 id="client-for-the-iam">Client for the IAM<a href="#client-for-the-iam" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>IAM lets admins to authorize <strong>who</strong> can take <strong>actions</strong> on <strong>specific resources</strong>.
+The <strong>who</strong> part is obviously our ServiceAccount.
+The <strong>actions</strong> part, is a primitive role, the project&rsquo;s Owner.
+For that we will use the <a href="google.golang.org/api/iam/v1">iam</a> package that provides access to the <a href="https://cloud.google.com/iam/">Identity and Access Management (IAM) API</a>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;log&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+	<span style="color:#e6db74">&#34;path/filepath&#34;</span>
+
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/iam/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/option&#34;</span>
+)
+
+<span style="color:#75715e">// Credentials
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">projectID</span> = <span style="color:#e6db74">&#34;hidden-howl-252922&#34;</span>                                         <span style="color:#75715e">// Your ProjectID
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">jsonPath</span> = <span style="color:#a6e22e">filepath</span>.<span style="color:#a6e22e">Join</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Getenv</span>(<span style="color:#e6db74">&#34;HOME&#34;</span>), <span style="color:#e6db74">&#34;mypersonalgcpjsonkey.json&#34;</span>) <span style="color:#75715e">// path to your JSON file
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+
+	<span style="color:#75715e">// Client for Cloud Resource Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudresourcemanagerService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">cloudresourcemanagerService</span>.<span style="color:#a6e22e">BasePath</span>)
+
+	<span style="color:#75715e">// Client for IAM
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">iamService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">iam</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">iamService</span>.<span style="color:#a6e22e">BasePath</span>)
+}
+</code></pre></div><p>For verification purposes this is going to print:</p>
+<pre><code>2020/03/12 23:45:45 https://cloudresourcemanager.googleapis.com/
+2020/03/12 23:45:45 https://iam.googleapis.com/
+</code></pre><h3 id="client-for-service-infrastructure-management">Client for Service Infrastructure Management<a href="#client-for-service-infrastructure-management" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p><a href="https://cloud.google.com/service-infrastructure/docs">Service Infrastructure</a> is Google&rsquo;s foundational platform for creating, managing, and consuming APIs and services.
+It is used by Google APIs, Google Cloud APIs, and Cloud Endpoints. Service Infrastructure provides a wide range of features to service consumers and service producers, including authentication, authorization, auditing, rate limiting, billing, logging, and monitoring.</p>
+<p>We are going to use the <a href="google.golang.org/api/servicemanagement/v1">servicemanagement</a> package which provides access to the Service Management API.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;log&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+	<span style="color:#e6db74">&#34;path/filepath&#34;</span>
+
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/iam/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/option&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/servicemanagement/v1&#34;</span>
+)
+
+<span style="color:#75715e">// Credentials
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">projectID</span> = <span style="color:#e6db74">&#34;hidden-howl-252922&#34;</span>                                         <span style="color:#75715e">// Your ProjectID
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">jsonPath</span> = <span style="color:#a6e22e">filepath</span>.<span style="color:#a6e22e">Join</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Getenv</span>(<span style="color:#e6db74">&#34;HOME&#34;</span>), <span style="color:#e6db74">&#34;mypersonalgcpjsonkey.json&#34;</span>) <span style="color:#75715e">// path to your JSON file
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+
+	<span style="color:#75715e">// Client for Cloud Resource Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudresourcemanagerService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">cloudresourcemanagerService</span>.<span style="color:#a6e22e">BasePath</span>)
+
+	<span style="color:#75715e">// Client for IAM
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">iamService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">iam</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">iamService</span>.<span style="color:#a6e22e">BasePath</span>)
+
+	<span style="color:#75715e">// Client for Service Infrastructure Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">servicemanagementService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">servicemanagement</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">servicemanagementService</span>.<span style="color:#a6e22e">BasePath</span>)
+}
+</code></pre></div><p>For verification:</p>
+<pre><code>2020/03/12 23:53:11 https://cloudresourcemanager.googleapis.com/
+2020/03/12 23:53:11 https://iam.googleapis.com/
+2020/03/12 23:53:11 https://servicemanagement.googleapis.com/
+</code></pre><h3 id="client-for-cloud-billing">Client for Cloud Billing<a href="#client-for-cloud-billing" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>A <a href="https://cloud.google.com/billing/docs">Cloud Billing</a> account defines who pays for a given set of Google Cloud resources, and you can link the account to one or more projects.
+Your project usage is charged to the linked Cloud Billing account.
+To use Google Cloud services, you must have a <strong>valid</strong> Cloud Billing account linked to your project.
+You must have a valid Cloud Billing account even if you are in your free trial period or if you choose to only use Google Cloud resources that are covered by the Always Free program.</p>
+<p>We will use the <a href="google.golang.org/api/cloudbilling/v1">cloudbilling</a> package which provides access to the Cloud Billing API.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;log&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+	<span style="color:#e6db74">&#34;path/filepath&#34;</span>
+
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudbilling/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/iam/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/option&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/servicemanagement/v1&#34;</span>
+)
+
+<span style="color:#75715e">// Credentials
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">projectID</span> = <span style="color:#e6db74">&#34;hidden-howl-252922&#34;</span>                                         <span style="color:#75715e">// Your ProjectID
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">jsonPath</span> = <span style="color:#a6e22e">filepath</span>.<span style="color:#a6e22e">Join</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Getenv</span>(<span style="color:#e6db74">&#34;HOME&#34;</span>), <span style="color:#e6db74">&#34;mypersonalgcpjsonkey.json&#34;</span>) <span style="color:#75715e">// path to your JSON file
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+
+	<span style="color:#75715e">// Client for Cloud Resource Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudresourcemanagerService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">cloudresourcemanagerService</span>.<span style="color:#a6e22e">BasePath</span>)
+
+	<span style="color:#75715e">// Client for IAM
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">iamService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">iam</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">iamService</span>.<span style="color:#a6e22e">BasePath</span>)
+
+	<span style="color:#75715e">// Client for Service Infrastructure Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">servicemanagementService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">servicemanagement</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">servicemanagementService</span>.<span style="color:#a6e22e">BasePath</span>)
+
+	<span style="color:#75715e">// Client for Cloud Billing
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudbillingService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudbilling</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">cloudbillingService</span>.<span style="color:#a6e22e">BasePath</span>)
+}
+</code></pre></div><h3 id="client-for-cloud-dns">Client for Cloud DNS<a href="#client-for-cloud-dns" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>The Google Cloud DNS is reliable, resilient and it provides low-latency DNS serving from Google&rsquo;s worldwide network.
+You can publish your domain names by using Google&rsquo;s infrastructure for production-quality, high-volume DNS services.
+Google&rsquo;s global network of anycast name servers provide reliable, low-latency, authoritative name lookups for your domains from anywhere in the world.</p>
+<p>For that we will use the <a href="google.golang.org/api/dns/v1">dns</a> package.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;log&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+	<span style="color:#e6db74">&#34;path/filepath&#34;</span>
+
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudbilling/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/dns/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/iam/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/option&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/servicemanagement/v1&#34;</span>
+)
+
+<span style="color:#75715e">// Credentials
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">projectID</span> = <span style="color:#e6db74">&#34;hidden-howl-252922&#34;</span>                                         <span style="color:#75715e">// Your ProjectID
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">jsonPath</span> = <span style="color:#a6e22e">filepath</span>.<span style="color:#a6e22e">Join</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Getenv</span>(<span style="color:#e6db74">&#34;HOME&#34;</span>), <span style="color:#e6db74">&#34;mypersonalgcpjsonkey.json&#34;</span>) <span style="color:#75715e">// path to your JSON file
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+
+	<span style="color:#75715e">// Client for Cloud Resource Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudresourcemanagerService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">cloudresourcemanagerService</span>.<span style="color:#a6e22e">BasePath</span>)
+
+	<span style="color:#75715e">// Client for IAM
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">iamService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">iam</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">iamService</span>.<span style="color:#a6e22e">BasePath</span>)
+
+	<span style="color:#75715e">// Client for Service Infrastructure Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">servicemanagementService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">servicemanagement</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">servicemanagementService</span>.<span style="color:#a6e22e">BasePath</span>)
+
+	<span style="color:#75715e">// Client for Cloud Billing
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudbillingService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudbilling</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">cloudbillingService</span>.<span style="color:#a6e22e">BasePath</span>)
+
+	<span style="color:#75715e">// Client for Google Cloud DNS API
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">dnsService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dns</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">dnsService</span>.<span style="color:#a6e22e">BasePath</span>)
+}
+</code></pre></div><p>The output will be:</p>
+<pre><code>2020/03/13 00:30:17 https://cloudresourcemanager.googleapis.com/
+2020/03/13 00:30:17 https://iam.googleapis.com/
+2020/03/13 00:30:17 https://servicemanagement.googleapis.com/
+2020/03/13 00:30:17 https://cloudbilling.googleapis.com/
+2020/03/13 00:30:17 https://dns.googleapis.com/dns/v1/projects/
+</code></pre><h2 id="create-a-wrapper-for-all-of-those-clients">Create a wrapper for all of those clients<a href="#create-a-wrapper-for-all-of-those-clients" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Our intention is to make the code cleaner and more concise.
+For that we will group all of those different clients into an object.
+Later we will create an instance of this object, so we can use it.</p>
+<h3 id="create-the-struct-1">Create the struct<a href="#create-the-struct-1" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>We will create a new client object for interacting with Google Cloud:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// GoogleCloudClient is a generic wrapper for talking with individual services inside Google Cloud
+</span><span style="color:#75715e">// such as Cloud Resource Manager, IAM, Services, Billing and DNS
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">GoogleCloudClient</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#75715e">// Structs from Google library
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Resource</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">Service</span>
+	<span style="color:#a6e22e">IAM</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">iam</span>.<span style="color:#a6e22e">Service</span>
+	<span style="color:#a6e22e">Service</span>  <span style="color:#f92672">*</span><span style="color:#a6e22e">servicemanagement</span>.<span style="color:#a6e22e">APIService</span>
+	<span style="color:#a6e22e">Billing</span>  <span style="color:#f92672">*</span><span style="color:#a6e22e">cloudbilling</span>.<span style="color:#a6e22e">APIService</span>
+	<span style="color:#a6e22e">DNS</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">dns</span>.<span style="color:#a6e22e">Service</span>
+
+	<span style="color:#75715e">// Required user input
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ProjectID</span> <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">JSONPath</span>  <span style="color:#66d9ef">string</span>
+}
+</code></pre></div><h3 id="create-an-instance">Create an instance<a href="#create-an-instance" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>The preferred method is to use a factory function in order to ensure that the new instance of <code>GoogleCloudClient</code> struct will be constructed with the required arguments.</p>
+<p>The only input from the user is going to be the <code>ProjectID</code> and the <code>JSONPath</code>.
+We want to give those arguments and take back a ready-to-use instance of <code>GoogleCloudClient</code>.
+To be more precise, we will return a <strong>pointer</strong> to the <code>GoogleCloudClient</code> instance.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// NewGoogleCloudClient returns a pointer to the `GoogleCloudClient` instance
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewGoogleCloudClient</span>(<span style="color:#a6e22e">projectID</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">json</span> <span style="color:#66d9ef">string</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">GoogleCloudClient</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+
+	<span style="color:#75715e">// Client for Cloud Resource Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudresourcemanagerService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with Cloud Resource Manager Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for IAM
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">iamService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">iam</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the IAM Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Service Infrastructure Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">servicemanagementService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">servicemanagement</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Service Management Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Cloud Billing
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudbillingService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudbilling</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Cloud Billing Account: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Google Cloud DNS API
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">dnsService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dns</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Cloud DNS: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">GoogleCloudClient</span>{
+		<span style="color:#a6e22e">Resource</span>:  <span style="color:#a6e22e">cloudresourcemanagerService</span>,
+		<span style="color:#a6e22e">IAM</span>:       <span style="color:#a6e22e">iamService</span>,
+		<span style="color:#a6e22e">Service</span>:   <span style="color:#a6e22e">servicemanagementService</span>,
+		<span style="color:#a6e22e">Billing</span>:   <span style="color:#a6e22e">cloudbillingService</span>,
+		<span style="color:#a6e22e">DNS</span>:       <span style="color:#a6e22e">dnsService</span>,
+		<span style="color:#a6e22e">ProjectID</span>: <span style="color:#a6e22e">projectID</span>,
+		<span style="color:#a6e22e">JSONPath</span>:  <span style="color:#a6e22e">json</span>,
+	}, <span style="color:#66d9ef">nil</span>
+}
+</code></pre></div><h3 id="use-the-instance">Use the instance<a href="#use-the-instance" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;log&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+	<span style="color:#e6db74">&#34;path/filepath&#34;</span>
+
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudbilling/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/dns/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/iam/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/option&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/servicemanagement/v1&#34;</span>
+)
+
+<span style="color:#75715e">// Credentials
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">projectID</span> = <span style="color:#e6db74">&#34;hidden-howl-252922&#34;</span>                                         <span style="color:#75715e">// Your ProjectID
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">jsonPath</span> = <span style="color:#a6e22e">filepath</span>.<span style="color:#a6e22e">Join</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Getenv</span>(<span style="color:#e6db74">&#34;HOME&#34;</span>), <span style="color:#e6db74">&#34;mypersonalgcpjsonkey.json&#34;</span>) <span style="color:#75715e">// path to your JSON file
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">// GoogleCloudClient is a generic wrapper for talking with individual services inside Google Cloud
+</span><span style="color:#75715e">// such as Cloud Resource Manager, IAM, Services, Billing and DNS
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">GoogleCloudClient</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#75715e">// Structs from Google library
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Resource</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">Service</span>
+	<span style="color:#a6e22e">IAM</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">iam</span>.<span style="color:#a6e22e">Service</span>
+	<span style="color:#a6e22e">Service</span>  <span style="color:#f92672">*</span><span style="color:#a6e22e">servicemanagement</span>.<span style="color:#a6e22e">APIService</span>
+	<span style="color:#a6e22e">Billing</span>  <span style="color:#f92672">*</span><span style="color:#a6e22e">cloudbilling</span>.<span style="color:#a6e22e">APIService</span>
+	<span style="color:#a6e22e">DNS</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">dns</span>.<span style="color:#a6e22e">Service</span>
+
+	<span style="color:#75715e">// Required user input
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ProjectID</span> <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">JSONPath</span>  <span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#75715e">// NewGoogleCloudClient returns a pointer to the `GoogleCloudClient` instance
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewGoogleCloudClient</span>(<span style="color:#a6e22e">projectID</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">json</span> <span style="color:#66d9ef">string</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">GoogleCloudClient</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+
+	<span style="color:#75715e">// Client for Cloud Resource Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudresourcemanagerService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with Cloud Resource Manager Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for IAM
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">iamService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">iam</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the IAM Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Service Infrastructure Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">servicemanagementService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">servicemanagement</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Service Management Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Cloud Billing
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudbillingService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudbilling</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Cloud Billing Account: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Google Cloud DNS API
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">dnsService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dns</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Cloud DNS: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">GoogleCloudClient</span>{
+		<span style="color:#a6e22e">Resource</span>:  <span style="color:#a6e22e">cloudresourcemanagerService</span>,
+		<span style="color:#a6e22e">IAM</span>:       <span style="color:#a6e22e">iamService</span>,
+		<span style="color:#a6e22e">Service</span>:   <span style="color:#a6e22e">servicemanagementService</span>,
+		<span style="color:#a6e22e">Billing</span>:   <span style="color:#a6e22e">cloudbillingService</span>,
+		<span style="color:#a6e22e">DNS</span>:       <span style="color:#a6e22e">dnsService</span>,
+		<span style="color:#a6e22e">ProjectID</span>: <span style="color:#a6e22e">projectID</span>,
+		<span style="color:#a6e22e">JSONPath</span>:  <span style="color:#a6e22e">json</span>,
+	}, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">gcpClient</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewGoogleCloudClient</span>(<span style="color:#a6e22e">projectID</span>, <span style="color:#a6e22e">jsonPath</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">Resource</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">IAM</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">Service</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">Billing</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">DNS</span>.<span style="color:#a6e22e">BasePath</span>)
+}
+</code></pre></div><p>The output for verification should be:</p>
+<pre><code>https://cloudresourcemanager.googleapis.com/
+https://iam.googleapis.com/
+https://servicemanagement.googleapis.com/
+https://cloudbilling.googleapis.com/
+https://dns.googleapis.com/dns/v1/projects/
+</code></pre><h2 id="do-stuff-with-the-cloud-resource-manager">Do stuff with the Cloud Resource Manager<a href="#do-stuff-with-the-cloud-resource-manager" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>That it is.
+Now you have established a secure connection with Google GCP and you can start using its API.
+I will show you some basic examples, so you can get an idea.</p>
+<h3 id="list-projects">List Projects<a href="#list-projects" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Read: <a href="https://cloud.google.com/resource-manager/reference/rest/v1/projects/list">Method: projects.list</a></p>
+<p>You need to have Cloud Resource Manager API in your project. To do that:</p>
+<ol>
+<li>Go to the webpage that says <a href="https://console.developers.google.com/apis/library/cloudresourcemanager.googleapis.com">Cloud Resource Manager API</a></li>
+<li>Click <strong>Enable</strong>.</li>
+<li>Wait a little bit to get it enabled.</li>
+</ol>
+<p>We will use the function <code>*cloudresourcemanager.Service.Projects.List().Do()</code> which returns two things:</p>
+<ul>
+<li><code>*cloudresourcemanager.ListProjectsResponse</code></li>
+<li><code>error</code></li>
+</ul>
+<p>So what is this <code>*cloudresourcemanager.ListProjectsResponse</code>?
+This is a pointer to a struct <code>ListProjectsResponse</code> that looks like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ListProjectsResponse</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#75715e">// Pagination tokens have a limited lifetime.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">NextPageToken</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;nextPageToken,omitempty&#34;`</span>
+
+	<span style="color:#75715e">// Projects: The list of Projects that matched the list filter. This list can be paginated.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Projects</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">Project</span> <span style="color:#e6db74">`json:&#34;projects,omitempty&#34;`</span>
+
+	<span style="color:#75715e">// ServerResponse contains the HTTP response code and headers from the server.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">googleapi</span>.<span style="color:#a6e22e">ServerResponse</span> <span style="color:#e6db74">`json:&#34;-&#34;`</span>
+
+	<span style="color:#75715e">/// and others
+</span></code></pre></div><p>We are interested into the <code>Projects</code> field which is a list of another struct called <code>Project</code> which looks like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Project</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">CreateTime</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;createTime,omitempty&#34;`</span>
+	<span style="color:#a6e22e">Labels</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;labels,omitempty&#34;`</span>
+	<span style="color:#a6e22e">LifecycleState</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;lifecycleState,omitempty&#34;`</span>
+	<span style="color:#a6e22e">Name</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;name,omitempty&#34;`</span>
+	<span style="color:#a6e22e">Parent</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourceId</span> <span style="color:#e6db74">`json:&#34;parent,omitempty&#34;`</span>
+	<span style="color:#a6e22e">ProjectId</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;projectId,omitempty&#34;`</span>
+	<span style="color:#a6e22e">ProjectNumber</span> <span style="color:#66d9ef">int64</span> <span style="color:#e6db74">`json:&#34;projectNumber,omitempty,string&#34;`</span>
+	<span style="color:#a6e22e">googleapi</span>.<span style="color:#a6e22e">ServerResponse</span> <span style="color:#e6db74">`json:&#34;-&#34;`</span>
+	<span style="color:#a6e22e">ForceSendFields</span> []<span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;-&#34;`</span>
+	<span style="color:#a6e22e">NullFields</span> []<span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;-&#34;`</span>
+}
+</code></pre></div><p>To keep it simple,  we are interested particularly for the <code>Name</code> and the <code>ProjectID</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#75715e">// Fetch ListProjectsResponse
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">projectsList</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">Resource</span>.<span style="color:#a6e22e">Projects</span>.<span style="color:#a6e22e">List</span>().<span style="color:#a6e22e">Do</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#75715e">// From every Project of the ListProjectsResponse print the Name and the ProjectID
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">value</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">projectsList</span>.<span style="color:#a6e22e">Projects</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Project Name: %s\tProjectID: %s\r\n&#34;</span>, <span style="color:#a6e22e">value</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#a6e22e">value</span>.<span style="color:#a6e22e">ProjectId</span>)
+	}
+</code></pre></div><p>The output is:</p>
+<pre><code>Project Name: My First Project  ProjectID: hidden-howl-252922
+</code></pre><h4 id="make-a-method">Make a method<a href="#make-a-method" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;log&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+	<span style="color:#e6db74">&#34;path/filepath&#34;</span>
+
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudbilling/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/dns/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/iam/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/option&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/servicemanagement/v1&#34;</span>
+)
+
+<span style="color:#75715e">// Credentials
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">projectID</span> = <span style="color:#e6db74">&#34;hidden-howl-252922&#34;</span>                                         <span style="color:#75715e">// Your ProjectID
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">jsonPath</span> = <span style="color:#a6e22e">filepath</span>.<span style="color:#a6e22e">Join</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Getenv</span>(<span style="color:#e6db74">&#34;HOME&#34;</span>), <span style="color:#e6db74">&#34;mypersonalgcpjsonkey.json&#34;</span>) <span style="color:#75715e">// path to your JSON file
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">// GoogleCloudClient is a generic wrapper for talking with individual services inside Google Cloud
+</span><span style="color:#75715e">// such as Cloud Resource Manager, IAM, Services, Billing and DNS
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">GoogleCloudClient</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#75715e">// Structs from Google library
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Resource</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">Service</span>
+	<span style="color:#a6e22e">IAM</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">iam</span>.<span style="color:#a6e22e">Service</span>
+	<span style="color:#a6e22e">Service</span>  <span style="color:#f92672">*</span><span style="color:#a6e22e">servicemanagement</span>.<span style="color:#a6e22e">APIService</span>
+	<span style="color:#a6e22e">Billing</span>  <span style="color:#f92672">*</span><span style="color:#a6e22e">cloudbilling</span>.<span style="color:#a6e22e">APIService</span>
+	<span style="color:#a6e22e">DNS</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">dns</span>.<span style="color:#a6e22e">Service</span>
+
+	<span style="color:#75715e">// Required user input
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ProjectID</span> <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">JSONPath</span>  <span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#75715e">// NewGoogleCloudClient returns a pointer to the `GoogleCloudClient` instance
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewGoogleCloudClient</span>(<span style="color:#a6e22e">projectID</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">json</span> <span style="color:#66d9ef">string</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">GoogleCloudClient</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+
+	<span style="color:#75715e">// Client for Cloud Resource Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudresourcemanagerService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with Cloud Resource Manager Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for IAM
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">iamService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">iam</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the IAM Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Service Infrastructure Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">servicemanagementService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">servicemanagement</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Service Management Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Cloud Billing
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudbillingService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudbilling</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Cloud Billing Account: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Google Cloud DNS API
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">dnsService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dns</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Cloud DNS: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">GoogleCloudClient</span>{
+		<span style="color:#a6e22e">Resource</span>:  <span style="color:#a6e22e">cloudresourcemanagerService</span>,
+		<span style="color:#a6e22e">IAM</span>:       <span style="color:#a6e22e">iamService</span>,
+		<span style="color:#a6e22e">Service</span>:   <span style="color:#a6e22e">servicemanagementService</span>,
+		<span style="color:#a6e22e">Billing</span>:   <span style="color:#a6e22e">cloudbillingService</span>,
+		<span style="color:#a6e22e">DNS</span>:       <span style="color:#a6e22e">dnsService</span>,
+		<span style="color:#a6e22e">ProjectID</span>: <span style="color:#a6e22e">projectID</span>,
+		<span style="color:#a6e22e">JSONPath</span>:  <span style="color:#a6e22e">json</span>,
+	}, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#75715e">// ListProjects lists the Projects of a GCP service account and returns an error
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">GoogleCloudClient</span>) <span style="color:#a6e22e">ListProjects</span>() (<span style="color:#f92672">*</span><span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">ListProjectsResponse</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">projectsList</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Resource</span>.<span style="color:#a6e22e">Projects</span>.<span style="color:#a6e22e">List</span>().<span style="color:#a6e22e">Do</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">projectsList</span>, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">gcpClient</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewGoogleCloudClient</span>(<span style="color:#a6e22e">projectID</span>, <span style="color:#a6e22e">jsonPath</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">Resource</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">IAM</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">Service</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">Billing</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">DNS</span>.<span style="color:#a6e22e">BasePath</span>)
+
+	<span style="color:#a6e22e">resp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">ListProjects</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">project</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Projects</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Project Name: %s\tProjectID: %s\r\n&#34;</span>, <span style="color:#a6e22e">project</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#a6e22e">project</span>.<span style="color:#a6e22e">ProjectId</span>)
+	}
+
+}
+</code></pre></div><p>Output:</p>
+<pre><code>Project Name: My First Project  ProjectID: hidden-howl-252922
+</code></pre><h4 id="get-a-project">Get a Project<a href="#get-a-project" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>Now that you can list the projects, you can also <code>get</code> one.
+Storing a project into a variable, you can later use the <code>.</code> to access attributed of that project.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;log&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+	<span style="color:#e6db74">&#34;path/filepath&#34;</span>
+
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudbilling/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/dns/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/iam/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/option&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/servicemanagement/v1&#34;</span>
+)
+
+<span style="color:#75715e">// Credentials
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">projectID</span> = <span style="color:#e6db74">&#34;hidden-howl-252922&#34;</span>                                         <span style="color:#75715e">// Your ProjectID
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">jsonPath</span> = <span style="color:#a6e22e">filepath</span>.<span style="color:#a6e22e">Join</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Getenv</span>(<span style="color:#e6db74">&#34;HOME&#34;</span>), <span style="color:#e6db74">&#34;mypersonalgcpjsonkey.json&#34;</span>) <span style="color:#75715e">// path to your JSON file
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">// GoogleCloudClient is a generic wrapper for talking with individual services inside Google Cloud
+</span><span style="color:#75715e">// such as Cloud Resource Manager, IAM, Services, Billing and DNS
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">GoogleCloudClient</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#75715e">// Structs from Google library
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Resource</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">Service</span>
+	<span style="color:#a6e22e">IAM</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">iam</span>.<span style="color:#a6e22e">Service</span>
+	<span style="color:#a6e22e">Service</span>  <span style="color:#f92672">*</span><span style="color:#a6e22e">servicemanagement</span>.<span style="color:#a6e22e">APIService</span>
+	<span style="color:#a6e22e">Billing</span>  <span style="color:#f92672">*</span><span style="color:#a6e22e">cloudbilling</span>.<span style="color:#a6e22e">APIService</span>
+	<span style="color:#a6e22e">DNS</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">dns</span>.<span style="color:#a6e22e">Service</span>
+
+	<span style="color:#75715e">// Required user input
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ProjectID</span> <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">JSONPath</span>  <span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#75715e">// NewGoogleCloudClient returns a pointer to the `GoogleCloudClient` instance
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewGoogleCloudClient</span>(<span style="color:#a6e22e">projectID</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">json</span> <span style="color:#66d9ef">string</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">GoogleCloudClient</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+
+	<span style="color:#75715e">// Client for Cloud Resource Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudresourcemanagerService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with Cloud Resource Manager Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for IAM
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">iamService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">iam</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the IAM Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Service Infrastructure Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">servicemanagementService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">servicemanagement</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Service Management Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Cloud Billing
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudbillingService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudbilling</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Cloud Billing Account: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Google Cloud DNS API
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">dnsService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dns</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Cloud DNS: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">GoogleCloudClient</span>{
+		<span style="color:#a6e22e">Resource</span>:  <span style="color:#a6e22e">cloudresourcemanagerService</span>,
+		<span style="color:#a6e22e">IAM</span>:       <span style="color:#a6e22e">iamService</span>,
+		<span style="color:#a6e22e">Service</span>:   <span style="color:#a6e22e">servicemanagementService</span>,
+		<span style="color:#a6e22e">Billing</span>:   <span style="color:#a6e22e">cloudbillingService</span>,
+		<span style="color:#a6e22e">DNS</span>:       <span style="color:#a6e22e">dnsService</span>,
+		<span style="color:#a6e22e">ProjectID</span>: <span style="color:#a6e22e">projectID</span>,
+		<span style="color:#a6e22e">JSONPath</span>:  <span style="color:#a6e22e">json</span>,
+	}, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#75715e">// ListProjects lists the Projects of a GCP service account and returns an error
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">GoogleCloudClient</span>) <span style="color:#a6e22e">ListProjects</span>() (<span style="color:#f92672">*</span><span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">ListProjectsResponse</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">projectsList</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Resource</span>.<span style="color:#a6e22e">Projects</span>.<span style="color:#a6e22e">List</span>().<span style="color:#a6e22e">Do</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">projectsList</span>, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#75715e">// GetProject returns a project from GCP
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">GoogleCloudClient</span>) <span style="color:#a6e22e">GetProject</span>(<span style="color:#a6e22e">projectID</span> <span style="color:#66d9ef">string</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">Project</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">project</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Resource</span>.<span style="color:#a6e22e">Projects</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">projectID</span>).<span style="color:#a6e22e">Do</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">project</span>, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">gcpClient</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewGoogleCloudClient</span>(<span style="color:#a6e22e">projectID</span>, <span style="color:#a6e22e">jsonPath</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">Resource</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">IAM</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">Service</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">Billing</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">DNS</span>.<span style="color:#a6e22e">BasePath</span>)
+
+	<span style="color:#a6e22e">resp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">ListProjects</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">project</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Projects</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Project Name: %s\tProjectID: %s\r\n&#34;</span>, <span style="color:#a6e22e">project</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#a6e22e">project</span>.<span style="color:#a6e22e">ProjectId</span>)
+	}
+
+	<span style="color:#75715e">// gcpClient.Resource.Projects.Delete(&#34;hidden-howl-252922&#34;)
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">resp1</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">GetProject</span>(<span style="color:#e6db74">&#34;hidden-howl-252922&#34;</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">resp1</span>.<span style="color:#a6e22e">Name</span>)
+
+}
+</code></pre></div><h3 id="delete-a-project">Delete a Project<a href="#delete-a-project" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;log&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+	<span style="color:#e6db74">&#34;path/filepath&#34;</span>
+
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudbilling/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/dns/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/iam/v1&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/option&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/servicemanagement/v1&#34;</span>
+)
+
+<span style="color:#75715e">// Credentials
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">projectID</span> = <span style="color:#e6db74">&#34;hidden-howl-252922&#34;</span>                                         <span style="color:#75715e">// Your ProjectID
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">jsonPath</span> = <span style="color:#a6e22e">filepath</span>.<span style="color:#a6e22e">Join</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Getenv</span>(<span style="color:#e6db74">&#34;HOME&#34;</span>), <span style="color:#e6db74">&#34;mypersonalgcpjsonkey.json&#34;</span>) <span style="color:#75715e">// path to your JSON file
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">// GoogleCloudClient is a generic wrapper for talking with individual services inside Google Cloud
+</span><span style="color:#75715e">// such as Cloud Resource Manager, IAM, Services, Billing and DNS
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">GoogleCloudClient</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#75715e">// Structs from Google library
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Resource</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">Service</span>
+	<span style="color:#a6e22e">IAM</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">iam</span>.<span style="color:#a6e22e">Service</span>
+	<span style="color:#a6e22e">Service</span>  <span style="color:#f92672">*</span><span style="color:#a6e22e">servicemanagement</span>.<span style="color:#a6e22e">APIService</span>
+	<span style="color:#a6e22e">Billing</span>  <span style="color:#f92672">*</span><span style="color:#a6e22e">cloudbilling</span>.<span style="color:#a6e22e">APIService</span>
+	<span style="color:#a6e22e">DNS</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">dns</span>.<span style="color:#a6e22e">Service</span>
+
+	<span style="color:#75715e">// Required user input
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ProjectID</span> <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">JSONPath</span>  <span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#75715e">// NewGoogleCloudClient returns a pointer to the `GoogleCloudClient` instance
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewGoogleCloudClient</span>(<span style="color:#a6e22e">projectID</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">json</span> <span style="color:#66d9ef">string</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">GoogleCloudClient</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+
+	<span style="color:#75715e">// Client for Cloud Resource Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudresourcemanagerService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with Cloud Resource Manager Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for IAM
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">iamService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">iam</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the IAM Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Service Infrastructure Manager
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">servicemanagementService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">servicemanagement</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Service Management Service: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Cloud Billing
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cloudbillingService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cloudbilling</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Cloud Billing Account: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Client for Google Cloud DNS API
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">dnsService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dns</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithCredentialsFile</span>(<span style="color:#a6e22e">jsonPath</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Error with the Cloud DNS: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">GoogleCloudClient</span>{
+		<span style="color:#a6e22e">Resource</span>:  <span style="color:#a6e22e">cloudresourcemanagerService</span>,
+		<span style="color:#a6e22e">IAM</span>:       <span style="color:#a6e22e">iamService</span>,
+		<span style="color:#a6e22e">Service</span>:   <span style="color:#a6e22e">servicemanagementService</span>,
+		<span style="color:#a6e22e">Billing</span>:   <span style="color:#a6e22e">cloudbillingService</span>,
+		<span style="color:#a6e22e">DNS</span>:       <span style="color:#a6e22e">dnsService</span>,
+		<span style="color:#a6e22e">ProjectID</span>: <span style="color:#a6e22e">projectID</span>,
+		<span style="color:#a6e22e">JSONPath</span>:  <span style="color:#a6e22e">json</span>,
+	}, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#75715e">// ListProjects lists the Projects of a GCP service account and returns an error
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">GoogleCloudClient</span>) <span style="color:#a6e22e">ListProjects</span>() (<span style="color:#f92672">*</span><span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">ListProjectsResponse</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">projectsList</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Resource</span>.<span style="color:#a6e22e">Projects</span>.<span style="color:#a6e22e">List</span>().<span style="color:#a6e22e">Do</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">projectsList</span>, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#75715e">// GetProject returns a project from GCP
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">GoogleCloudClient</span>) <span style="color:#a6e22e">GetProject</span>(<span style="color:#a6e22e">projectID</span> <span style="color:#66d9ef">string</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">Project</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">project</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Resource</span>.<span style="color:#a6e22e">Projects</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">projectID</span>).<span style="color:#a6e22e">Do</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">project</span>, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#75715e">// DeleteProject deletes a project from GCP
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">GoogleCloudClient</span>) <span style="color:#a6e22e">DeleteProject</span>(<span style="color:#a6e22e">projectID</span> <span style="color:#66d9ef">string</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">cloudresourcemanager</span>.<span style="color:#a6e22e">Empty</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">project</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Resource</span>.<span style="color:#a6e22e">Projects</span>.<span style="color:#a6e22e">Delete</span>(<span style="color:#a6e22e">projectID</span>).<span style="color:#a6e22e">Do</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">project</span>, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">gcpClient</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewGoogleCloudClient</span>(<span style="color:#a6e22e">projectID</span>, <span style="color:#a6e22e">jsonPath</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">Resource</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">IAM</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">Service</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">Billing</span>.<span style="color:#a6e22e">BasePath</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">DNS</span>.<span style="color:#a6e22e">BasePath</span>)
+
+	<span style="color:#75715e">// Get a List of Projects
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">resp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">ListProjects</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">project</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Projects</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Project Name: %s\tProjectID: %s\r\n&#34;</span>, <span style="color:#a6e22e">project</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#a6e22e">project</span>.<span style="color:#a6e22e">ProjectId</span>)
+	}
+
+	<span style="color:#75715e">// Get a Project
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">resp1</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">GetProject</span>(<span style="color:#e6db74">&#34;hidden-howl-252922&#34;</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">// Use the . to access the attributes of this project
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">resp1</span>.<span style="color:#a6e22e">Name</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;The lifecycle state of %s project is %s:&#34;</span>, <span style="color:#a6e22e">resp1</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#a6e22e">resp1</span>.<span style="color:#a6e22e">LifecycleState</span>)
+
+	<span style="color:#75715e">// Delete a Project
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">resp2</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gcpClient</span>.<span style="color:#a6e22e">DeleteProject</span>(<span style="color:#e6db74">&#34;hidden-howl-252922&#34;</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">resp2</span>.<span style="color:#a6e22e">ServerResponse</span>)
+
+}
+</code></pre></div>
+      </div></div>
+
+  
+
+  
+
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2021 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+<script src="/assets/main.js"></script>
+<script src="/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

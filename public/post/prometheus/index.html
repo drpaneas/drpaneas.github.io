@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title> :: Terminal</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Prometheus is a monitoring system It does several things for metrics:
+https://www.youtube.com/watch?v=sHKWD8XnmmY
+ collects metrics storing metrics querying metrics alerting on metrics  The origin has been developed by SunClound 2012. At 2015 it has been become Prometheus.
+If we compare Prometheus to more traditional systems like Nagios or Zabbix, the rely on external checks for the applications they want to monitor. Prometheus expects that the applications we want to monitor are observable from the outside instead of being black boxes, they need to expose their state or something that will tell us how they behave." />
+<meta name="keywords" content="" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="/post/prometheus/" />
+
+
+
+
+<link rel="stylesheet" href="/assets/style.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="/img/favicon/orange.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="">
+<meta property="og:description" content="Prometheus is a monitoring system It does several things for metrics:
+https://www.youtube.com/watch?v=sHKWD8XnmmY
+ collects metrics storing metrics querying metrics alerting on metrics  The origin has been developed by SunClound 2012. At 2015 it has been become Prometheus.
+If we compare Prometheus to more traditional systems like Nagios or Zabbix, the rely on external checks for the applications they want to monitor. Prometheus expects that the applications we want to monitor are observable from the outside instead of being black boxes, they need to expose their state or something that will tell us how they behave." />
+<meta property="og:url" content="/post/prometheus/" />
+<meta property="og:site_name" content="Terminal" />
+
+  
+    <meta property="og:image" content="/img/favicon/orange.png">
+  
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="orange">
+
+
+<div class="container headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="/showcase">Showcase</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="/showcase">Showcase</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="/post/prometheus/"></a></h1>
+  <div class="post-meta">
+    
+    
+  </div>
+
+  
+
+  
+
+  
+
+  <div class="post-content"><div>
+        <p>Prometheus is a monitoring system
+It does several things for metrics:</p>
+<p><a href="https://www.youtube.com/watch?v=sHKWD8XnmmY">https://www.youtube.com/watch?v=sHKWD8XnmmY</a></p>
+<ul>
+<li>collects metrics</li>
+<li>storing metrics</li>
+<li>querying metrics</li>
+<li>alerting on metrics</li>
+</ul>
+<p>The origin has been developed by SunClound 2012.
+At 2015 it has been become Prometheus.</p>
+<p>If we compare Prometheus to more traditional systems like Nagios or Zabbix,
+the rely on external checks for the applications they want to monitor.
+Prometheus expects that the applications we want to monitor are observable from the outside instead of being black boxes, they need to expose their state or something that will tell us how they behave. This process is what we call in the monitoring world as &ldquo;Instrumentation&rdquo;.</p>
+<p>When we say &ldquo;metric instrumentation&rdquo; we can think of events as logs, events, traces and other forms which are interesting to investigate.</p>
+<h1 id="how-prometheus-works">How Prometheus works<a href="#how-prometheus-works" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>We have the prometheus Server. Its job is to store and collect metrics.
+We have also the systems we want to monitor.
+Prometheus is a pull-based system, in a sense that is doesn&rsquo;t expect an agent to be pushing the metrics, but it will take the initiative to communicate with the agent by itself.
+It&rsquo;s doing so by HTTP/HTTPS requests to specific endpoints, which are called &ldquo;metrics endpoints&rdquo;.
+It communicated every X amount of time, which is called &ldquo;regular interval&rdquo;. So every X minutes it communicates with the systems and scrapes their metrics from the applications we want to monitor.</p>
+<h1 id="how-can-an-application-expose-its-metrics">How can an application expose its metrics?<a href="#how-can-an-application-expose-its-metrics" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>There are two options for that:</p>
+<ol>
+<li>
+<p>Using a the Prometheus client library (e.g. Python, Java, C++, Ruby). This library will offeran API where we are going to use to manipulate the metrics.
+To create them, to increment them, or to set them into a certain value. And finally the finally will allows us to expose those metrics to Promehtues service via HTTP.
+We highly recommend this way. But if you have written the app years ago and you don&rsquo;t want to modify this, then you can use the second options.</p>
+</li>
+<li>
+<p>Run an exporter. This is a process running next to our application. It will be in charge of converting the internal metric format to something that Prometheus can understand.
+You need to maintain the exporter side by side with your application.</p>
+</li>
+</ol>
+<h1 id="how-the-prometheus-data-format-looks-like">How the Prometheus data format looks like<a href="#how-the-prometheus-data-format-looks-like" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>this is based on Timeseries data model, which is a reference to something we want to measure.</p>
+<pre><code>http_requests_total{code=&quot;200&quot;,method=&quot;GET&quot;,job&quot;app&quot;,instance=&quot;foo:8000&quot;}
+</code></pre><p>This has two parts:</p>
+<p>The name of the metric: http_requests_total
+The labels: {code=&ldquo;200&rdquo;,method=&ldquo;GET&rdquo;,job&quot;app&quot;,instance=&ldquo;foo:8000&rdquo;}</p>
+<p>The labels has a key and value. The goal is to filter and aggregate the timeseries as we wish.</p>
+
+      </div></div>
+
+  
+
+  
+
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2021 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+<script src="/assets/main.js"></script>
+<script src="/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>
