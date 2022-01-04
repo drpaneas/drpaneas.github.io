@@ -3,7 +3,7 @@
 <title>Kubernetes Basics // drpaneas</title>
 <link rel="shortcut icon" href=/favicon.ico>
 <meta charset=utf-8>
-<meta name=generator content="Hugo 0.87.0">
+<meta name=generator content="Hugo 0.91.2">
 <meta name=viewport content="width=device-width,initial-scale=1">
 <meta name=author content="Panos Georgiadis">
 <meta name=description content>
@@ -170,7 +170,7 @@ manages, is determined by the label selectors that are part of its definition.</
 <p>One of the first things we need to do is to install NTP. NTP has to be
 enabled and running in <strong>all</strong> of the servers we are going to have in
 our cluster. In this example, I have four terminals open:</p>
-<pre><code>- centos-master		[172.31.28.38] 		[54.154.199.96]
+<pre tabindex=0><code>- centos-master		[172.31.28.38] 		[54.154.199.96]
 - centos-minion1	[172.31.120.121]	[54.171.6.143]
 - centos-minion2	[54.246.160.157]	[172.31.110.96]
 - centos-minion3	[54.246.220.156]	[172.31.23.169]
@@ -229,7 +229,7 @@ availability, and their logs. So, we need to install <code>etcd</code> and <code
 These two, will also pull <code>cadvisor</code> which for containers and containerized
 apps. Then we will, start configuring the master and the minion, but right
 now I will finish by installing the software:</p>
-<pre><code>yum install -y --enablerepo=virt7-docker-common-release kubernetes docker
+<pre tabindex=0><code>yum install -y --enablerepo=virt7-docker-common-release kubernetes docker
 </code></pre><h3 id=configure-the-master>Configure the Master</h3>
 <p>Since we are into the master, we first need to configure the Kubernetes
 itself:</p>
@@ -587,7 +587,7 @@ bef1f611ff9b        gcr.io/google_containers/pause-amd64:3.0   <span style=color
 kubectl delete pod nginx
 [root@drpaneas1 Builds]# kubectl delete pod nginx
 pod &ldquo;nginx&rdquo; deleted</p>
-<pre><code>
+<pre tabindex=0><code>
 I can also `cheat` in a way in order to get access to the services that might be
 running on one of my containers. This is by port-forwarding locally to a remote
 copy of what happens to be happen within our Pod. So, because we already removed
@@ -1074,7 +1074,7 @@ connect to them and do something. They are going to have unique IP address and t
 subsquent assign port, so any of the hosts can use these and work with the entire cluster
 instead of just into their own local host.</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>vim nginx-service.yaml
-</code></pre></div><pre><code>apiVersion: v1
+</code></pre></div><pre tabindex=0><code>apiVersion: v1
 kind: Service
 metadata:
   name: nginx-service
@@ -1197,7 +1197,7 @@ which my busybox is running.</p>
 part of the <code>kubectl</code> utility.</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=color:#75715e># kubectl logs &lt;pod&gt;</span>
 </code></pre></div><p>I can also specify the number of lines I want to see:</p>
-<pre><code>bash
+<pre tabindex=0><code>bash
 # kubectl logs --tail=1 &lt;pod&gt;
 </code></pre><p>You can also specify the time-frame you want to see the logs:</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=color:#75715e># kubectl logs --since=24h &lt;pod&gt;</span>

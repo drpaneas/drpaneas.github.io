@@ -3,7 +3,7 @@
 <title>Write a Google GCP client with Go // drpaneas</title>
 <link rel="shortcut icon" href=/favicon.ico>
 <meta charset=utf-8>
-<meta name=generator content="Hugo 0.87.0">
+<meta name=generator content="Hugo 0.91.2">
 <meta name=viewport content="width=device-width,initial-scale=1">
 <meta name=author content="Panos Georgiadis">
 <meta name=description content>
@@ -124,7 +124,7 @@ It is used to create, read, and update metadata for Google Cloud Platform resour
 	<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>cloudresourcemanagerService</span>.<span style=color:#a6e22e>BasePath</span>)
 }
 </code></pre></div><p>As a verification that our credentials work, this will print the following:</p>
-<pre><code>2020/03/12 23:38:57 https://cloudresourcemanager.googleapis.com/
+<pre tabindex=0><code>2020/03/12 23:38:57 https://cloudresourcemanager.googleapis.com/
 </code></pre><h3 id=client-for-the-iam>Client for the IAM</h3>
 <p>IAM lets admins to authorize <strong>who</strong> can take <strong>actions</strong> on <strong>specific resources</strong>.
 The <strong>who</strong> part is obviously our ServiceAccount.
@@ -165,7 +165,7 @@ For that we will use the <a href=google.golang.org/api/iam/v1>iam</a> package th
 	<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>iamService</span>.<span style=color:#a6e22e>BasePath</span>)
 }
 </code></pre></div><p>For verification purposes this is going to print:</p>
-<pre><code>2020/03/12 23:45:45 https://cloudresourcemanager.googleapis.com/
+<pre tabindex=0><code>2020/03/12 23:45:45 https://cloudresourcemanager.googleapis.com/
 2020/03/12 23:45:45 https://iam.googleapis.com/
 </code></pre><h3 id=client-for-service-infrastructure-management>Client for Service Infrastructure Management</h3>
 <p><a href=https://cloud.google.com/service-infrastructure/docs>Service Infrastructure</a> is Google&rsquo;s foundational platform for creating, managing, and consuming APIs and services.
@@ -214,7 +214,7 @@ It is used by Google APIs, Google Cloud APIs, and Cloud Endpoints. Service Infra
 	<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>servicemanagementService</span>.<span style=color:#a6e22e>BasePath</span>)
 }
 </code></pre></div><p>For verification:</p>
-<pre><code>2020/03/12 23:53:11 https://cloudresourcemanager.googleapis.com/
+<pre tabindex=0><code>2020/03/12 23:53:11 https://cloudresourcemanager.googleapis.com/
 2020/03/12 23:53:11 https://iam.googleapis.com/
 2020/03/12 23:53:11 https://servicemanagement.googleapis.com/
 </code></pre><h3 id=client-for-cloud-billing>Client for Cloud Billing</h3>
@@ -337,7 +337,7 @@ Google&rsquo;s global network of anycast name servers provide reliable, low-late
 	<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>dnsService</span>.<span style=color:#a6e22e>BasePath</span>)
 }
 </code></pre></div><p>The output will be:</p>
-<pre><code>2020/03/13 00:30:17 https://cloudresourcemanager.googleapis.com/
+<pre tabindex=0><code>2020/03/13 00:30:17 https://cloudresourcemanager.googleapis.com/
 2020/03/13 00:30:17 https://iam.googleapis.com/
 2020/03/13 00:30:17 https://servicemanagement.googleapis.com/
 2020/03/13 00:30:17 https://cloudbilling.googleapis.com/
@@ -505,7 +505,7 @@ To be more precise, we will return a <strong>pointer</strong> to the <code>Googl
 	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>gcpClient</span>.<span style=color:#a6e22e>DNS</span>.<span style=color:#a6e22e>BasePath</span>)
 }
 </code></pre></div><p>The output for verification should be:</p>
-<pre><code>https://cloudresourcemanager.googleapis.com/
+<pre tabindex=0><code>https://cloudresourcemanager.googleapis.com/
 https://iam.googleapis.com/
 https://servicemanagement.googleapis.com/
 https://cloudbilling.googleapis.com/
@@ -564,7 +564,7 @@ This is a pointer to a struct <code>ListProjectsResponse</code> that looks like 
 		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;Project Name: %s\tProjectID: %s\r\n&#34;</span>, <span style=color:#a6e22e>value</span>.<span style=color:#a6e22e>Name</span>, <span style=color:#a6e22e>value</span>.<span style=color:#a6e22e>ProjectId</span>)
 	}
 </code></pre></div><p>The output is:</p>
-<pre><code>Project Name: My First Project  ProjectID: hidden-howl-252922
+<pre tabindex=0><code>Project Name: My First Project  ProjectID: hidden-howl-252922
 </code></pre><h4 id=make-a-method>Make a method</h4>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
 
@@ -677,7 +677,7 @@ This is a pointer to a struct <code>ListProjectsResponse</code> that looks like 
 
 }
 </code></pre></div><p>Output:</p>
-<pre><code>Project Name: My First Project  ProjectID: hidden-howl-252922
+<pre tabindex=0><code>Project Name: My First Project  ProjectID: hidden-howl-252922
 </code></pre><h4 id=get-a-project>Get a Project</h4>
 <p>Now that you can list the projects, you can also <code>get</code> one.
 Storing a project into a variable, you can later use the <code>.</code> to access attributed of that project.</p>

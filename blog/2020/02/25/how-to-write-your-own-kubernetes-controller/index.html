@@ -3,7 +3,7 @@
 <title>How to write your own Kubernetes controller // drpaneas</title>
 <link rel="shortcut icon" href=/favicon.ico>
 <meta charset=utf-8>
-<meta name=generator content="Hugo 0.87.0">
+<meta name=generator content="Hugo 0.91.2">
 <meta name=viewport content="width=device-width,initial-scale=1">
 <meta name=author content="Panos Georgiadis">
 <meta name=description content>
@@ -378,7 +378,7 @@ $ go run main.go
 </code></pre></div><p>Run from Terminal 2:</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>$ kubectl create -f test.yaml
 </code></pre></div><p>After 2 minutes the output would be similar to:</p>
-<pre><code>Reconciling container: example
+<pre tabindex=0><code>Reconciling container: example
 example 1
 
 Reconciling container: example
@@ -749,17 +749,17 @@ clusterrole.rbac.authorization.k8s.io/pod-what-crashes-role created
 clusterrolebinding.rbac.authorization.k8s.io/pod-what-crashes-access created
 deployment.apps/pod-what-crashes created
 </code></pre></div><p>Check the controller is running on the cluster:</p>
-<pre><code class=language-k data-lang=k>$ kubectl -n my-controller get pods
+<pre tabindex=0><code class=language-k data-lang=k>$ kubectl -n my-controller get pods
 NAME                               READY   STATUS    RESTARTS   AGE
 pod-what-crashes-b9855667b-pnj28   1/1     Running   0          24s
 </code></pre><p>You can see the logs like this:</p>
-<pre><code class=language-k data-lang=k>$ kubectl -n my-controller logs -l k8s-app=pod-what-crashes -f
+<pre tabindex=0><code class=language-k data-lang=k>$ kubectl -n my-controller logs -l k8s-app=pod-what-crashes -f
 {&quot;level&quot;:&quot;info&quot;,&quot;logger&quot;:&quot;pod-what-crashes&quot;,&quot;msg&quot;:&quot;Setting up the Manager&quot;}
 {&quot;level&quot;:&quot;info&quot;,&quot;logger&quot;:&quot;pod-what-crashes&quot;,&quot;msg&quot;:&quot;Starting up the Manager&quot;}
 </code></pre><p>Notice that we are using a <code>clusterRole</code> and a <code>clusterRoleBinding</code> instead of a <code>Role</code> or a <code>RoleBinding</code>.
 Otherwise, our controller would not be able to list resources for all the Pods in the cluster in every namespace.
 We would most probably have ended up with this error message:</p>
-<pre><code class=language-k data-lang=k>kubectl logs pod-what-crashes-5f9bc86dbd-l6849
+<pre tabindex=0><code class=language-k data-lang=k>kubectl logs pod-what-crashes-5f9bc86dbd-l6849
 
 E0224 18:08:27.976036       1 reflector.go:153] pkg/mod/k8s.io/client-go@v0.17.2/tools/cache/reflector.go:105: Failed to list *v1.Pod: pods is forbidden: User &quot;system:serviceaccount:my-controller:pod-what-crashes&quot; cannot list resource &quot;pods&quot; in API group &quot;&quot; at the cluster scope
 </code></pre><p>If we wanted to look for stuff happening only in its own namespace, then we could have modified the manager:</p>
