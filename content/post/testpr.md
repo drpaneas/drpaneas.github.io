@@ -6,6 +6,8 @@ title = "How to test a PR locally"
 
 +++
 
+# How to test a PR locally
+
 Let's say I want to test this [PR] locally, meaning I need to fetch the code locally to my laptop.
 All I need is the URL and nothing more.
 
