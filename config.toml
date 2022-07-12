@@ -24,7 +24,7 @@ paginate = 8
 [params]
   author = "Panos Georgiadis"
   description = "Open Source developer."
-  avatar = "https://boobalar.net/drpaneas.jpg"
+  avatar = "https://pbs.twimg.com/profile_images/1421459883833053185/IZrq-17V_400x400.jpg"
   menu_item_separator = " - "
   [[params.social]]
     icon = "github"
