@@ -1,12 +1,12 @@
 +++
-categories = ["git"]
-date = "2022-07-12T13:10:35+01:00"
-tags = ["git", "testing"]
-title = "How to test a PR locally"
+categories = ["tutorial"]
+date = "2022-07-12T15:39:35+02:00"
+tags = ["tutorial", "git"]
+title = "How test a PR locally"
 
 +++
 
-# How to test a PR locally
+## Well, use a script
 
 Let's say I want to test this [PR] locally, meaning I need to fetch the code locally to my laptop.
 All I need is the URL and nothing more.
