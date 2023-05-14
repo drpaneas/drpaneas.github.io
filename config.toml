@@ -2,7 +2,7 @@ baseurl = "https://drpaneas.net"
 title = "drpaneas"
 languageCode = "en-us"
 theme = "m10c"
-paginate = 8
+paginate = 18
 
 [menu]
   [[menu.main]]
