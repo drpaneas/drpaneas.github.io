@@ -180,3 +180,61 @@ body::before {
   color: var(--fg-strong);
   text-shadow: 0 0 6px rgba(255, 191, 71, 0.45);
 }
+
+pre,
+code,
+.highlight {
+  font-family: Iosevka, "IBM Plex Mono", "SFMono-Regular", monospace;
+}
+
+.highlight pre {
+  padding: 0.75rem;
+  border: 1px dashed #7c5717;
+  background: rgba(255, 191, 71, 0.03);
+  overflow-x: auto;
+}
+
+code {
+  padding: 0.1rem 0.3rem;
+  border: 1px solid #7c5717;
+  background: rgba(255, 191, 71, 0.04);
+}
+
+.highlight.language-bash,
+.highlight[data-lang="bash"] {
+  border-left: 3px solid #f6d690;
+}
+
+.highlight.language-go,
+.highlight[data-lang="go"] {
+  border-left: 3px solid #79d3ff;
+}
+
+.highlight.language-asm,
+.highlight.language-assembly,
+.highlight[data-lang="assembly"] {
+  border-left: 3px solid #ff89d0;
+}
+
+.highlight.language-c,
+.highlight[data-lang="c"] {
+  border-left: 3px solid #89f0b5;
+}
+
+.highlight .k,
+.highlight .kd,
+.highlight .kn {
+  color: #ffd98a;
+}
+
+.highlight .s,
+.highlight .s1,
+.highlight .s2 {
+  color: #f4e0ae;
+}
+
+.highlight .c,
+.highlight .c1,
+.highlight .cm {
+  color: #b88a37;
+}
