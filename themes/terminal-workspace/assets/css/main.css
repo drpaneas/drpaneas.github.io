@@ -228,6 +228,25 @@ code,
   font-family: Iosevka, "IBM Plex Mono", "SFMono-Regular", monospace;
 }
 
+.post-content pre {
+  padding: 0.75rem;
+  border: 1px dashed #7c5717;
+  background: rgba(255, 191, 71, 0.03);
+  color: var(--fg);
+  overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+  tab-size: 4;
+}
+
+.post-content pre code {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
 .highlight pre {
   padding: 0.75rem;
   border: 1px dashed #7c5717;
@@ -395,9 +414,6 @@ code {
 
   .post-content pre:not(.identity-ascii) {
     white-space: pre;
-    overflow-x: auto;
-    max-width: 100%;
-    -webkit-overflow-scrolling: touch;
   }
 }
 
