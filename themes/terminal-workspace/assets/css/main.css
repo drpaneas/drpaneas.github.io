@@ -191,7 +191,17 @@ code,
   padding: 0.75rem;
   border: 1px dashed #7c5717;
   background: rgba(255, 191, 71, 0.03);
+  color: var(--fg);
   overflow-x: auto;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+  tab-size: 4;
+}
+
+.highlight pre code {
+  padding: 0;
+  border: none;
+  background: transparent;
 }
 
 code {
@@ -200,24 +210,25 @@ code {
   background: rgba(255, 191, 71, 0.04);
 }
 
-.highlight.language-bash,
-.highlight[data-lang="bash"] {
+.highlight pre:has(> code.language-bash),
+.highlight pre:has(> code[data-lang="bash"]) {
   border-left: 3px solid #f6d690;
 }
 
-.highlight.language-go,
-.highlight[data-lang="go"] {
+.highlight pre:has(> code.language-go),
+.highlight pre:has(> code[data-lang="go"]) {
   border-left: 3px solid #79d3ff;
 }
 
-.highlight.language-asm,
-.highlight.language-assembly,
-.highlight[data-lang="assembly"] {
+.highlight pre:has(> code.language-asm),
+.highlight pre:has(> code.language-assembly),
+.highlight pre:has(> code[data-lang="asm"]),
+.highlight pre:has(> code[data-lang="assembly"]) {
   border-left: 3px solid #ff89d0;
 }
 
-.highlight.language-c,
-.highlight[data-lang="c"] {
+.highlight pre:has(> code.language-c),
+.highlight pre:has(> code[data-lang="c"]) {
   border-left: 3px solid #89f0b5;
 }
 

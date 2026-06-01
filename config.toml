@@ -21,6 +21,10 @@ paginate = 18
     url = "/about/"
     weight = 3
 
+[markup]
+  [markup.highlight]
+    noClasses = false
+
 [permalinks]
   post = "/blog/:year/:month/:day/:title/"
 
