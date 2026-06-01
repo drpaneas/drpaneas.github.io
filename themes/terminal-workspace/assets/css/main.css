@@ -162,3 +162,21 @@ body::before {
 .post-content {
   margin-top: 1rem;
 }
+
+.archive-pagination {
+  margin-top: 1rem;
+  line-height: 1.9;
+}
+
+.archive-pagination a {
+  display: inline-block;
+  margin-right: 0.7rem;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.archive-pagination a:hover,
+.archive-pagination a:focus {
+  color: var(--fg-strong);
+  text-shadow: 0 0 6px rgba(255, 191, 71, 0.45);
+}
