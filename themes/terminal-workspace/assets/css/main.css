@@ -249,3 +249,32 @@ code {
 .highlight .cm {
   color: #b88a37;
 }
+
+@media (max-width: 900px) {
+  .workspace-banner,
+  .home-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-session {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .pane-title,
+  a:hover,
+  a:focus {
+    text-shadow: none;
+  }
+}
+
+a:focus-visible {
+  outline: 2px solid #ffd98a;
+  outline-offset: 2px;
+}
