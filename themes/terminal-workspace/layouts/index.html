@@ -1,8 +1,5 @@
 {{ define "main" }}
   {{ partial "banner.html" . }}
   {{ partial "tag_filters.html" . }}
-  <section class="home-grid">
-    {{ partial "recent_posts.html" . }}
-    {{ partial "post_preview.html" . }}
-  </section>
+  {{ partial "recent_posts.html" . }}
 {{ end }}

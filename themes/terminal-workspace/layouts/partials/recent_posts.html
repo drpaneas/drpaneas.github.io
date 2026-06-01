@@ -1,8 +1,18 @@
-{{ $limit := .Site.Params.terminal_workspace.home_post_limit | default 5 }}
-<section class="pane" aria-label="Recent posts">
-  <div class="pane-title">recent posts / top {{ $limit }}</div>
-  {{ range first $limit (where .Site.RegularPages "Type" "post") }}
-    <div><a href="{{ .RelPermalink }}">{{ .Date.Format "2006-01-02" }}  {{ .Title }}</a></div>
+{{ $limit := .Site.Params.terminal_workspace.home_post_limit | default 18 }}
+{{ $posts := first $limit (where .Site.RegularPages.ByDate.Reverse "Type" "post") }}
+<section class="pane listing-pane" aria-label="Posts listing">
+  <div class="pane-title">posts / ls -l / top {{ $limit }}</div>
+  <div class="listing-total">total {{ len $posts }}</div>
+  {{ range $posts }}
+    <a class="listing-row" href="{{ .RelPermalink }}">
+      <span class="listing-perms">-rw-r--r--</span>
+      <span class="listing-links">1</span>
+      <span class="listing-owner">panos</span>
+      <span class="listing-group">staff</span>
+      <span class="listing-size">{{ math.Max 1 (div (add .WordCount 63) 64) }}K</span>
+      <span class="listing-date">{{ .Date.Format "Jan _2 2006" }}</span>
+      <span class="listing-name">{{ with .File }}{{ .LogicalName }}{{ else }}{{ .Title }}{{ end }}</span>
+    </a>
   {{ end }}
   {{ with .Site.GetPage "/post" }}
     <div class="posts-more"><a href="{{ .RelPermalink }}">{{ $.Site.Params.terminal_workspace.all_posts_label }}</a></div>
