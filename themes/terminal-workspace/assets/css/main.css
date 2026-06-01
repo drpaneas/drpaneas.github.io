@@ -387,6 +387,18 @@ code {
   .listing-size::after {
     content: "  ";
   }
+
+  .highlight pre {
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .post-content pre:not(.identity-ascii) {
+    white-space: pre;
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
