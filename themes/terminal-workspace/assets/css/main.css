@@ -1,0 +1,12 @@
+:root {
+  --bg: #120d05;
+  --fg: #ffbf47;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: Iosevka, "IBM Plex Mono", "SFMono-Regular", monospace;
+}
