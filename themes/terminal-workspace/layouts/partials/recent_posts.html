@@ -4,5 +4,7 @@
   {{ range first $limit (where .Site.RegularPages "Type" "post") }}
     <div><a href="{{ .RelPermalink }}">{{ .Date.Format "2006-01-02" }}  {{ .Title }}</a></div>
   {{ end }}
-  <div class="posts-more"><a href="/post/">{{ .Site.Params.terminal_workspace.all_posts_label }}</a></div>
+  {{ with .Site.GetPage "/post" }}
+    <div class="posts-more"><a href="{{ .RelPermalink }}">{{ $.Site.Params.terminal_workspace.all_posts_label }}</a></div>
+  {{ end }}
 </section>

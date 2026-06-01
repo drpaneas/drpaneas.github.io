@@ -8,6 +8,8 @@
         <a href="{{ .RelPermalink }}">{{ .Title }}</a>
       {{ end }}
     {{ end }}
-    <a class="all-tags-link" href="/tags/">{{ $tw.all_tags_label }}</a>
+    {{ with .Site.GetPage "/tags" }}
+      <a class="all-tags-link" href="{{ .RelPermalink }}">{{ $tw.all_tags_label }}</a>
+    {{ end }}
   </div>
 </section>

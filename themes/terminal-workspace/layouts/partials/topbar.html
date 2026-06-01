@@ -1,7 +1,19 @@
+{{ $postsPage := .Site.GetPage "/post" }}
+{{ $tagsPage := .Site.GetPage "/tags" }}
+{{ $aboutPage := .Site.GetPage "/about" }}
+{{ $isPosts := or (and (eq .Kind "section") (eq .Section "post")) (and (eq .Kind "page") (eq .Section "post")) }}
+{{ $isTags := and (or (eq .Kind "taxonomy") (eq .Kind "term")) (eq .Type "tags") }}
+{{ $isAbout := and .File (eq .File.ContentBaseName "about") }}
 <div class="workspace-topbar">
-  <span>1:home{{ if .IsHome }}*{{ end }}</span>
-  <span>2:posts{{ if and (not .IsHome) (or (eq .Kind "section") (eq .Kind "taxonomy") (eq .Kind "term")) }}*{{ end }}</span>
-  <span>3:tags{{ if or (eq .Kind "taxonomy") (eq .Kind "term") }}*{{ end }}</span>
-  <span>4:about{{ if and .File (eq .File.ContentBaseName "about") }}*{{ end }}</span>
+  <a class="topbar-tab" href="{{ .Site.Home.RelPermalink }}">1:home{{ if .IsHome }}*{{ end }}</a>
+  {{ with $postsPage }}
+    <a class="topbar-tab" href="{{ .RelPermalink }}">2:posts{{ if $isPosts }}*{{ end }}</a>
+  {{ end }}
+  {{ with $tagsPage }}
+    <a class="topbar-tab" href="{{ .RelPermalink }}">3:tags{{ if $isTags }}*{{ end }}</a>
+  {{ end }}
+  {{ with $aboutPage }}
+    <a class="topbar-tab" href="{{ .RelPermalink }}">4:about{{ if $isAbout }}*{{ end }}</a>
+  {{ end }}
   <span class="workspace-session">[session: drpaneas]</span>
 </div>

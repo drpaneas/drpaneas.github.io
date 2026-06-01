@@ -44,6 +44,11 @@ body::before {
   font-size: 0.95rem;
 }
 
+.workspace-topbar .topbar-tab {
+  color: inherit;
+  text-decoration: none;
+}
+
 .workspace-session {
   margin-left: auto;
 }
@@ -211,7 +216,11 @@ code {
 }
 
 .highlight pre:has(> code.language-bash),
-.highlight pre:has(> code[data-lang="bash"]) {
+.highlight pre:has(> code.language-shell),
+.highlight pre:has(> code.language-sh),
+.highlight pre:has(> code[data-lang="bash"]),
+.highlight pre:has(> code[data-lang="shell"]),
+.highlight pre:has(> code[data-lang="sh"]) {
   border-left: 3px solid #f6d690;
 }
 
