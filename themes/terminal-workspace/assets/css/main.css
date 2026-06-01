@@ -302,16 +302,48 @@ code {
   color: #ffd98a;
 }
 
+.highlight .nf,
+.highlight .fm {
+  color: #79d3ff;
+}
+
+.highlight .nb,
+.highlight .kt,
+.highlight .nc,
+.highlight .nn {
+  color: #89f0b5;
+}
+
+.highlight .kc,
+.highlight .m,
+.highlight .mi,
+.highlight .no,
+.highlight .nl {
+  color: #ff89d0;
+}
+
+.highlight .o,
+.highlight .ow,
+.highlight .p {
+  color: #e0b868;
+}
+
 .highlight .s,
 .highlight .s1,
-.highlight .s2 {
+.highlight .s2,
+.highlight .se {
   color: #f4e0ae;
 }
 
 .highlight .c,
 .highlight .c1,
-.highlight .cm {
+.highlight .cm,
+.highlight .cp {
   color: #b88a37;
+}
+
+.highlight .err {
+  color: #ff6b6b;
 }
 
 @media (max-width: 900px) {
