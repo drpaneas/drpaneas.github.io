@@ -11,7 +11,7 @@
       <span class="listing-group">staff</span>
       <span class="listing-size">{{ math.Max 1 (div (add .WordCount 63) 64) }}K</span>
       <span class="listing-date">{{ .Date.Format "Jan _2 2006" }}</span>
-      <span class="listing-name">{{ with .File }}{{ .LogicalName }}{{ else }}{{ .Title }}{{ end }}</span>
+      <span class="listing-name">{{ .Title }}</span>
     </a>
   {{ end }}
   {{ with .Site.GetPage "/post" }}
