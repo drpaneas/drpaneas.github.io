@@ -123,3 +123,42 @@ body::before {
 .posts-more {
   margin-top: 0.7rem;
 }
+
+.list-pane,
+.article-pane {
+  line-height: 1.55;
+}
+
+.archive-entry {
+  margin-bottom: 1rem;
+}
+
+.archive-entry h2,
+.article-pane h1 {
+  margin: 0 0 0.4rem;
+}
+
+.breadcrumb-back {
+  margin-bottom: 0.75rem;
+}
+
+.breadcrumb-back a,
+.post-meta a,
+.archive-entry a {
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.breadcrumb-back a:hover,
+.breadcrumb-back a:focus,
+.post-meta a:hover,
+.post-meta a:focus,
+.archive-entry a:hover,
+.archive-entry a:focus {
+  color: var(--fg-strong);
+  text-shadow: 0 0 6px rgba(255, 191, 71, 0.45);
+}
+
+.post-content {
+  margin-top: 1rem;
+}

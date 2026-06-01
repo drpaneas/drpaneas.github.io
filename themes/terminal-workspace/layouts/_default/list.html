@@ -1,0 +1,12 @@
+{{ define "main" }}
+  {{ if .IsHome }}{{ partial "banner.html" . }}{{ end }}
+  <section class="pane list-pane">
+    <div class="pane-title">{{ .Title | lower }} / archive</div>
+    {{ range .Pages }}
+      <article class="archive-entry">
+        <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+        {{ partial "post_meta.html" . }}
+      </article>
+    {{ end }}
+  </section>
+{{ end }}

@@ -1,0 +1,10 @@
+{{ define "main" }}
+  <section class="pane list-pane">
+    <div class="pane-title">{{ .Title | lower }} / all</div>
+    <div class="tag-cloud">
+      {{ range .Pages }}
+        <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+      {{ end }}
+    </div>
+  </section>
+{{ end }}
