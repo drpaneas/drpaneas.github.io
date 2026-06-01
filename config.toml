@@ -21,6 +21,9 @@ paginate = 18
     url = "/about/"
     weight = 3
 
+[permalinks]
+  post = "/blog/:year/:month/:day/:title/"
+
 [params]
   author = "Panos Georgiadis"
   description = "Not all those who wander are lost"
