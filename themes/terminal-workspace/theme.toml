@@ -1,0 +1,17 @@
+name = "terminal-workspace"
+license = "MIT"
+licenselink = "https://github.com/drpaneas/drpaneas.github.io"
+description = "Retro terminal workspace Hugo theme for drpaneas.com"
+homepage = "https://drpaneas.com"
+tags = ["blog", "retro", "terminal", "tmux", "amber", "lynx"]
+features = [
+  "workspace homepage",
+  "immersive article layout",
+  "lynx-friendly semantic HTML",
+  "language-accented code blocks"
+]
+min_version = "0.160.0"
+
+[author]
+  name = "Panos Georgiadis"
+  homepage = "https://drpaneas.com"

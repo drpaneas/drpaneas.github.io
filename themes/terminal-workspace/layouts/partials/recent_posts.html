@@ -1,0 +1,10 @@
+{{ $limit := .Site.Params.terminal_workspace.home_post_limit | default 5 }}
+<section class="pane" aria-label="Recent posts">
+  <div class="pane-title">recent posts / top {{ $limit }}</div>
+  {{ range first $limit (where .Site.RegularPages "Type" "post") }}
+    <div><a href="{{ .RelPermalink }}">{{ .Date.Format "2006-01-02" }}  {{ .Title }}</a></div>
+  {{ end }}
+  {{ with .Site.GetPage "/post" }}
+    <div class="posts-more"><a href="{{ .RelPermalink }}">{{ $.Site.Params.terminal_workspace.all_posts_label }}</a></div>
+  {{ end }}
+</section>

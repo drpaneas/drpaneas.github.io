@@ -1,0 +1,10 @@
+{{ if ne .Type "page" }}
+  <p class="post-meta">
+    {{ .Date.Format "2006-01-02" }} / {{ .ReadingTime }} min
+    {{ with .Params.tags }} / tags:
+      {{ range $i, $tag := . }}{{ if $i }}, {{ end }}
+        {{ with $.Site.GetPage (printf "/tags/%s" $tag) }}<a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ end }}
+      {{ end }}
+    {{ end }}
+  </p>
+{{ end }}

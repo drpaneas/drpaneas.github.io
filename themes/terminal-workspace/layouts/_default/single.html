@@ -1,0 +1,15 @@
+{{ define "main" }}
+  <article class="pane article-pane">
+    {{ partial "breadcrumb.html" . }}
+    {{ if eq .Type "page" }}
+      <div class="pane-title">{{ .Title | lower }}</div>
+    {{ else }}
+      <div class="pane-title">article / {{ with .File }}{{ .LogicalName }}{{ else }}{{ .Slug }}{{ end }}</div>
+    {{ end }}
+    <h1>{{ .Title }}</h1>
+    {{ partial "post_meta.html" . }}
+    <div class="post-content">
+      {{ .Content }}
+    </div>
+  </article>
+{{ end }}

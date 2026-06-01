@@ -1,0 +1,11 @@
+<nav class="breadcrumb-back" aria-label="Breadcrumb">
+  <a href="{{ .Site.Home.RelPermalink }}">workspace</a>
+  {{ if eq .Type "page" }}
+    / <span>{{ .Title }}</span>
+  {{ else }}
+    {{ with .Site.GetPage "/post" }}
+      / <a href="{{ .RelPermalink }}">posts</a>
+    {{ end }}
+    / <span>{{ with .File }}{{ .LogicalName }}{{ else }}{{ .Slug }}{{ end }}</span>
+  {{ end }}
+</nav>

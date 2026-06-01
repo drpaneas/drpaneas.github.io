@@ -1,0 +1,11 @@
+{{ with .Paginator }}
+  {{ if gt .TotalPages 1 }}
+    <nav class="archive-pagination" aria-label="Pagination">
+      {{ with .Prev }}<a href="{{ .URL }}">prev</a>{{ end }}
+      {{ range .Pagers }}
+        <a href="{{ .URL }}"{{ if eq .PageNumber $.Paginator.PageNumber }} aria-current="page"{{ end }}>{{ .PageNumber }}</a>
+      {{ end }}
+      {{ with .Next }}<a href="{{ .URL }}">next</a>{{ end }}
+    </nav>
+  {{ end }}
+{{ end }}

@@ -1,7 +1,7 @@
 baseurl = "https://drpaneas.com"
 title = "drpaneas"
 languageCode = "en-us"
-theme = "m10c"
+theme = "terminal-workspace"
 paginate = 18
 
 [menu]
@@ -21,42 +21,30 @@ paginate = 18
     url = "/about/"
     weight = 3
 
+[markup]
+  [markup.highlight]
+    noClasses = false
+
+[permalinks]
+  post = "/blog/:year/:month/:day/:title/"
+
 [params]
   author = "Panos Georgiadis"
   description = "Not all those who wander are lost"
-  avatar = "https://github.com/drpaneas/drpaneas.github.io/blob/master/drpaneas.jpeg?raw=true"
-  menu_item_separator = " - "
-  [[params.social]]
-    icon = "github"
-    name = "Github"
-    url = "https://github.com/drpaneas"
-  [[params.social]]
-    icon = "twitter"
-    name = "Twitter"
-    url = "https://twitter.com/PanosGeorgiadis"
-  [[params.social]]
-    icon = "linkedin"
-    name = "LinkedIn"
-    url = "https://www.linkedin.com/in/panosgeorgiadis/"
 
-[author]
-    name = "Panos Georgiadis"
-
-[permalinks]
-    # Optional. Change the permalink format for the 'post' content type.
-    # The format shown here is the same one Jekyll/Octopress uses by default.
-    post = "/blog/:year/:month/:day/:title/"
-
-  # Default theme
-[params.style]
-    darkestColor = "#242930"    # left bar
-    darkColor = "#353353"       # right background
-    lightColor = "#e2dada"      # normal text
-    lightestColor = "#fdba31"   # headings
-    primaryColor = "#f72585"    # links fdba31
-    codeColor = "#35d475"
-    avatarColor = "#242930"
-    titleColor = "#efcb68"
-    headerColor = "#fdba31"
-    h1Color = "#e2dada"
-    
+  [params.terminal_workspace]
+    identity_ascii = """
+ ____  ____  ____   __   __ _  ____   __   ____
+(    \\(  _ \\(  _ \\ / _\\ (  ( \\(  __) / _\\ / ___)
+ ) D ( )   / ) __//    \\/    / ) _) /    \\\\___ \\
+(____/(__\\_)(__)  \\_/\\_/\\_)__)(____)\\_/\\_/(____/
+"""
+    identity_title = "Hi I'm Panos -> drpaneas"
+    identity_subtitle = "Born in Greece - living in Germany."
+    identity_interests = "💻 automation 🚀 devops ☸ kubernetes 🐧 linux 🕹️ emulation 🧐 QA 🖥 SRE 🦊 hacking 🧑‍🚀 astrophysics"
+    quote_heading = "quotes / go by"
+    quote_tagline = "Hack the Planet"
+    quote_text = "All that is gold does not glitter, Not all those who wander are lost"
+    home_post_limit = 5
+    all_posts_label = "more posts ->"
+    all_tags_label = "all tags ->"
