@@ -10,8 +10,11 @@
     <link rel="stylesheet" href="{{ $style.RelPermalink }}" />
   </head>
   <body>
-    <main>
-      {{ block "main" . }}{{ .Content }}{{ end }}
+    <main class="workspace-page">
+      <section class="workspace-shell">
+        {{ partial "topbar.html" . }}
+        {{ block "main" . }}{{ .Content }}{{ end }}
+      </section>
     </main>
   </body>
 </html>

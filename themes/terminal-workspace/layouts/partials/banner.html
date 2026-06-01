@@ -1,0 +1,15 @@
+{{ $tw := .Site.Params.terminal_workspace }}
+<section class="workspace-banner" aria-label="Site introduction">
+  <div class="pane banner-pane">
+    <div class="pane-title">greeting / intro</div>
+    <pre class="identity-ascii">{{ $tw.identity_ascii }}</pre>
+    <p class="identity-line">{{ $tw.identity_title }}</p>
+    <p class="identity-line">{{ $tw.identity_subtitle }}</p>
+    <p class="identity-line identity-interests">{{ $tw.identity_interests }}</p>
+  </div>
+  <aside class="pane quote-pane">
+    <div class="pane-title">{{ $tw.quote_heading }}</div>
+    <p class="quote-tagline">{{ $tw.quote_tagline }}</p>
+    <blockquote class="quote-text">{{ $tw.quote_text }}</blockquote>
+  </aside>
+</section>

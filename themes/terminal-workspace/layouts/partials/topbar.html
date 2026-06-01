@@ -1,0 +1,8 @@
+{{ $section := cond .IsHome "home*" (cond (eq .Kind "taxonomy") "tags*" (cond (eq .Kind "term") "tags*" (cond (eq .Kind "page") "about*" "posts*"))) }}
+<div class="workspace-topbar">
+  <span>1:home{{ if .IsHome }}*{{ end }}</span>
+  <span>2:posts{{ if and (not .IsHome) (or (eq .Kind "section") (eq .Kind "taxonomy") (eq .Kind "term")) }}*{{ end }}</span>
+  <span>3:tags{{ if or (eq .Kind "taxonomy") (eq .Kind "term") }}*{{ end }}</span>
+  <span>4:about{{ if eq .Kind "page" }}*{{ end }}</span>
+  <span class="workspace-session">[session: drpaneas]</span>
+</div>

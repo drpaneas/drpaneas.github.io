@@ -1,6 +1,9 @@
 :root {
   --bg: #120d05;
   --fg: #ffbf47;
+  --fg-strong: #ffd98a;
+  --chrome: #6e4c12;
+  --bar: #3a2a08;
 }
 
 html, body {
@@ -9,4 +12,72 @@ html, body {
   background: var(--bg);
   color: var(--fg);
   font-family: Iosevka, "IBM Plex Mono", "SFMono-Regular", monospace;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(255, 191, 71, 0.05), rgba(0, 0, 0, 0.18));
+}
+
+.workspace-page {
+  padding: 1rem;
+}
+
+.workspace-shell {
+  position: relative;
+  z-index: 1;
+  border: 1px solid var(--chrome);
+  padding: 0.75rem;
+}
+
+.workspace-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: var(--bar);
+  color: #f6d690;
+  padding: 0.3rem 0.6rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.workspace-session {
+  margin-left: auto;
+}
+
+.workspace-banner {
+  display: grid;
+  grid-template-columns: 1.05fr 1.1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.pane {
+  border: 1px dashed #7c5717;
+  padding: 0.75rem;
+}
+
+.pane-title {
+  color: var(--fg-strong);
+  text-shadow: 0 0 6px rgba(255, 191, 71, 0.45);
+  margin-bottom: 0.5rem;
+}
+
+.identity-ascii {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.3;
+}
+
+.identity-line,
+.quote-text,
+.quote-tagline {
+  margin: 0.5rem 0 0;
+}
+
+.identity-interests {
+  line-height: 1.5;
 }
