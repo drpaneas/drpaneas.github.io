@@ -81,3 +81,45 @@ body::before {
 .identity-interests {
   line-height: 1.5;
 }
+
+.tag-cloud {
+  line-height: 1.9;
+}
+
+.tag-cloud a {
+  display: inline-block;
+  margin-right: 0.7rem;
+  white-space: nowrap;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.tag-cloud a:hover,
+.tag-cloud a:focus,
+.all-tags-link,
+.posts-more a,
+.preview-title a:hover,
+.preview-title a:focus {
+  color: var(--fg-strong);
+  text-shadow: 0 0 6px rgba(255, 191, 71, 0.45);
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1.35fr;
+  gap: 0.75rem;
+}
+
+.preview-title {
+  margin: 0 0 0.4rem;
+}
+
+.preview-title a {
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.preview-meta,
+.posts-more {
+  margin-top: 0.7rem;
+}

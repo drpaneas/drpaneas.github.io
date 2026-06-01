@@ -1,0 +1,9 @@
+{{ $featured := index (first 1 (where .Site.RegularPages "Type" "post")) 0 }}
+<section class="pane" aria-label="Post preview">
+  <div class="pane-title">preview / {{ $featured.File.LogicalName }}</div>
+  <h2 class="preview-title"><a href="{{ $featured.RelPermalink }}">{{ $featured.Title }}</a></h2>
+  <p class="preview-meta">{{ $featured.Date.Format "2006-01-02" }} / {{ $featured.ReadingTime }} min / tags:
+    {{ range $i, $tag := $featured.Params.tags }}{{ if $i }}, {{ end }}{{ $tag }}{{ end }}
+  </p>
+  <p>{{ with $featured.Summary }}{{ . | plainify }}{{ else }}{{ $featured.Description }}{{ end }}</p>
+</section>

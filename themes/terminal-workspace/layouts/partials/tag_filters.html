@@ -1,0 +1,13 @@
+{{ $tw := .Site.Params.terminal_workspace }}
+{{ $tags := .Site.Taxonomies.tags }}
+<section class="pane" aria-label="Quick tag filters">
+  <div class="pane-title">tags / quick filters</div>
+  <div class="tag-cloud">
+    {{ range $name, $_ := $tags }}
+      {{ with $.Site.GetPage (printf "/tags/%s" $name) }}
+        <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+      {{ end }}
+    {{ end }}
+    <a class="all-tags-link" href="/tags/">{{ $tw.all_tags_label }}</a>
+  </div>
+</section>
