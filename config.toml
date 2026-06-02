@@ -2,7 +2,9 @@ baseurl = "https://drpaneas.com"
 title = "drpaneas"
 languageCode = "en-us"
 theme = "terminal-workspace"
-paginate = 18
+
+[pagination]
+  pagerSize = 30
 
 [menu]
   [[menu.main]]
@@ -45,6 +47,6 @@ paginate = 18
     quote_heading = "quotes / go by"
     quote_tagline = "Hack the Planet"
     quote_text = "All that is gold does not glitter, Not all those who wander are lost"
-    home_post_limit = 18
+    home_post_limit = 30
     all_posts_label = "more posts ->"
     all_tags_label = "all tags ->"

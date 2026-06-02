@@ -52,8 +52,8 @@ body::before {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  background: var(--bar);
-  color: #f8fafc;
+  background: #6366f1;
+  color: #f6ec9a;
   padding: 0.3rem 0.6rem;
   margin-bottom: 0.75rem;
   font-size: 0.95rem;

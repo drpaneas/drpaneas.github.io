@@ -1,13 +1,32 @@
 {{ define "main" }}
-  <section class="pane list-pane">
-    <div class="pane-title">{{ .Title | lower }} / archive</div>
-    {{ $paginator := .Paginate .Pages }}
-    {{ range $paginator.Pages }}
-      <article class="archive-entry">
-        <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
-        {{ partial "post_meta.html" . }}
-      </article>
-    {{ end }}
-    {{ partial "pagination.html" . }}
-  </section>
+  {{ $paginator := .Paginate .Pages }}
+  {{ if eq .Type "post" }}
+    <section class="pane listing-pane" aria-label="Posts archive listing">
+      <div class="pane-title">{{ .Title | lower }} / ls -l / archive</div>
+      <div class="listing-total">total {{ len .Pages }}</div>
+      {{ range $paginator.Pages }}
+        <a class="listing-row" href="{{ .RelPermalink }}">
+          <span class="listing-perms">-rw-r--r--</span>
+          <span class="listing-links">1</span>
+          <span class="listing-owner">panos</span>
+          <span class="listing-group">staff</span>
+          <span class="listing-size">{{ math.Max 1 (div (add .WordCount 63) 64) }}K</span>
+          <span class="listing-date">{{ .Date.Format "Jan _2 2006" }}</span>
+          <span class="listing-name">{{ .Title }}</span>
+        </a>
+      {{ end }}
+      {{ partial "pagination.html" . }}
+    </section>
+  {{ else }}
+    <section class="pane list-pane">
+      <div class="pane-title">{{ .Title | lower }} / archive</div>
+      {{ range $paginator.Pages }}
+        <article class="archive-entry">
+          <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+          {{ partial "post_meta.html" . }}
+        </article>
+      {{ end }}
+      {{ partial "pagination.html" . }}
+    </section>
+  {{ end }}
 {{ end }}
