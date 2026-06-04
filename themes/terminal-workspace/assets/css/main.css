@@ -258,7 +258,7 @@ code,
 .highlight pre {
   padding: 0.75rem;
   border: 1px solid rgba(115, 90, 45, 0.45);
-  background: var(--code-bg);
+  background: transparent;
   color: var(--fg);
   overflow-x: auto;
   tab-size: 4;
