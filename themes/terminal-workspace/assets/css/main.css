@@ -257,7 +257,7 @@ code,
 .post-content pre,
 .highlight pre {
   padding: 0.75rem;
-  border: 1px solid rgba(115, 90, 45, 0.45);
+  border: none;
   background: transparent;
   color: var(--fg);
   overflow-x: auto;
