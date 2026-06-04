@@ -189,7 +189,7 @@ a:active {
 }
 
 .listing-pane {
-  font-size: 0.94em;
+  font-size: 0.95rem;
 }
 
 .listing-total {
@@ -236,6 +236,31 @@ a:active {
 
 .post-content {
   margin-top: 1rem;
+}
+
+.post-content h2,
+.post-content h3,
+.post-content h4,
+.post-content h5,
+.post-content h6 {
+  color: var(--fg-strong);
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.4rem 0 0.6rem;
+}
+
+.post-content h2 {
+  font-size: 1.2rem;
+}
+
+.post-content h3 {
+  font-size: 1.08rem;
+}
+
+.post-content h4,
+.post-content h5,
+.post-content h6 {
+  font-size: 1rem;
 }
 
 .archive-pagination {
