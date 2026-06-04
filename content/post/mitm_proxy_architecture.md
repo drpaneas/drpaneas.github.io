@@ -2,29 +2,39 @@
 categories = ["kubernetes"]
 date = "2026-06-04T12:18:00+02:00"
 tags = ["kubernetes", "golang", "proxy", "security", "operators"]
-title = "How We Built a Credential-Injecting MITM Proxy for an AI Gateway Operator"
+title = "The First Thing I Did Was Try to Steal the Secret"
 
 +++
 
-*Or: How to keep provider secrets out of the gateway process*
+*Or: Why I did not want OpenClaw agents to ever see provider credentials*
 
 ---
 
-This post is based on the architecture behind [codeready-toolchain/claw-operator](https://github.com/codeready-toolchain/claw-operator).
+The first thing I did was try to steal the secret.
 
-The interesting part is not just that the operator deploys an AI gateway. It is how it handles credentials. Instead of handing provider secrets directly to the gateway process, the design puts a credential-injecting MITM proxy between the gateway and the outside world. The gateway works with placeholder auth, and the proxy injects the real secrets on egress.
+That sounds more dramatic than it was. I was not trying to be clever—I was trying to answer one question before wiring anything else.
 
-If you are building Kubernetes operators, internal gateways, or any service that talks to many external APIs with different authentication models, this pattern is worth understanding. It gives you credential isolation, egress control, and protocol flexibility in one place, without teaching the gateway itself how every provider authenticates.
+When I say *agent* in this post, I mean the gateway runtime: the Node.js process that runs plugins, tools, and the LLM session. Same blast radius whether you call it the agent or the gateway.
 
-## The problem: AI credentials scattered everywhere
+I was building the credential story for [codeready-toolchain/claw-operator](https://github.com/codeready-toolchain/claw-operator), which deploys OpenClaw—an AI gateway that talks to LLM providers, messaging channels, Kubernetes clusters, MCP servers, and whatever else you bolt on. Each path wants its own credential shape: API keys, bearer tokens, GCP service account JSON, OAuth2 client secrets, kubeconfig tokens. Before I cared about injectors or CONNECT handling, the question was: **if I compromise that runtime, can I steal the credential?**
 
-The claw-operator deploys OpenClaw, an AI gateway that talks to multiple LLM providers (Google, Anthropic, OpenAI, xAI, OpenRouter), messaging channels (Telegram, Discord, Slack, WhatsApp), Kubernetes clusters, and MCP servers. Each of those needs credentials. API keys, bearer tokens, GCP service account JSON files, OAuth2 client secrets, kubeconfig tokens.
+I did not treat that as a compliance checkbox. I assumed that process was hostile-ish—plugins, user-editable config, web UI, untrusted tool output, retrieved context, prompt injection. If an attacker gets code execution or memory read there, I wanted the answer to be *no*, not "well, we tried."
 
-The obvious approach is to hand those credentials to the gateway application and let it manage them. That is also the wrong approach.
+## AI agents are not normal applications
 
-The gateway is a large Node.js application with plugins, user-editable config, and a web UI. Giving it raw API keys means those keys live in the application's process memory, show up in debug logs, and are one misconfigured plugin away from leaking. Worse, the gateway has no business knowing *how* to authenticate with each provider. It just needs to send HTTP requests and get responses.
+The obvious pattern for a service that calls external APIs is to mount secrets into the process and let the application manage them. That is fine for a small, boring microservice with a fixed call graph and no user-supplied logic running inside the binary.
 
-The architecture we landed on puts a MITM proxy between the gateway and the internet. The gateway sees plaintext HTTP and placeholder credentials. The proxy sees the destination, injects the real credential for that route, and forwards the request over TLS to the upstream. The gateway never receives the actual provider secrets.
+An AI gateway is not that. OpenClaw is closer to a programmable egress hub: plugins, channels, MCP tools, config you did not write yourself. Credentials in process memory are not "configuration." They are loot. They show up in debug logs, crash dumps, and heap dumps. One bad plugin or one successful prompt injection away from exfiltration. The gateway also has no business knowing *how* each provider wants to be authenticated—it needs to send HTTP and get responses, not hold the crown jewels.
+
+So I refused the default: hand every provider secret to the gateway and hope nothing interesting ever runs there.
+
+## The rule I wanted to enforce
+
+**The agent should be able to use credentials without ever seeing them.**
+
+That is the trust boundary I cared about. Not "encrypt secrets at rest" theater. Not "we'll rotate keys eventually." The runtime that faces untrusted input must not possess the real provider material. Something else—something smaller, something I can reason about as egress policy—should hold secrets and inject them only on the way out.
+
+What I landed on is a credential-injecting MITM proxy between the gateway and the internet. The gateway talks to the proxy with placeholder auth. The proxy matches the destination, injects the real credential for that route, and forwards over TLS upstream. The gateway never receives the actual secrets; it only ever sees stand-ins good enough to route traffic.
 
 ```
 +---------------------+          +-------------------+         +------------------+
@@ -35,11 +45,13 @@ The architecture we landed on puts a MITM proxy between the gateway and the inte
 +---------------------+          +-------------------+         +------------------+
 ```
 
+Once that boundary was set, the rest of the work was making the proxy trustworthy enough to sit in the middle—starting with what MITM actually means in this setup.
+
 ## What MITM means here (and what it does not)
 
-MITM - man in the middle - has a bad reputation for good reason. In the wild, it means someone intercepting traffic they should not see. Here, the proxy is a deliberate architectural component. It runs as a separate in-cluster workload behind a Service, and the gateway is configured to send outbound traffic to it via `HTTP_PROXY` and `HTTPS_PROXY`. The gateway is also configured to trust the proxy's CA certificate for intercepted TLS traffic.
+MITM has a bad reputation for good reason. Here it is deliberate: a separate in-cluster workload the gateway reaches only through `HTTP_PROXY` / `HTTPS_PROXY`, trusting the proxy's CA for intercepted TLS. I am not hiding that interception from the gateway—I am using it so something *other than* the agent can see plaintext long enough to inject credentials and enforce policy.
 
-The proxy uses [goproxy](https://github.com/elazarl/goproxy), a Go library for building HTTP/HTTPS proxies. When the gateway opens an HTTPS connection, it sends a `CONNECT` request to the proxy. The proxy has two choices:
+[goproxy](https://github.com/elazarl/goproxy) handles the mechanics. On HTTPS the gateway sends `CONNECT`; the proxy picks one of two behaviors:
 
 ```
 CONNECT api.anthropic.com:443
@@ -59,9 +71,9 @@ CONNECT api.anthropic.com:443
   +--------------------------------------------------+
 ```
 
-Most domains need MITM - that is the whole point. The proxy needs to see the HTTP request to inject an `Authorization` header or rewrite a URL path. But some protocols break under TLS interception. WhatsApp uses a custom Noise protocol handshake that fails if anything tampers with the TLS layer. For those domains, the proxy falls back to a direct CONNECT tunnel: it allows the connection but does not touch it.
+Most routes need MITM—that is the point: read the HTTP request, inject `Authorization` or rewrite a path. WhatsApp-style Noise breaks under interception, so those domains get a direct CONNECT tunnel instead.
 
-Each route in the proxy config declares whether it needs MITM. If the injector is `none` and there are no path restrictions or default headers, that route can use a direct tunnel. Everything else needs interception. At CONNECT time the proxy makes the decision per host, not per final request path: if any matching route for that host needs MITM, the proxy intercepts the connection.
+Per route, `NeedsMITM()` is false only when the injector is `none` and there are no path restrictions or default headers. At CONNECT time I decide per host: if *any* matching route for that host needs MITM, the connection is intercepted—even before a path exists.
 
 ```go
 func (r *Route) NeedsMITM() bool {
@@ -72,220 +84,101 @@ func (r *Route) NeedsMITM() bool {
 }
 ```
 
-This is a meaningful distinction. It means the proxy can allowlist WhatsApp's domains for connectivity without breaking its protocol, while still doing full credential injection on every API call to Anthropic or OpenAI.
+That split matters for attacks too: anything that needs injection must land on a MITM-capable route; anything that breaks under interception gets a dumb tunnel—but then I cannot inject or path-filter inside the tunnel. I treat "direct CONNECT allowed" as a conscious loss of visibility, not a free pass.
 
-The proxy also has a second mode besides classic forward-proxy CONNECT handling. For known providers, the operator can generate path-prefixed gateway routes like `/anthropic` or `/openai`, each with an upstream target. In that mode the gateway sends plain HTTP requests directly to the proxy, the proxy strips placeholder auth, injects the real credential, rewrites the request to the configured upstream, and forwards it.
+There is also a path-prefixed mode (`/anthropic`, `/openai`, …): plain HTTP to the proxy, strip placeholder auth, inject, rewrite to upstream. Same trust boundary, different surface—policy has to match on host *and* path in both modes.
+
+## How I would try to break it
+
+Before I trusted this layout, I wrote down how I would attack it if I already had gateway-level code execution—the same assumption that drove "never give the agent real secrets." This is the checklist I actually used; not a generic STRIDE slide.
+
+**Policy matching.** Can I reach an upstream the operator did not intend by winning the wrong route? CONNECT is decided on host before the HTTP path exists, so I look for hosts where one route needs MITM and another does not, or where path-restricted and catch-all routes disagree. I try `host:port` vs bare host, suffix vs exact, and whether sorted route precedence lets a broader rule shadow a narrower one on reconcile. I send the same hostname with different paths on the gateway-prefixed path and on CONNECT MITM and check both code paths.
+
+**Host validation.** The allowlist keys off what the proxy believes the destination is—CONNECT authority, rewritten upstream host, `Host` on plain HTTP. I try mismatches: wrong port on a kube API route, IPv6 literals, trailing dots, userinfo in URLs, and anything that makes `MatchRoute` see a different string than the TCP peer. If host parsing is loose, I get a route I should not, or I miss injection and ship placeholder creds to a real API (loud failure, but still a bug).
+
+**Redirects and wildcard abuse.** If the proxy follows redirects without re-checking policy, I chain out of an allowed domain. I abuse suffix routes (`.googleapis.com`, `.githubusercontent.com`) with subdomains or paths the operator did not picture. On path-restricted routes I try `..`, `//`, and encoded segments to slip past canonicalization—exactly the class of bug that turns "Slack app token only on this path" into "any Slack API." Redirects are still an open audit point for me: I keep testing them aggressively, because allowlists get weird once clients start walking you to a different host.
+
+**SSRF and internal destinations.** The gateway is untrusted egress. I point it at metadata endpoints, loopback names, cluster DNS, or MCP URLs that resolve inside the mesh. I watch `inClusterBypass` and per-route upstream overrides: anything that lets the gateway skip the proxy or talk to a Service on port 80 is a second egress path I have to kill in NetworkPolicy, not just in JSON routes. Kubernetes injector routes are especially sensitive: a kubeconfig entry is a map from host:port to bearer token, so confusing internal API servers with external ones is credential cross-wiring.
+
+**Multi-tenant isolation.** One compromised gateway must not become lateral movement. I ask whether two `Claw` instances can share Secrets, proxy configs, or operator RBAC mistakes; whether instance-level gateway tokens mean every human on that instance shares one blast radius; and whether the operator's broad RBAC is a bigger prize than any single pod. I do not pretend per-path Slack restrictions solve tenant boundaries—they solve *credential shape* inside one instance.
+
+**Logging and auditability.** I want blocked CONNECTs and rejected paths to show up in logs I would actually read during an incident. I want config and secret changes to force a rollout I can correlate (stale proxy with old routes is a silent policy regression). If exfiltration only needs allowed domains, logs are the detective control; if exfiltration needs a policy bug, logs are how I prove which route fired.
+
+That list is the bar. What follows maps it to five controls: a domain allowlist, path restrictions, credential stripping on egress, explicit CONNECT-mode decisions per host, and NetworkPolicy around the proxy.
 
 ## The CA certificate: trust by design
 
-For MITM to work, the gateway must trust the proxy's TLS certificates. The operator generates a self-signed P-256 ECDSA CA certificate on first deployment and stores it in a Kubernetes Secret. This CA is used by goproxy to sign leaf certificates on the fly for each upstream domain.
+MITM only works if the gateway trusts the proxy's leaf certs. The operator generates a P-256 ECDSA CA once, stores it in a Secret, and the gateway mounts it—so `api.openai.com` looks legitimate while the proxy terminates TLS. That is intentional mis-trust: the agent process must not be able to pin the *real* provider cert and bypass injection.
 
-The gateway pod mounts this CA certificate and adds it to its trust store. From the gateway's perspective, `api.openai.com` presents a valid certificate signed by a trusted CA. It has no idea the proxy is in the middle.
-
-On the upstream side, the proxy verifies the real server's TLS certificate against the system root CA pool (plus any custom CAs from kubeconfig entries). It explicitly does *not* use `InsecureSkipVerify`. This matters: if the proxy blindly trusted upstream certificates, an attacker could intercept the proxy-to-upstream connection and steal the credentials the proxy just injected.
+Upstream is the opposite story. The proxy verifies real server certificates (system roots plus kubeconfig CAs). No `InsecureSkipVerify`. If I could MITM the proxy's outbound leg, I would harvest everything the injectors just added—so this is the other half of host validation, not gateway theater.
 
 ```
 Gateway  <--[proxy CA]--> Proxy <--[real CA]--> Upstream
   trusts proxy CA           verifies real certs
 ```
 
-## Seven injectors, one interface
+## Seven injectors, one job
 
-The proxy supports seven credential types, each implemented as a separate injector behind a common interface:
+The proxy core does not know Anthropic from Slack. It matches a route, strips whatever auth the gateway tried to send, and calls an injector. That isolation is the point: credential mechanics live in small types that only mutate the outbound request, not in CONNECT handling or allowlist logic.
 
-```go
-type Injector interface {
-    Inject(req *http.Request) error
-}
-```
+First step is always deletion—`Authorization`, `X-Api-Key`, `X-Goog-Api-Key`, `Proxy-Authorization`, every `Impersonate-*` header. If the compromised runtime still had a real key in memory and tried to exfiltrate through the proxy, that attempt dies before injection. Placeholders in generated gateway config are routing hints, not trust.
 
-Every injector does one thing: modify an `*http.Request` to add credentials. The proxy calls `StripAuthHeaders` before injection, removing `Authorization`, `X-Api-Key`, `X-Goog-Api-Key`, `Proxy-Authorization`, and all `Impersonate-*` headers, so the gateway cannot accidentally pass through credentials of its own.
+After the strip, the shape of the secret decides behavior: static keys and bearer tokens from env into named headers; path-embedded tokens (Telegram-style) with the same canonicalization paranoia as path-restricted routes; GCP and OAuth2 as short-lived tokens minted and cached on the proxy; kubeconfig parsed into a host:port→token map (the checklist's cross-wiring case—wrong server URL means the wrong bearer on the wrong API); `none` for allowlist-only egress, usually on direct CONNECT tunnels where MITM would break the wire protocol. New provider shape? New injector type, same strip-then-inject path—the server code stays boring on purpose.
 
-Here is what each injector does:
+## The domain allowlist: no route, no egress
 
-**`api_key`** - Reads a secret from an environment variable, sets a custom header. Google uses `x-goog-api-key`, Anthropic uses `x-api-key`, Discord uses `Authorization` with a `Bot ` prefix. The header name and value prefix are configurable per route.
+The first gate is hostname. Unknown `CONNECT` targets get rejected and logged before TLS or injection—positive security against SSRF and "just curl this internal URL" fantasies. The gateway only reaches domains the operator put in the route table: LLM providers, channels, declared MCP peers, and a small builtin set (ClawHub, npm, GitHub, OpenRouter pricing, a *path-restricted* slice of `raw.githubusercontent.com`). No matching route means no socket, regardless of what the agent was told to fetch.
 
-**`bearer`** - Reads a token from an environment variable, sets `Authorization: Bearer <token>`. Used by OpenAI, xAI, OpenRouter, and Slack.
+Suffix routes (`.googleapis.com`, `.githubusercontent.com`) buy convenience; path restrictions buy precision. Slack is the case I keep in mind: one route for the app-token path, others for the rest of the API, with canonicalized paths so `..` and `//` cannot smuggle a broader credential shape. CONNECT still picks MITM vs tunnel per host via `NeedsMITM()`; path checks bite on HTTP inside intercepted flows and on gateway-prefixed plain HTTP—two surfaces, same rules.
 
-**`gcp`** - Reads a GCP service account JSON file, obtains an OAuth2 access token using `google.CredentialsFromJSONWithType`, caches it with automatic refresh, and sets `Authorization: Bearer <token>`. Also handles token vending: when Google's SDK tries to fetch its own OAuth2 token from `oauth2.googleapis.com/token`, the proxy intercepts the request and returns a dummy token. The real token injection happens on the actual API request.
+Precedence is part of the control, not an implementation detail: `host:port` exact, then bare host, then suffix. The reconciler emits the same sort order the proxy uses, so a rollout cannot silently reshuffle which rule wins—a direct answer to the "policy matching" line on the attack checklist.
 
-**`path_token`** - Rewrites the URL path to embed the token. Telegram's Bot API uses URLs like `/bot<token>/sendMessage`. The gateway sends requests with a placeholder token, and the injector swaps in the real one.
+## What the operator actually ships
 
-**`oauth2`** - Performs a `client_credentials` grant to obtain an access token, caches it via a reusable `TokenSource`, and sets `Authorization: Bearer <token>`. Used for services that require OAuth2 client credentials rather than static API keys.
+The proxy stays deliberately dumb—sorted JSON routes, env and volume mounts—so when policy is wrong I have one artifact to diff, not seven credential code paths scattered through the gateway. The reconciler turns `Claw` `spec.credentials` into that table: domain, injector, path prefix, upstream override, allowed paths, CONNECT-mode implications via `NeedsMITM()`. Kubeconfigs get validated before they become routes (token auth only, parseable server URLs, no conflicting host:port tokens). Real Secrets land on the proxy Deployment only.
 
-**`kubernetes`** - Parses a kubeconfig file and builds a hostname:port-to-token lookup map. When a request goes to a Kubernetes API server, the injector looks up the token by the destination host and port, then sets `Authorization: Bearer <token>`. Handles both IPv4 and IPv6 addresses.
+Rollout is where operator discipline meets runtime discipline. The controller hashes the route JSON into a pod annotation (`claw.sandbox.redhat.com/proxy-config-hash`) and stamps each referenced Secret's `ResourceVersion`. Change policy or rotate a Secret without a restart, and you are still running yesterday's allowlist—that is the silent regression from the attack checklist. Forcing a rolling restart on drift is blunt; I will take blunt over wrong.
 
-**`none`** - Does nothing (or sets default headers if configured). Used for allowlist-only domains like WhatsApp companions, npm registry, or GitHub.
+The gateway manifest comes last, and it is still the untrusted side: after OpenShift (or plain Kubernetes) exposes a public hostname, the reconciler applies config with proxy URLs, placeholder auth, provider metadata, and the proxy CA—never the real provider material. NetworkPolicy port lists are derived from the same route table (non-443 kube APIs, in-cluster MCP peers), so L3 and L7 policy stay aligned without the gateway learning how to mint tokens.
 
-The factory function is a switch statement:
+## The GCP receipt that proved the boundary
 
-```go
-func NewInjector(route *Route) (Injector, error) {
-    switch route.Injector {
-    case "api_key":    return NewAPIKeyInjector(route)
-    case "bearer":     return NewBearerInjector(route)
-    case "gcp":        return NewGCPInjector(route)
-    case "none":       return NewNoneInjector(route)
-    case "path_token": return NewPathTokenInjector(route)
-    case "oauth2":     return NewOAuth2Injector(route)
-    case "kubernetes": return NewKubernetesInjector(route)
-    default:           return nil, fmt.Errorf("unknown injector type: %s", route.Injector)
-    }
-}
-```
+Vertex paths mount a stub ADC file on the gateway so Google's SDK can boot. The SDK then does what SDKs do: `POST` to `oauth2.googleapis.com/token` with that stub. The proxy already mints real tokens from the service-account JSON on its side. Let that token request hit Google and it fails—the stub is a placeholder by design.
 
-Adding a new credential type means writing a struct with an `Inject` method and adding one case to this switch. The proxy server code does not change.
-
-## The domain allowlist: egress firewall for free
-
-The proxy does not just inject credentials. It also blocks everything not in its route table. If the gateway tries to reach a domain with no matching route, the proxy returns HTTP 403 with a small JSON error body.
-
-```go
-proxy.OnRequest().HandleConnectFunc(
-    func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
-        route := cfg.MatchRoute(host, "")
-        if route == nil {
-            logger.Warn("blocked CONNECT to unknown domain", "host", host)
-            return rejectConnect, host
-        }
-        // ...
-    },
-)
-```
-
-This means the proxy doubles as an application-layer egress firewall. The gateway can only reach domains that the operator has explicitly configured: provider APIs, channel domains, MCP server endpoints, and a small set of builtins such as the ClawHub plugin registry, npm, GitHub, OpenRouter's pricing endpoint, and a path-restricted slice of `raw.githubusercontent.com`.
-
-Routes can also restrict allowed paths. For example, Slack support can use an exact allowed path for the app-token route while keeping other Slack traffic on separate routes, and path matching canonicalizes dot-segments and duplicate slashes to prevent traversal bypasses.
-
-The route matching has three tiers of precedence: `host:port` exact match beats bare-host exact match beats suffix match (domains starting with `.`). This matters for Kubernetes credentials, where the proxy needs to match `api.cluster.local:6443` exactly, and for GCP credentials, where `.googleapis.com` can cover Google API subdomains.
-
-## How the operator wires it all together
-
-The proxy is intentionally dumb. It reads a JSON config file and a set of environment variables. It does not know about Kubernetes, CRDs, or the Claw spec. All the orchestration logic lives in the operator's reconciler.
-
-The reconcile flow is three-phase because the OpenShift Route host is populated asynchronously and then has to be injected back into the gateway config:
-
-**1. Phase 1: resolve credentials and apply proxy-managed resources.** The operator reads the `Claw` CR's `spec.credentials` list, applies provider defaults, validates referenced Secrets, and generates proxy-side resources. If the user specifies `provider: google`, the operator infers `type: apiKey`, `domain: generativelanguage.googleapis.com`, and `header: x-goog-api-key` from a centralized `knownProviders` registry. Explicit values always win. For kubernetes credentials, it parses the entire kubeconfig, validating that all users use token auth, that server URLs are parseable, that CA data is inlined, and that no server has conflicting tokens from different users.
-
-One of the controller-managed outputs is the proxy route table:
-
-```json
-{
-  "routes": [
-    {
-      "domain": "api.anthropic.com",
-      "injector": "api_key",
-      "header": "x-api-key",
-      "envVar": "CRED_ANTHROPIC",
-      "pathPrefix": "/anthropic",
-      "upstream": "https://api.anthropic.com"
-    },
-    {
-      "domain": "api.openai.com",
-      "injector": "bearer",
-      "envVar": "CRED_OPENAI",
-      "pathPrefix": "/openai",
-      "upstream": "https://api.openai.com/v1"
-    },
-    {
-      "domain": "clawhub.ai",
-      "injector": "none"
-    }
-  ]
-}
-```
-
-Routes are deterministically sorted - exact domains before suffix domains, alphabetical within each group, path-restricted routes before catch-all routes. This prevents unnecessary ConfigMap churn across reconcile loops.
-
-The reconciler also modifies the proxy Deployment's pod template to inject credentials:
-
-- API keys, bearer tokens, path tokens, and OAuth2 secrets become environment variables sourced from Kubernetes Secrets (`valueFrom.secretKeyRef`)
-- GCP service account files and kubeconfigs become volume mounts from Secrets, projected into `/etc/proxy/credentials/<name>/`
-
-The proxy config JSON is SHA-256 hashed and stamped as a pod annotation (`claw.sandbox.redhat.com/proxy-config-hash`). Each referenced Secret's `ResourceVersion` is also stamped. When config or secrets change, the annotations change, and Kubernetes triggers a rolling update. This is the standard annotation-driven rollout pattern: the proxy gets restarted with the new config without the operator having to manage rollout logic itself.
-
-**2. Phase 2: apply the Route and wait for the host.** The controller applies the OpenShift Route, reads back `.status.ingress[0].host`, and requeues until that host is populated. On vanilla Kubernetes, where the Route CRD is absent, it falls back to `http://localhost:18789`.
-
-**3. Phase 3: inject the final gateway config and apply remaining resources.** Once the Route host is known, the operator injects it into the generated gateway config along with provider metadata, model catalog data, network policy ports, and config hashes, then applies the remaining manifests. That ordering is not just implementation detail - it is what lets the gateway come up with the right externally visible host and CORS configuration on first successful reconciliation.
-
-## The GCP token vending trick
-
-The GCP injector has an interesting wrinkle. For Vertex SDK paths, the operator mounts a stub ADC (Application Default Credentials) file into the gateway so Google's auth library can bootstrap. Google's client SDK then tries to obtain its own OAuth2 token before making API calls. It sends a `POST` to `oauth2.googleapis.com/token`. But the proxy is already handling token acquisition - the `GCPInjector` calls `google.CredentialsFromJSONWithType` and injects the token on the real API request.
-
-If the SDK's token request reaches the real Google endpoint, it will fail because the gateway's ADC (Application Default Credentials) file contains placeholder data. So the proxy intercepts the token vending request and returns a dummy response:
+So the proxy lies politely on the vending path and returns:
 
 ```json
 {"access_token": "claw-proxy-vended-token", "token_type": "Bearer", "expires_in": 3600}
 ```
 
-The SDK is satisfied. It sets `Authorization: Bearer claw-proxy-vended-token` on the next request. The proxy then strips that header and replaces it with a real token. The SDK never knows the difference.
+The SDK accepts it, sets `Authorization: Bearer claw-proxy-vended-token` on the next call, and the proxy strips that dummy bearer and injects a real one. The gateway never held the JSON; it never got a usable OAuth response—only a token-shaped string it was trained to forward. Same trick on CONNECT MITM and on gateway-prefixed HTTP, because the SDK does not care which path you chose when you set `baseUrl`.
 
-This interception happens at two levels, both in the forward proxy path (CONNECT MITM) and in the gateway path (direct HTTP), because the SDK might use either depending on how `baseUrl` is configured.
+That was the moment I trusted the split: the interesting credential work happened on infrastructure I could patch without redeploying the Node runtime.
 
-## NetworkPolicy: defense in depth
+## NetworkPolicy: the backstop, not the story
 
-The proxy is not the only layer of enforcement. The operator creates three `NetworkPolicy` resources per instance: one ingress policy for the gateway, one gateway egress policy, and one proxy egress policy.
+The allowlist is the primary control: names and paths the agent may request. NetworkPolicy answers what a compromised process can do when policy JSON is wrong or incomplete—peers and ports, not hostnames. Per `Claw` instance: gateway egress to proxy and DNS only; proxy egress to 443 and DNS unless a route documents an exception (non-443 kube APIs, in-cluster MCP). A route to an internal Service is useless if the proxy policy never allows that peer; `inClusterBypass` is a deliberate second egress path I treat as skipping injection, not as a feature.
 
 ```
-+-------------------------+     +-------------------+     +------------------+
-| Gateway Pod             |     | Proxy Pod         |     | Internet         |
-|                         |     |                   |     |                  |
-|  Egress: proxy + DNS    |     |  Egress: 443 + DNS|     |                  |
-|  (nothing else)         |     |  (nothing else)   |     |                  |
-+------------+------------+     +---------+---------+     +------------------+
-             |                            |
-             +--- only to proxy --------->+--- only to port 443 ------------>
+Gateway  --[proxy + DNS only]-->  Proxy  --[443 + DNS, exceptions explicit]-->  Internet / declared peers
 ```
 
-The gateway can only reach the proxy and DNS. The proxy can only reach port 443 and DNS by default. That is real defense in depth, but it is important to be precise about what each layer enforces: the NetworkPolicies constrain peers and ports, while the proxy's route table enforces the hostname and path allowlist.
+I would not ship this without L7 rules—but I would not pretend L7 rules replace mesh fencing. The checklist's SSRF line needs both.
 
-When Kubernetes credentials use non-standard ports (like `6443` for the API server), the operator dynamically adds those ports to the proxy's egress NetworkPolicy. MCP server URLs that point to in-cluster services get their own egress rules, routed either through the proxy or directly from the gateway depending on the `inClusterBypass` setting.
+## What I did not build
 
-## What this buys you
+This does not make OpenClaw "secure." It removes one especially stupid failure mode: handing raw provider credentials to a process that eats untrusted input all day and hoping plugins, prompts, and heap dumps stay boring. The win is narrower—move the trust boundary to infrastructure that can strip, inject, allowlist, and fence egress better than a Node gateway ever will.
 
-The MITM proxy pattern gives the operator four properties that would be awkward to get any other way:
+Mapped back to the checklist, that is five receipts, not a product pitch: hostname allowlist at CONNECT; path restrictions inside MITM; strip-then-inject on every forwarded request; explicit MITM vs dumb tunnel per host; NetworkPolicy as backstop when JSON policy lies. More moving parts—CA, proxy Deployment, hashed rollouts—but I would rather operate that pile than teach the gateway seven credential types where user code runs.
 
-**Credential isolation.** The gateway does not receive the real provider secrets. It works with placeholder values in generated config, while the real credential material is mounted into or injected into the proxy workload. On egress, the proxy strips gateway-supplied auth headers and replaces them with the real credentials for the matched route.
+The claim stays narrow. A compromised gateway should not read provider secrets and should not get arbitrary egress. It is not fine-grained authorization inside one shared instance, and it is not safety against a compromised operator.
 
-**Uniform credential injection.** Every provider, channel, and Kubernetes cluster uses the same pattern: the operator writes a route config, mounts the secret, and the proxy handles injection. Adding a new provider type means writing one injector struct. The gateway code does not change.
+NVIDIA OpenShell's reported cross-sandbox bypass is a useful contrast: sandbox-scoped RPCs trusted a caller-supplied `sandbox_id` while pods shared one mTLS identity, so one sandbox could read another's provider environment. [Report](https://pastebin.com/raw/83V4HT53), [reproducer](https://pastebin.com/raw/F8tVWy4v). NVIDIA treated it as expected in single-tenant deployment; hardening followed in [issue #40](https://github.com/NVIDIA/OpenShell/issues/40) and [issue #451](https://github.com/NVIDIA/OpenShell/issues/451). I am not solving that class of bug inside one shared runtime. Isolation unit is the `Claw` instance—typically a namespace—with secrets on the proxy and policy beside them. Strongest when one tenant maps to one instance; weakest when several humans share one gateway token and one credential context. Path-level Slack restrictions shape *which secret* fires; they do not create tenants.
 
-**Egress control.** The proxy is a positive-security allowlist. The gateway can only reach domains the operator has configured. This is not a "nice to have" - in a multi-tenant environment where each user has their own Claw instance, you want to limit blast radius.
+Two limits I will say out loud:
 
-**Protocol flexibility.** The two CONNECT modes (MITM vs. direct tunnel) mean the proxy works with both standard HTTPS APIs and exotic protocols like WhatsApp's Noise handshake. You do not have to choose between credential injection and protocol compatibility - the proxy handles both, per domain.
+The operator reconciler is a privileged control plane—Deployments, Secrets, NetworkPolicies, `pods/exec` for pairing. Compromising one gateway pod is bad; owning the controller is worse.
 
-The tradeoff is complexity. The operator generates a CA, manages a dedicated proxy workload, builds a dynamic route table, stamps config hashes for rollouts, and wires credentials through env vars and volume mounts. That is a lot of moving parts. But the alternative, teaching the gateway about seven credential types across dozens of providers and channels, is worse. Here, the complexity lives in the operator, where it can be tested systematically, rather than in the gateway, where it would be buried inside application logic.
+Gateway auth is per instance, not per human. I spin instances to isolate tenants; I do not pretend ACLs inside a single programmable gateway fix multi-user sharing.
 
-## Threat model matters
-
-A design like this is easy to oversell, so it is worth being explicit about what security claim it is making, and what claim it is not.
-
-One useful contrast comes from a previously reported cross-sandbox authorization bypass in NVIDIA OpenShell. There, sandbox-scoped gRPC RPCs accepted a caller-supplied `sandbox_id` while the CLI and all sandbox pods shared the same mTLS client certificate. In that architecture, one sandbox could read another sandbox's provider environment, read its policy, create an SSH session, and execute commands in it. The original report and reproducer are public: [report](https://pastebin.com/raw/83V4HT53), [reproducer](https://pastebin.com/raw/F8tVWy4v). NVIDIA's security team agreed that the behavior was technically real, but said it was not a vulnerability in OpenShell's current single-tenant deployment model because all sandboxes already belonged to the same user. They also pointed to follow-up hardening work in [issue #40](https://github.com/NVIDIA/OpenShell/issues/40) and [issue #451](https://github.com/NVIDIA/OpenShell/issues/451).
-
-That contrast is useful here. The design in this operator is safer than a shared-gateway, shared-credential-boundary model for the specific problem of secret isolation because it makes different tradeoffs:
-
-- The unit of deployment and isolation is the `Claw` instance, not a sub-identity inside one shared gateway.
-- Real provider secrets normally stay off the gateway process and live on the proxy side, with placeholder values in generated config.
-- The proxy is both the credential injector and the layer-7 allowlist, while Kubernetes `NetworkPolicy` constrains the network path around it.
-
-In practice, that means this design is strongest when the operational model is one tenant, user, or team per `Claw` instance and usually one namespace per tenant boundary. In that setup, it is safer than a shared-gateway design because it pushes the trust boundary outward and lets Kubernetes and OpenShift primitives do more of the isolation work.
-
-But that comes with two important caveats.
-
-First, this operator has a privileged control plane. The controller needs broad RBAC to reconcile Deployments, Secrets, NetworkPolicies, Roles, RoleBindings, and even `pods/exec` for device pairing flows. So while compromise of a single `Claw` workload is relatively contained, compromise of the operator itself would have a much larger blast radius.
-
-Second, the gateway authentication model is instance-level, not fine-grained per-user authorization. In token mode there is one random gateway token per instance. In password mode there is one shared password secret per instance. If multiple humans share one `Claw` instance, they are still sharing one gateway and one credential context. This architecture gives you a cleaner per-instance security boundary than a shared-gateway design, but it is not the same thing as fine-grained user-to-user isolation inside a single shared instance.
-
-That is the pragmatic comparison. This operator is safer by default for tenant isolation because it chooses a coarser and more defensible boundary. It does not win by solving shared-instance multi-user authorization better. It mostly avoids that problem by isolating instances instead.
-
-## Takeaways for your own projects
-
-If you are building a Kubernetes operator that manages an application with external API credentials, consider whether an operator-managed credential proxy makes sense. It does not have to be a sidecar. The pattern works well when:
-
-- The application talks to many external services with different auth mechanisms
-- You want to enforce egress restrictions at the network level
-- The application should not be trusted with raw credentials
-- You need to support protocols that do not tolerate TLS interception alongside ones that require it
-
-The injector interface pattern is worth stealing even outside the proxy context. Any time you have N credential types with different injection mechanics, hiding them behind a common interface with a factory function keeps the calling code clean.
-
-The config hash stamping pattern (SHA-256 of config content as a pod annotation) is a well-known Kubernetes trick, but it is worth emphasizing because it solves the "config changed but the pod did not restart" problem without requiring the operator to manage rolling updates itself. Let Kubernetes do what it is good at.
+If you steal one thing for your own operator work: decide whether the application that faces users and plugins should ever hold provider secrets. If the answer is no, something smaller needs to stand in the middle—and you will live with MITM tradeoffs, stub tokens, and hashed rollouts as the price of that "no." That was the whole point of trying to steal the secret first: make the failure mode loud early, not in production when a prompt injection already won.
