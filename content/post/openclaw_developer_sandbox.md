@@ -32,11 +32,33 @@ Put differently:
 
 Let's put the security glasses to look into this.
 
-## The Problem
+## The Baseline
 
-For the assistant to be useful, it needs Kubernetes access. Obviously. It has to inspect resources, work against a developer workspace, and call model providers on the way out.
+This is the critical point that is easy to miss if you only look at the Developer Sandbox setup.
 
-That immediately creates three uncomfortable problems, and none of them are theoretical.
+OpenClaw does **not** need Kubernetes access to be useful in the general case.
+
+If you want a personal assistant to help with research, planning, writing, or anything else unrelated to cluster management, it does not need kube API access at all.
+
+And by default, when deployed by the operator, it is locked down very aggressively:
+
+- the gateway talks to the proxy and not directly to the outside world
+- the proxy can talk only to destinations that were explicitly configured
+- real provider credentials stay on the proxy side and not in the gateway process
+- the proxy is for outbound provider access, not for talking to the Kubernetes API
+- OpenShift container hardening gives us a strong baseline isolation story out of the box
+
+That is already a solid default security posture.
+
+## The Developer Sandbox Problem
+
+Developer Sandbox is a more specific case.
+
+There, we wanted the assistant to wear one extra hat: not just be a personal AI assistant, but also help the user work against their Developer Sandbox workspace.
+
+That is optional capability, not the main OpenClaw story.
+
+But once you give the assistant access to a developer workspace, you create three uncomfortable problems, and none of them are theoretical.
 
 First, if the assistant can read secrets in the same place where it runs, it can grab:
 
@@ -78,6 +100,13 @@ The operator also gives us strong default networking:
 
 That is already a strong foundation, and honestly it is the main reason I was willing to build on this instead of starting from scratch.
 
+It also matters because it means Developer Sandbox is **not** "more secure than OpenClaw out of the box."
+
+The better way to say it is this:
+
+- OpenClaw out of the box is already locked down
+- Developer Sandbox builds on that baseline and securely grants extra capabilities for a specific use case
+
 ## The Developer Sandbox Part: Two Namespaces
 
 For Developer Sandbox, I wanted a harder boundary than "the gateway should behave."
@@ -93,7 +122,7 @@ That separation is not something the operator enforces by itself. It is part of 
 
 That distinction matters.
 
-`claw-operator` gives us the mechanisms. The Sandbox deployment model decides how aggressively to use them.
+`claw-operator` gives us the mechanisms. The Sandbox deployment model decides how to use them for this special case.
 
 Once we split the deployment this way, the security story gets much cleaner:
 
@@ -166,7 +195,7 @@ That does not make the system magically safe. What it does do is move enforcemen
 
 I want to be careful here and not oversell it.
 
-I do think this is a safer design by default, because we chose a coarser and more defensible boundary.
+I do think this is a safer design for the Developer Sandbox use case, because we chose a coarser and more defensible boundary.
 
 Instead of trying to solve every security problem inside one shared gateway, we pushed the trust boundary outward:
 
@@ -174,7 +203,7 @@ Instead of trying to solve every security problem inside one shared gateway, we 
 - keep real provider secrets off the gateway
 - force outbound traffic through a single control point
 
-That is a practical security posture for a shared platform.
+That is a practical security posture for a shared platform when you want the assistant to help manage a developer workspace.
 
 It is not perfect. It is just much easier to defend than a design that depends on every handler, every object lookup, and every authorization check being correct forever.
 
@@ -216,6 +245,8 @@ The operator gives you the core mechanisms:
 - credential handling
 - per-instance auth
 
+And by default it stays very locked down unless you choose to grant additional capabilities.
+
 But it does not give you the two-namespace pattern we use in Sandbox.
 
 That part is a deployment choice built around those mechanisms.
@@ -239,24 +270,31 @@ Those caveats do not invalidate the design. They just define the edges of it, an
 
 ## TL;DR
 
-We put a personal AI assistant on Developer Sandbox.
+OpenClaw out of the box is already locked down:
 
-We made it useful by giving it access to the developer workspace.
+- the gateway talks only to the proxy
+- the proxy talks only to explicitly allowed destinations
+- real provider secrets stay out of the gateway
+- there is no Kubernetes API access unless you intentionally configure it
 
-We made it safer by:
+Developer Sandbox is a more specific story.
 
-- keeping its infrastructure in a separate namespace
+We wanted the assistant to help users work against their Sandbox workspace, so we gave it one extra hat. That means granting extra capability, which has to be done carefully.
+
+We made that safer by:
+
+- keeping the assistant infrastructure in a separate namespace
+- letting it work against the developer workspace instead of its own infra namespace
 - keeping real provider secrets on the proxy side
 - forcing outbound traffic through that proxy
 - using Kubernetes and OpenShift boundaries as part of the design, not as an afterthought
 
-And we did that by combining:
+So the right way to think about it is not "Sandbox makes OpenClaw secure."
 
-- the operator's proxy and routing model
-- the operator's secret-isolation model
-- a Sandbox-specific dual-namespace deployment pattern
+The right way to think about it is:
 
-That combination is what gives us the security story.
+- OpenClaw starts locked down
+- Developer Sandbox is an example of securely extending it for a cluster-management use case
 
 If I had to reduce the whole thing to one sentence, it would be this:
 
