@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>proxy on drpaneas</title><link>https://drpaneas.com/tags/proxy/</link><description>Recent content in proxy on drpaneas</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 05 Jun 2026 12:19:00 +0200</lastBuildDate><atom:link href="https://drpaneas.com/tags/proxy/index.xml" rel="self" type="application/rss+xml"/><item><title>How We Put OpenClaw on Developer Sandbox</title><link>https://drpaneas.com/blog/2026/06/05/how-we-put-openclaw-on-developer-sandbox/</link><pubDate>Fri, 05 Jun 2026 12:19:00 +0200</pubDate><guid>https://drpaneas.com/blog/2026/06/05/how-we-put-openclaw-on-developer-sandbox/</guid><description>OpenClaw is now on Developer Sandbox.
+You click a card, provide an API key, and get a personal AI assistant running on OpenShift.
+Under the hood, that assistant runs on OpenClaw, and the core building blocks come from claw-operator.
+That part is the boring story.
+The harder story is the one I actually care about.
+The first question I asked was not &amp;ldquo;does the demo work?&amp;rdquo; It was this:
+if I compromise the agent, can I steal the credential?</description></item></channel></rss>

@@ -1,0 +1,638 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>How to write your own Kubernetes controller | drpaneas</title><meta name=author content="Panos Georgiadis"><meta name=description content="Not all those who wander are lost"><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel=stylesheet><link rel=stylesheet href=/css/main.min.637569fc4ac9f9fcf4e51e2a2d9a7953c10570ef9a7f6ac4e5c438b528d987ff.css></head><body><main class=workspace-page><section class=workspace-shell><div class=workspace-topbar><a class=topbar-tab href=/>1:home</a>
+<a class=topbar-tab href=/post/>2:posts*</a>
+<a class=topbar-tab href=/tags/>3:tags</a>
+<a class=topbar-tab href=/about/>4:about</a>
+<span class=workspace-session>[session: drpaneas]</span></div><article class="pane article-pane"><nav class=breadcrumb-back aria-label=Breadcrumb><a href=/>workspace</a>
+/ <a href=/post/>posts</a>
+/ <span>controller.md</span></nav><div class=pane-title>article / controller.md</div><h1>How to write your own Kubernetes controller</h1><p class=post-meta>2020-02-25 / 15 min
+/ tags:
+<a href=/tags/kubernetes/>kubernetes</a>
+,
+<a href=/tags/controllers/>controllers</a>
+,
+<a href=/tags/golang/>golang</a></p><div class=post-content><h1 id=write-your-own-controller>Write your own controller</h1><p>Before going down the operator framework out there, it is important to understand what is happening under the hood.
+Then you would be able to appreciate the generated boilerplate code and feel more comfortable to <em>change</em> it.</p><h2 id=prereq>Prereq</h2><p>This tutorial assumes you have a cluster up and running and you can successfully communicate with it (e.g. <code>kubectl get pods -A</code> should work).
+If you don&rsquo;t have a cluster, you can setup one locally using <a href=https://code-ready.github.io/crc/#installation_gsg>CodeReadyContainers</a>(used by the tutorial) or minikube.</p><h2 id=create-a-manager>Create a Manager</h2><p>Every controller is technically run by a <a href=https://godoc.org/github.com/kubernetes-sigs/controller-runtime/pkg/manager#Manager>Manager</a>.
+So, the first step to write a controller is that you need to write a Manager.
+Manager is the logic reponsible for triggering the controllers.
+Managers are responsible for running controllers, doing leader elections and handling graceful termination of the controller signals.
+The Manager provides the client, the cache and a lot of dependencies the controller needs to run.</p><p>You can create a Manager by creating a new instance of a Manager (<code>manager.New()</code>).</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;fmt&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/client/config&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/manager&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>mgr</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>manager</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span><span class=nx>config</span><span class=p>.</span><span class=nf>GetConfigOrDie</span><span class=p>(),</span> <span class=nx>manager</span><span class=p>.</span><span class=nx>Options</span><span class=p>{</span><span class=nx>Namespace</span><span class=p>:</span> <span class=s>&#34;&#34;</span><span class=p>})</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Unable to setup manager. Please check if KUBECONFIG is available&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>mgr</span><span class=p>)</span>	<span class=c1>// To avoid Go complaining at mgr not getting used
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span>
+</span></span></code></pre></div><blockquote><p>The <code>config.GetConfigOrDie()</code> tries to get a valid <code>$KUBECONFIG</code> to talk with the <code>apiserver</code>, as defined at <a href=https://github.com/kubernetes-sigs/controller-runtime/blob/master/pkg/client/config/config.go>controller-runtime</a>.</p></blockquote><p>Run:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ go mod init
+</span></span><span class=line><span class=cl>$ go run main.go
+</span></span></code></pre></div><h2 id=create-a-controller>Create a controller</h2><p>Every <a href=https://godoc.org/github.com/kubernetes-sigs/controller-runtime/pkg#hdr-Controller>Controller</a> needs to be bound to a Manager.
+To create a Controller, we need to pass the previously created Manager (<code>mgr</code>).
+The Controller has a set of optional parameters you can leave out.
+The controller will watch and reconcile for <code>pods</code>.
+The most important parameter when you create a controller is the reconsile logic.
+Every time the controller detects some drift in your cluster, it going to call this reconsile logic.</p><blockquote><p>JFYI: You can have more than one reconcilers at one time &ndash; if you like.
+By adding: <code>controller.Options{MaxConcurrentReconciles: 2}</code></p></blockquote><p>For now, the <code>Reconcile</code> function will have no logic.
+We just need to create it because it is needed to bound a Reconciler during the creation of a controller.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;fmt&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/client&#34;</span>			<span class=c1>// for the client.Client
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/client/config&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/controller&#34;</span>		<span class=c1>// for the controller.New
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/manager&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/reconcile&#34;</span>		<span class=c1>// for the reconcile.Result
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>type</span> <span class=nx>ReconcilePod</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>client</span> <span class=nx>client</span><span class=p>.</span><span class=nx>Client</span> <span class=c1>// it reads objects from the cache and writes to teh apiserver
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>r</span> <span class=o>*</span><span class=nx>ReconcilePod</span><span class=p>)</span> <span class=nf>Reconcile</span><span class=p>(</span><span class=nx>request</span> <span class=nx>reconcile</span><span class=p>.</span><span class=nx>Request</span><span class=p>)</span> <span class=p>(</span><span class=nx>reconcile</span><span class=p>.</span><span class=nx>Result</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>reconcile</span><span class=p>.</span><span class=nx>Result</span><span class=p>{},</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>mgr</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>manager</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span><span class=nx>config</span><span class=p>.</span><span class=nf>GetConfigOrDie</span><span class=p>(),</span> <span class=nx>manager</span><span class=p>.</span><span class=nx>Options</span><span class=p>{})</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Unable to setup manager. Please check if KUBECONFIG is available&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>ctrl</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>controller</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span><span class=s>&#34;pod-what-crashes&#34;</span><span class=p>,</span> <span class=nx>mgr</span><span class=p>,</span> <span class=nx>controller</span><span class=p>.</span><span class=nx>Options</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Reconciler</span><span class=p>:</span> <span class=o>&amp;</span><span class=nx>ReconcilePod</span><span class=p>{</span><span class=nx>client</span><span class=p>:</span> <span class=nx>mgr</span><span class=p>.</span><span class=nf>GetClient</span><span class=p>()},</span>
+</span></span><span class=line><span class=cl>	<span class=p>})</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to setup controller&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>ctrl</span><span class=p>)</span>	<span class=c1>// To avoid Go complaining at ctrl not getting used
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span>
+</span></span></code></pre></div><p>Run:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ go mod tidy
+</span></span><span class=line><span class=cl>$ go run main.go
+</span></span></code></pre></div><h2 id=put-a-watcher>Put a Watcher</h2><p>A controller is watching for <a href=https://godoc.org/sigs.k8s.io/controller-runtime/pkg/event>Events</a> via a Watcher.
+The Events are produced by <a href=https://godoc.org/sigs.k8s.io/controller-runtime/pkg/source#Source>Sources</a> assigned to resources (e.g. <em>Pods</em>).
+These events are transformed into <strong>Requests</strong> by <a href=https://godoc.org/sigs.k8s.io/controller-runtime/pkg/handler#hdr-EventHandlers>EventHandlers</a> and then passed to <code>Reconcile()</code> function to trigger an action.</p><p>In our case, we put a Watcher to look for Pod events (provided by source <code>{Type: &amp;v1.Pod{}</code>) and enqueue them as Requests for the <code>Reconciler()</code> with their Name and and Namespace by using an EventHandler, that is <a href=https://godoc.org/sigs.k8s.io/controller-runtime/pkg/handler#example-EnqueueRequestForObject>EnqueueRequestForObject</a>.
+For each Add/Update/Delete event the reconcile loop will be sent a reconcile Request (a namespace/name key) for that Pod object.</p><blockquote><p>Best Practice: Use only a single reconciler function so that reconcilers are always indepodent.</p></blockquote><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;fmt&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>v1</span> <span class=s>&#34;k8s.io/api/core/v1&#34;</span>							<span class=c1>// for v1.Pod type
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/client&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/client/config&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/controller&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/handler&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/manager&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/reconcile&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/source&#34;</span>		<span class=c1>// for source.Kind{}
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>type</span> <span class=nx>ReconcilePod</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>client</span> <span class=nx>client</span><span class=p>.</span><span class=nx>Client</span>   <span class=c1>// it reads objects from the cache and writes to teh apiserver
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>r</span> <span class=o>*</span><span class=nx>ReconcilePod</span><span class=p>)</span> <span class=nf>Reconcile</span><span class=p>(</span><span class=nx>request</span> <span class=nx>reconcile</span><span class=p>.</span><span class=nx>Request</span><span class=p>)</span> <span class=p>(</span><span class=nx>reconcile</span><span class=p>.</span><span class=nx>Result</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>reconcile</span><span class=p>.</span><span class=nx>Result</span><span class=p>{},</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>mgr</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>manager</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span><span class=nx>config</span><span class=p>.</span><span class=nf>GetConfigOrDie</span><span class=p>(),</span> <span class=nx>manager</span><span class=p>.</span><span class=nx>Options</span><span class=p>{</span><span class=nx>Namespace</span><span class=p>:</span> <span class=s>&#34;&#34;</span><span class=p>})</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Unable to setup manager. Please check if KUBECONFIG is available&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>ctrl</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>controller</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span><span class=s>&#34;pod-what-crashes&#34;</span><span class=p>,</span> <span class=nx>mgr</span><span class=p>,</span> <span class=nx>controller</span><span class=p>.</span><span class=nx>Options</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Reconciler</span><span class=p>:</span> <span class=o>&amp;</span><span class=nx>ReconcilePod</span><span class=p>{</span><span class=nx>client</span><span class=p>:</span> <span class=nx>mgr</span><span class=p>.</span><span class=nf>GetClient</span><span class=p>()},</span>
+</span></span><span class=line><span class=cl>	<span class=p>})</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to setup controller&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nf>Watch</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>source</span><span class=p>.</span><span class=nx>Kind</span><span class=p>{</span><span class=nx>Type</span><span class=p>:</span> <span class=o>&amp;</span><span class=nx>v1</span><span class=p>.</span><span class=nx>Pod</span><span class=p>{}},</span> <span class=o>&amp;</span><span class=nx>handler</span><span class=p>.</span><span class=nx>EnqueueRequestForObject</span><span class=p>{});</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to watch pods&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><p>Run:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ go mod tidy
+</span></span><span class=line><span class=cl>$ go run main.go
+</span></span></code></pre></div><h2 id=starting-the-manager>Starting the Manager</h2><p>The last part is to setup a <code>SIGINT</code> and <code>SIGTERM</code> signal for the graceful start and stop of the manager in combination with k8s pod termination policy.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;fmt&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>v1</span> <span class=s>&#34;k8s.io/api/core/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/client&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/client/config&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/controller&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/handler&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/manager&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/manager/signals&#34;</span>		<span class=c1>// for handling the signals
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/reconcile&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/source&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>type</span> <span class=nx>ReconcilePod</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>client</span> <span class=nx>client</span><span class=p>.</span><span class=nx>Client</span>   <span class=c1>// it reads objects from the cache and writes to teh apiserver
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>r</span> <span class=o>*</span><span class=nx>ReconcilePod</span><span class=p>)</span> <span class=nf>Reconcile</span><span class=p>(</span><span class=nx>request</span> <span class=nx>reconcile</span><span class=p>.</span><span class=nx>Request</span><span class=p>)</span> <span class=p>(</span><span class=nx>reconcile</span><span class=p>.</span><span class=nx>Result</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>reconcile</span><span class=p>.</span><span class=nx>Result</span><span class=p>{},</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>mgr</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>manager</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span><span class=nx>config</span><span class=p>.</span><span class=nf>GetConfigOrDie</span><span class=p>(),</span> <span class=nx>manager</span><span class=p>.</span><span class=nx>Options</span><span class=p>{</span><span class=nx>Namespace</span><span class=p>:</span> <span class=s>&#34;&#34;</span><span class=p>})</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Unable to setup manager. Please check if KUBECONFIG is available&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>ctrl</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>controller</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span><span class=s>&#34;pod-what-crashes&#34;</span><span class=p>,</span> <span class=nx>mgr</span><span class=p>,</span> <span class=nx>controller</span><span class=p>.</span><span class=nx>Options</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Reconciler</span><span class=p>:</span> <span class=o>&amp;</span><span class=nx>ReconcilePod</span><span class=p>{</span><span class=nx>client</span><span class=p>:</span> <span class=nx>mgr</span><span class=p>.</span><span class=nf>GetClient</span><span class=p>()},</span>
+</span></span><span class=line><span class=cl>	<span class=p>})</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to setup controller&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nf>Watch</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>source</span><span class=p>.</span><span class=nx>Kind</span><span class=p>{</span><span class=nx>Type</span><span class=p>:</span> <span class=o>&amp;</span><span class=nx>v1</span><span class=p>.</span><span class=nx>Pod</span><span class=p>{}},</span> <span class=o>&amp;</span><span class=nx>handler</span><span class=p>.</span><span class=nx>EnqueueRequestForObject</span><span class=p>{});</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to watch pods&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=s>&#34;Starting the manager&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>mgr</span><span class=p>.</span><span class=nf>Start</span><span class=p>(</span><span class=nx>signals</span><span class=p>.</span><span class=nf>SetupSignalHandler</span><span class=p>());</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to start manager&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>go mod tidy
+</span></span><span class=line><span class=cl><span class=k>do</span> run main.go
+</span></span></code></pre></div><p>The controller will start running outside of the cluster, using your own credentials (<code>admin</code> of the cluster).
+Press <code>ctrl+c</code> to stop it.</p><h2 id=add-business-logic>Add business logic</h2><p>Every time there is an event (e.g. <em>Add/Update/Delete</em>) for the Pod resource type, then the controller will display a message at its logs.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;context&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;fmt&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>v1</span> <span class=s>&#34;k8s.io/api/core/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;k8s.io/apimachinery/pkg/api/errors&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/client&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/client/config&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/controller&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/handler&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/manager&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/manager/signals&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/reconcile&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/source&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>var</span> <span class=nx>restartList</span> <span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=kt>int32</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>type</span> <span class=nx>ReconcilePod</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>client</span> <span class=nx>client</span><span class=p>.</span><span class=nx>Client</span> <span class=c1>// it reads objects from the cache and writes to teh apiserver
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>r</span> <span class=o>*</span><span class=nx>ReconcilePod</span><span class=p>)</span> <span class=nf>Reconcile</span><span class=p>(</span><span class=nx>request</span> <span class=nx>reconcile</span><span class=p>.</span><span class=nx>Request</span><span class=p>)</span> <span class=p>(</span><span class=nx>reconcile</span><span class=p>.</span><span class=nx>Result</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>pod</span> <span class=o>:=</span> <span class=o>&amp;</span><span class=nx>v1</span><span class=p>.</span><span class=nx>Pod</span><span class=p>{}</span> <span class=c1>// Fetch the pod object
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>err</span> <span class=o>:=</span> <span class=nx>r</span><span class=p>.</span><span class=nx>client</span><span class=p>.</span><span class=nf>Get</span><span class=p>(</span><span class=nx>context</span><span class=p>.</span><span class=nf>TODO</span><span class=p>(),</span> <span class=nx>request</span><span class=p>.</span><span class=nx>NamespacedName</span><span class=p>,</span> <span class=nx>pod</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>if</span> <span class=nx>errors</span><span class=p>.</span><span class=nf>IsNotFound</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>			<span class=c1>// Request object not found, could have been deleted after reconcile request.
+</span></span></span><span class=line><span class=cl><span class=c1></span>			<span class=c1>// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+</span></span></span><span class=line><span class=cl><span class=c1></span>			<span class=c1>// Return and don&#39;t requeue
+</span></span></span><span class=line><span class=cl><span class=c1></span>			<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=s>&#34;Pod Not Found. Could have been deleted&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>			<span class=k>return</span> <span class=nx>reconcile</span><span class=p>.</span><span class=nx>Result</span><span class=p>{},</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl>		<span class=p>}</span>
+</span></span><span class=line><span class=cl>		<span class=c1>// Error reading the object - requeue the request.
+</span></span></span><span class=line><span class=cl><span class=c1></span>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=s>&#34;Error fetching pod. Going to requeue&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=nx>reconcile</span><span class=p>.</span><span class=nx>Result</span><span class=p>{</span><span class=nx>Requeue</span><span class=p>:</span> <span class=kc>true</span><span class=p>},</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Write the business logic here
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=k>for</span> <span class=nx>i</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>pod</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>ContainerStatuses</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>container</span> <span class=o>:=</span> <span class=nx>pod</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>ContainerStatuses</span><span class=p>[</span><span class=nx>i</span><span class=p>].</span><span class=nx>Name</span>
+</span></span><span class=line><span class=cl>		<span class=nx>restartCount</span> <span class=o>:=</span> <span class=nx>pod</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>ContainerStatuses</span><span class=p>[</span><span class=nx>i</span><span class=p>].</span><span class=nx>RestartCount</span>
+</span></span><span class=line><span class=cl>		<span class=nx>identifier</span> <span class=o>:=</span> <span class=nx>pod</span><span class=p>.</span><span class=nx>Name</span> <span class=o>+</span> <span class=nx>pod</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>ContainerStatuses</span><span class=p>[</span><span class=nx>i</span><span class=p>].</span><span class=nx>Name</span>
+</span></span><span class=line><span class=cl>		<span class=k>if</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>ok</span> <span class=o>:=</span> <span class=nx>restartList</span><span class=p>[</span><span class=nx>identifier</span><span class=p>];</span> <span class=p>!</span><span class=nx>ok</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>			<span class=nx>restartList</span><span class=p>[</span><span class=nx>identifier</span><span class=p>]</span> <span class=p>=</span> <span class=nx>restartCount</span>
+</span></span><span class=line><span class=cl>		<span class=p>}</span> <span class=k>else</span> <span class=k>if</span> <span class=nx>restartList</span><span class=p>[</span><span class=nx>identifier</span><span class=p>]</span> <span class=p>&lt;</span> <span class=nx>restartCount</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>			<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=s>&#34;Reconciling container: &#34;</span> <span class=o>+</span> <span class=nx>container</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>			<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>container</span><span class=p>,</span> <span class=nx>restartCount</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>			<span class=nx>restartList</span><span class=p>[</span><span class=nx>identifier</span><span class=p>]</span> <span class=p>=</span> <span class=nx>restartCount</span>
+</span></span><span class=line><span class=cl>		<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>reconcile</span><span class=p>.</span><span class=nx>Result</span><span class=p>{},</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>restartList</span> <span class=p>=</span> <span class=nb>make</span><span class=p>(</span><span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=kt>int32</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Create a Manager, passing the configuration for KUBECONFIG
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=c1>// To watch all namespaces leave the namespace option empty: &#34;&#34;
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>mgr</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>manager</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span><span class=nx>config</span><span class=p>.</span><span class=nf>GetConfigOrDie</span><span class=p>(),</span> <span class=nx>manager</span><span class=p>.</span><span class=nx>Options</span><span class=p>{</span><span class=nx>Namespace</span><span class=p>:</span> <span class=s>&#34;&#34;</span><span class=p>})</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Unable to setup manager. Please check if KUBECONFIG is available&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>ctrl</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>controller</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span><span class=s>&#34;pod-what-crashes&#34;</span><span class=p>,</span> <span class=nx>mgr</span><span class=p>,</span> <span class=nx>controller</span><span class=p>.</span><span class=nx>Options</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Reconciler</span><span class=p>:</span> <span class=o>&amp;</span><span class=nx>ReconcilePod</span><span class=p>{</span><span class=nx>client</span><span class=p>:</span> <span class=nx>mgr</span><span class=p>.</span><span class=nf>GetClient</span><span class=p>()},</span>
+</span></span><span class=line><span class=cl>	<span class=p>})</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to setup controller&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nf>Watch</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>source</span><span class=p>.</span><span class=nx>Kind</span><span class=p>{</span><span class=nx>Type</span><span class=p>:</span> <span class=o>&amp;</span><span class=nx>v1</span><span class=p>.</span><span class=nx>Pod</span><span class=p>{}},</span> <span class=o>&amp;</span><span class=nx>handler</span><span class=p>.</span><span class=nx>EnqueueRequestForObject</span><span class=p>{});</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to watch pods&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=s>&#34;Starting the manager&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>mgr</span><span class=p>.</span><span class=nf>Start</span><span class=p>(</span><span class=nx>signals</span><span class=p>.</span><span class=nf>SetupSignalHandler</span><span class=p>());</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to start manager&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><p>The <code>Reconcile()</code> receives the Request (<code>reconcile.Request()</code> and returns a <code>reconsile.Result()</code> and an <code>error</code> code.
+It is reading the state of the cluster by using the <code>client.Get()</code>.
+Since the controller running in my local machine, it is using my <code>$HOME/.kube/config</code> file to connect to my Kubernetes cluster.
+Since I have admin rights there, the controller is actually listing everything on the cluster.</p><p>Launch 2 terminals. One terminal will run the controller and the other one will spin up a deployment that is crashing every 30s.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nn>---</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>controller-demo</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>example</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>busybox</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>command</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;/bin/sh&#34;</span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=nt>args</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;-c&#34;</span><span class=p>,</span><span class=w> </span><span class=s2>&#34;sleep 30&#34;</span><span class=p>]</span><span class=w>
+</span></span></span></code></pre></div><p>Run from Terminal 1:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ go mod tidy
+</span></span><span class=line><span class=cl>$ go run main.go
+</span></span></code></pre></div><p>Run from Terminal 2:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ kubectl create -f test.yaml
+</span></span></code></pre></div><p>After 2 minutes the output would be similar to:</p><pre tabindex=0><code>Reconciling container: example
+example 1
+
+Reconciling container: example
+example 2
+
+Reconciling container: example
+example 3
+
+...
+</code></pre><h2 id=add-a-logger>Add a logger</h2><p>It is better to watch for timestamps and dates.
+To do that, we will use <code>zap</code> pkg.
+Setup the logger like this: <code>log := zapr.NewLogger(zap.NewExample()).WithName("pod-what-crashes")</code>.
+Replace the <code>fmt.Println</code> either with <code>log.Info()</code> or <code>log.Error()</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;context&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;github.com/go-logr/zapr&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;github.com/prometheus/common/log&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;go.uber.org/zap&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=nx>v1</span> <span class=s>&#34;k8s.io/api/core/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;k8s.io/apimachinery/pkg/api/errors&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/client&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/client/config&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/controller&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/handler&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/manager&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/manager/signals&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/reconcile&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sigs.k8s.io/controller-runtime/pkg/source&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>var</span> <span class=nx>restartList</span> <span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=kt>int32</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>type</span> <span class=nx>ReconcilePod</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>client</span> <span class=nx>client</span><span class=p>.</span><span class=nx>Client</span> <span class=c1>// it reads objects from the cache and writes to teh apiserver
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>r</span> <span class=o>*</span><span class=nx>ReconcilePod</span><span class=p>)</span> <span class=nf>Reconcile</span><span class=p>(</span><span class=nx>request</span> <span class=nx>reconcile</span><span class=p>.</span><span class=nx>Request</span><span class=p>)</span> <span class=p>(</span><span class=nx>reconcile</span><span class=p>.</span><span class=nx>Result</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>pod</span> <span class=o>:=</span> <span class=o>&amp;</span><span class=nx>v1</span><span class=p>.</span><span class=nx>Pod</span><span class=p>{}</span> <span class=c1>// Fetch the pod object
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>err</span> <span class=o>:=</span> <span class=nx>r</span><span class=p>.</span><span class=nx>client</span><span class=p>.</span><span class=nf>Get</span><span class=p>(</span><span class=nx>context</span><span class=p>.</span><span class=nf>TODO</span><span class=p>(),</span> <span class=nx>request</span><span class=p>.</span><span class=nx>NamespacedName</span><span class=p>,</span> <span class=nx>pod</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>if</span> <span class=nx>errors</span><span class=p>.</span><span class=nf>IsNotFound</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>			<span class=c1>// Request object not found, could have been deleted after reconcile request.
+</span></span></span><span class=line><span class=cl><span class=c1></span>			<span class=c1>// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+</span></span></span><span class=line><span class=cl><span class=c1></span>			<span class=c1>// Return and don&#39;t requeue
+</span></span></span><span class=line><span class=cl><span class=c1></span>			<span class=nx>log</span><span class=p>.</span><span class=nf>Error</span><span class=p>(</span><span class=s>&#34;Pod Not Found. Could have been deleted&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>			<span class=k>return</span> <span class=nx>reconcile</span><span class=p>.</span><span class=nx>Result</span><span class=p>{},</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl>		<span class=p>}</span>
+</span></span><span class=line><span class=cl>		<span class=c1>// Error reading the object - requeue the request.
+</span></span></span><span class=line><span class=cl><span class=c1></span>		<span class=nx>log</span><span class=p>.</span><span class=nf>Error</span><span class=p>(</span><span class=s>&#34;Error fetching pod. Going to requeue&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=nx>reconcile</span><span class=p>.</span><span class=nx>Result</span><span class=p>{</span><span class=nx>Requeue</span><span class=p>:</span> <span class=kc>true</span><span class=p>},</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Write the business logic here
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=k>for</span> <span class=nx>i</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>pod</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>ContainerStatuses</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>container</span> <span class=o>:=</span> <span class=nx>pod</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>ContainerStatuses</span><span class=p>[</span><span class=nx>i</span><span class=p>].</span><span class=nx>Name</span>
+</span></span><span class=line><span class=cl>		<span class=nx>restartCount</span> <span class=o>:=</span> <span class=nx>pod</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>ContainerStatuses</span><span class=p>[</span><span class=nx>i</span><span class=p>].</span><span class=nx>RestartCount</span>
+</span></span><span class=line><span class=cl>		<span class=nx>identifier</span> <span class=o>:=</span> <span class=nx>pod</span><span class=p>.</span><span class=nx>Name</span> <span class=o>+</span> <span class=nx>pod</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>ContainerStatuses</span><span class=p>[</span><span class=nx>i</span><span class=p>].</span><span class=nx>Name</span>
+</span></span><span class=line><span class=cl>		<span class=k>if</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>ok</span> <span class=o>:=</span> <span class=nx>restartList</span><span class=p>[</span><span class=nx>identifier</span><span class=p>];</span> <span class=p>!</span><span class=nx>ok</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>			<span class=nx>restartList</span><span class=p>[</span><span class=nx>identifier</span><span class=p>]</span> <span class=p>=</span> <span class=nx>restartCount</span>
+</span></span><span class=line><span class=cl>		<span class=p>}</span> <span class=k>else</span> <span class=k>if</span> <span class=nx>restartList</span><span class=p>[</span><span class=nx>identifier</span><span class=p>]</span> <span class=p>&lt;</span> <span class=nx>restartCount</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>			<span class=nx>log</span><span class=p>.</span><span class=nf>Info</span><span class=p>(</span><span class=s>&#34;Reconciling container: &#34;</span> <span class=o>+</span> <span class=nx>container</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>			<span class=nx>log</span><span class=p>.</span><span class=nf>Info</span><span class=p>(</span><span class=nx>container</span><span class=p>,</span> <span class=nx>restartCount</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>			<span class=nx>restartList</span><span class=p>[</span><span class=nx>identifier</span><span class=p>]</span> <span class=p>=</span> <span class=nx>restartCount</span>
+</span></span><span class=line><span class=cl>		<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>reconcile</span><span class=p>.</span><span class=nx>Result</span><span class=p>{},</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// Setup the Logger
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>log</span> <span class=o>:=</span> <span class=nx>zapr</span><span class=p>.</span><span class=nf>NewLogger</span><span class=p>(</span><span class=nx>zap</span><span class=p>.</span><span class=nf>NewExample</span><span class=p>()).</span><span class=nf>WithName</span><span class=p>(</span><span class=s>&#34;pod-what-crashes&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>restartList</span> <span class=p>=</span> <span class=nb>make</span><span class=p>(</span><span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=kt>int32</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Create a Manager, passing the configuration for KUBECONFIG
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=c1>// To watch all namespaces leave the namespace option empty: &#34;&#34;
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>log</span><span class=p>.</span><span class=nf>Info</span><span class=p>(</span><span class=s>&#34;Setting up the Manager&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>mgr</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>manager</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span><span class=nx>config</span><span class=p>.</span><span class=nf>GetConfigOrDie</span><span class=p>(),</span> <span class=nx>manager</span><span class=p>.</span><span class=nx>Options</span><span class=p>{</span><span class=nx>Namespace</span><span class=p>:</span> <span class=s>&#34;&#34;</span><span class=p>})</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Error</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Unable to setup manager. Please check if KUBECONFIG is available&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>ctrl</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>controller</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span><span class=s>&#34;pod-what-crashes&#34;</span><span class=p>,</span> <span class=nx>mgr</span><span class=p>,</span> <span class=nx>controller</span><span class=p>.</span><span class=nx>Options</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Reconciler</span><span class=p>:</span> <span class=o>&amp;</span><span class=nx>ReconcilePod</span><span class=p>{</span><span class=nx>client</span><span class=p>:</span> <span class=nx>mgr</span><span class=p>.</span><span class=nf>GetClient</span><span class=p>()},</span>
+</span></span><span class=line><span class=cl>	<span class=p>})</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Error</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to setup controller&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nf>Watch</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>source</span><span class=p>.</span><span class=nx>Kind</span><span class=p>{</span><span class=nx>Type</span><span class=p>:</span> <span class=o>&amp;</span><span class=nx>v1</span><span class=p>.</span><span class=nx>Pod</span><span class=p>{}},</span> <span class=o>&amp;</span><span class=nx>handler</span><span class=p>.</span><span class=nx>EnqueueRequestForObject</span><span class=p>{});</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Error</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to watch pods&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Info</span><span class=p>(</span><span class=s>&#34;Starting up the Manager&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>mgr</span><span class=p>.</span><span class=nf>Start</span><span class=p>(</span><span class=nx>signals</span><span class=p>.</span><span class=nf>SetupSignalHandler</span><span class=p>());</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Error</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Failed to start manager&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>os</span><span class=p>.</span><span class=nf>Exit</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><p>Notice the verbosity of the output:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ go run main.go
+</span></span><span class=line><span class=cl><span class=o>{</span><span class=s2>&#34;level&#34;</span>:<span class=s2>&#34;info&#34;</span>,<span class=s2>&#34;logger&#34;</span>:<span class=s2>&#34;pod-what-crashes&#34;</span>,<span class=s2>&#34;msg&#34;</span>:<span class=s2>&#34;Setting up the Manager&#34;</span><span class=o>}</span>
+</span></span><span class=line><span class=cl><span class=o>{</span><span class=s2>&#34;level&#34;</span>:<span class=s2>&#34;info&#34;</span>,<span class=s2>&#34;logger&#34;</span>:<span class=s2>&#34;pod-what-crashes&#34;</span>,<span class=s2>&#34;msg&#34;</span>:<span class=s2>&#34;Starting up the Manager&#34;</span><span class=o>}</span>
+</span></span><span class=line><span class=cl>INFO<span class=o>[</span>0096<span class=o>]</span> Reconciling container: example                <span class=nv>source</span><span class=o>=</span><span class=s2>&#34;main.go:52&#34;</span>
+</span></span><span class=line><span class=cl>INFO<span class=o>[</span>0096<span class=o>]</span> example1                                      <span class=nv>source</span><span class=o>=</span><span class=s2>&#34;main.go:53&#34;</span>
+</span></span><span class=line><span class=cl>INFO<span class=o>[</span>0141<span class=o>]</span> Reconciling container: example                <span class=nv>source</span><span class=o>=</span><span class=s2>&#34;main.go:52&#34;</span>
+</span></span><span class=line><span class=cl>INFO<span class=o>[</span>0141<span class=o>]</span> example2                                      <span class=nv>source</span><span class=o>=</span><span class=s2>&#34;main.go:53&#34;</span>
+</span></span><span class=line><span class=cl>INFO<span class=o>[</span>0196<span class=o>]</span> Reconciling container: example                <span class=nv>source</span><span class=o>=</span><span class=s2>&#34;main.go:52&#34;</span>
+</span></span><span class=line><span class=cl>INFO<span class=o>[</span>0196<span class=o>]</span> example3                                      <span class=nv>source</span><span class=o>=</span><span class=s2>&#34;main.go:53&#34;</span>
+</span></span><span class=line><span class=cl>ERRO<span class=o>[</span>0243<span class=o>]</span> Pod Not Found. Could have been deleted        <span class=nv>source</span><span class=o>=</span><span class=s2>&#34;main.go:36&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># Press CTRL+C to quit</span>
+</span></span></code></pre></div><p>while at the same time:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ oc create -f test.yaml<span class=p>;</span> oc get pods controller-demo -w
+</span></span><span class=line><span class=cl>pod/controller-demo created
+</span></span><span class=line><span class=cl>NAME              READY   STATUS              RESTARTS   AGE
+</span></span><span class=line><span class=cl>controller-demo   0/1     ContainerCreating   <span class=m>0</span>          0s
+</span></span><span class=line><span class=cl>controller-demo   0/1     ContainerCreating   <span class=m>0</span>          8s
+</span></span><span class=line><span class=cl>controller-demo   0/1     ContainerCreating   <span class=m>0</span>          11s
+</span></span><span class=line><span class=cl>controller-demo   1/1     Running             <span class=m>0</span>          11s
+</span></span><span class=line><span class=cl>controller-demo   0/1     Completed           <span class=m>0</span>          40s
+</span></span><span class=line><span class=cl>controller-demo   1/1     Running             <span class=m>1</span>          43s	<span class=c1># Restarted. Output log.Info()</span>
+</span></span><span class=line><span class=cl>controller-demo   0/1     Completed           <span class=m>1</span>          74s
+</span></span><span class=line><span class=cl>controller-demo   0/1     CrashLoopBackOff    <span class=m>1</span>          86s
+</span></span><span class=line><span class=cl>controller-demo   1/1     Running             <span class=m>2</span>          89s	<span class=c1># Restarted. Output log.Info()</span>
+</span></span><span class=line><span class=cl>controller-demo   0/1     Completed           <span class=m>2</span>          119s
+</span></span><span class=line><span class=cl>controller-demo   0/1     CrashLoopBackOff    <span class=m>2</span>          2m10s
+</span></span><span class=line><span class=cl>controller-demo   1/1     Running             <span class=m>3</span>          2m24s	<span class=c1># Restarted. Output log.Info()</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ oc delete -f test.yaml 
+</span></span><span class=line><span class=cl>pod <span class=s2>&#34;controller-demo&#34;</span> deleted									<span class=c1># Deleted. Output log.Error()</span>
+</span></span></code></pre></div><h2 id=build-the-container>Build the container</h2><p>This controller is running locally, outside of the cluster.
+Let&rsquo;s build a container image, push it to the k8s node and load it via <code>podman</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>mkdir -p build/bin<span class=p>;</span> <span class=nb>cd</span> build
+</span></span><span class=line><span class=cl>touch Dockerfile
+</span></span><span class=line><span class=cl><span class=nb>cd</span> bin
+</span></span><span class=line><span class=cl>touch entrypoint<span class=p>;</span> touch user_setup
+</span></span></code></pre></div><h4 id=builddockerfile>build/Dockerfile</h4><p>We will use the default base container image that <a href=https://github.com/operator-framework/operator-sdk>Operator SDK</a> is using.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-docker data-lang=docker><span class=line><span class=cl><span class=k>FROM</span><span class=s> registry.access.redhat.com/ubi8/ubi-minimal:latest</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>ENV</span> <span class=nv>OPERATOR</span><span class=o>=</span>/usr/local/bin/pod-what-crashes <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    <span class=nv>USER_UID</span><span class=o>=</span><span class=m>1001</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    <span class=nv>USER_NAME</span><span class=o>=</span>pod-what-crashes<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=c># install operator binary</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>COPY</span> pod-what-crashes <span class=si>${</span><span class=nv>OPERATOR</span><span class=si>}</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>COPY</span> bin /usr/local/bin<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span>  /usr/local/bin/user_setup<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>ENTRYPOINT</span> <span class=p>[</span><span class=s2>&#34;/usr/local/bin/entrypoint&#34;</span><span class=p>]</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>USER</span><span class=s> ${USER_UID}</span><span class=err>
+</span></span></span></code></pre></div><p>Sets up 3 <code>ENV</code> variables:</p><ul><li><code>ENV OPERATOR</code> would be the path to your Operator binary (usually <code>/usr/local/bin/${OPERATORS_NAME}</code>)</li><li><code>ENV USER_UID</code> to be a number like <code>1001</code> that corrersponds to a normal user account.</li><li><code>USER_NAME</code> it passes the name of the operator as being a user (e.g. <code>$OPERATORS_NAME</code>).</li></ul><p>It copies the Operator&rsquo;s binary to <code>/usr/local/bin</code> and the two generated bash scripts (<code>user_setup</code> and <code>entrypoint</code>).
+It runs the <code>user_setup</code> that creates the user as part of the <code>root</code> group along with its home directory and correct permissions
+It uses an external file for the entrypoint, that is <code>/usr/local/bin/entrypoint</code>
+Changes from the root user to the <code>USER_UID</code> user that was created before via the <code>user_setup</code> script.</p><p>So when we will build our operator, <code>podman inspect</code> to the image will look like this:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-json data-lang=json><span class=line><span class=cl>        <span class=s2>&#34;Config&#34;</span><span class=err>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;User&#34;</span><span class=p>:</span> <span class=s2>&#34;1001&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;Env&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;container=oci&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;OPERATOR=/usr/local/bin/pod-what-crashes&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;USER_UID=1001&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;USER_NAME=pod-what-crashes&#34;</span>
+</span></span><span class=line><span class=cl>            <span class=p>],</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;Entrypoint&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                <span class=s2>&#34;/usr/local/bin/entrypoint&#34;</span>
+</span></span><span class=line><span class=cl>            <span class=p>],</span>
+</span></span></code></pre></div><h4 id=buildbinentrypoint>build/bin/entrypoint</h4><p>Pretty straighforward:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/sh -e
+</span></span></span><span class=line><span class=cl><span class=cp></span>
+</span></span><span class=line><span class=cl><span class=nb>exec</span> <span class=si>${</span><span class=nv>OPERATOR</span><span class=si>}</span> <span class=nv>$@</span>
+</span></span></code></pre></div><ul><li>The <code>sh -e</code> - exits the script if any command fails (non-zero return value)</li><li>The <code>exec ${OPERATOR} $@</code> - will append any parameters to the entrypoint (which is the Operator binary).</li></ul><h4 id=buildbinuser_setup>build/bin/user_setup</h4><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/sh
+</span></span></span><span class=line><span class=cl><span class=cp></span><span class=nb>set</span> -x
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># ensure $HOME exists and is accessible by group 0 (we don&#39;t know what the runtime UID will be)</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>USER_NAME</span><span class=si>}</span><span class=s2>:x:</span><span class=si>${</span><span class=nv>USER_UID</span><span class=si>}</span><span class=s2>:0:</span><span class=si>${</span><span class=nv>USER_NAME</span><span class=si>}</span><span class=s2> user:</span><span class=si>${</span><span class=nv>HOME</span><span class=si>}</span><span class=s2>:/sbin/nologin&#34;</span> &gt;&gt; /etc/passwd
+</span></span><span class=line><span class=cl>mkdir -p <span class=si>${</span><span class=nv>HOME</span><span class=si>}</span>
+</span></span><span class=line><span class=cl>chown <span class=si>${</span><span class=nv>USER_UID</span><span class=si>}</span>:0 <span class=si>${</span><span class=nv>HOME</span><span class=si>}</span>
+</span></span><span class=line><span class=cl>chmod ug+rwx <span class=si>${</span><span class=nv>HOME</span><span class=si>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># no need for this script to remain in the image after running</span>
+</span></span><span class=line><span class=cl>rm <span class=nv>$0</span>
+</span></span></code></pre></div><p>Make use of the <code>ENV</code> variables from the Dockerfile.
+Make sure <code>${USER_NAME}</code> user is part of the <code>root</code> group in order to empower him to execute restricted commands (system privileges) that an ordinary user account cannot access.
+Makes the user to be the owner of the <code>/root</code> directory (as it&rsquo;s new <code>$HOME</code>) and also gives him <code>rwx</code> persmissions on it.</p><h3 id=build-the-container-1>build the container</h3><p>The command to build:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>export</span> <span class=nv>OPERATOR</span><span class=o>=</span><span class=s2>&#34;pod-what-crashes&#34;</span>
+</span></span><span class=line><span class=cl><span class=nv>GOOS</span><span class=o>=</span>linux go build -o ./build/<span class=si>${</span><span class=nv>OPERATOR</span><span class=si>}</span>
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>IMAGE</span><span class=o>=</span><span class=s2>&#34;</span><span class=si>${</span><span class=nv>OPERATOR</span><span class=si>}</span><span class=s2>:testing&#34;</span>
+</span></span><span class=line><span class=cl>docker build -f ./build/Dockerfile -t <span class=si>${</span><span class=nv>IMAGE</span><span class=si>}</span> ./build
+</span></span></code></pre></div><p>The build-log should look similar to this:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-docker data-lang=docker><span class=line><span class=cl>Sending build context to Docker daemon  82.01MB<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>Step 1/7 : FROM registry.access.redhat.com/ubi8/ubi-minimal:latest<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span> ---&gt; db39bd4846dc<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>Step 2/7 : ENV <span class=nv>OPERATOR</span><span class=o>=</span>/usr/local/bin/pod-what-crashes     <span class=nv>USER_UID</span><span class=o>=</span><span class=m>1001</span>     <span class=nv>USER_NAME</span><span class=o>=</span>pod-what-crashes<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span> ---&gt; Running in faa7f2d53e16<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>Removing intermediate container faa7f2d53e16<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span> ---&gt; d3bf1178e766<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>Step 3/7 : COPY pod-what-crashes <span class=si>${</span><span class=nv>OPERATOR</span><span class=si>}</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span> ---&gt; 2e4e69c9b2aa<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>Step 4/7 : COPY bin /usr/local/bin<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span> ---&gt; 46ef33b271cb<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>Step 5/7 : RUN  /usr/local/bin/user_setup<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span> ---&gt; Running in f95375365d95<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>+ <span class=nb>echo</span> <span class=s1>&#39;pod-what-crashes:x:1001:0:pod-what-crashes user:/root:/sbin/nologin&#39;</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>+ mkdir -p /root<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>+ chown 1001:0 /root<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>+ chmod ug+rwx /root<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>+ rm /usr/local/bin/user_setup<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>Removing intermediate container f95375365d95<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span> ---&gt; 1d8f3160fb8b<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>Step 6/7 : ENTRYPOINT <span class=o>[</span><span class=s2>&#34;/usr/local/bin/entrypoint&#34;</span><span class=o>]</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span> ---&gt; Running in 71a0bd3f11fa<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>Removing intermediate container 71a0bd3f11fa<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span> ---&gt; b46c0c0d73b5<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>Step 7/7 : USER <span class=si>${</span><span class=nv>USER_UID</span><span class=si>}</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span> ---&gt; Running in 1683f187f7ce<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>Removing intermediate container 1683f187f7ce<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span> ---&gt; 327968c09d20<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>Successfully built 327968c09d20<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>Successfully tagged pod-what-crashes:testing<span class=err>
+</span></span></span></code></pre></div><p>Make sure it is loaded correctly to the docker image repository:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-docker data-lang=docker><span class=line><span class=cl>$ docker images<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>REPOSITORY                                    TAG                 IMAGE ID            CREATED              SIZE<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span>pod-what-crashes                              testing             327968c09d20        About a minute ago   148MB<span class=err>
+</span></span></span></code></pre></div><p>Push it to the CRC VM:</p><p>Make sure you can SSH into the VM created by <em>CRC</em>.
+Go to your <code>~/.zshenv</code> and add:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-zsh data-lang=zsh><span class=line><span class=cl><span class=nb>export</span> <span class=nv>CRCIP</span><span class=o>=</span><span class=k>$(</span>crc ip<span class=k>)</span>
+</span></span><span class=line><span class=cl><span class=nb>alias</span> <span class=nv>sshcrc</span><span class=o>=</span><span class=s2>&#34;ssh -o ConnectionAttempts=3 -o ConnectTimeout=10 -o ControlMaster=no -o ControlPath=none -o LogLevel=quiet -o PasswordAuthentication=no -o ServerAliveInterval=60 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@</span><span class=si>${</span><span class=nv>CRCIP</span><span class=si>}</span><span class=s2> -o IdentitiesOnly=yes -i </span><span class=si>${</span><span class=nv>HOME</span><span class=si>}</span><span class=s2>/.crc/machines/crc/id_rsa -p 22&#34;</span>
+</span></span></code></pre></div><p>Source it: <code>source ~/.zshenv</code>.
+To make sure there is no problem connecting to the VM, type <code>crcssh</code>.
+Proceed with copying over the image:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ docker save pod-what-crashes:testing &gt; image-name.tar
+</span></span><span class=line><span class=cl>$ scp image-name.tar core@<span class=sb>`</span>crc ip<span class=sb>`</span>:
+</span></span><span class=line><span class=cl>$ sshcrc
+</span></span><span class=line><span class=cl><span class=o>[</span>core@crc-w3434-master-0<span class=o>]</span>$ sudo podman load -i image-name.tar
+</span></span></code></pre></div><p>Make sure it is loaded:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo podman images <span class=p>|</span> grep testing
+</span></span><span class=line><span class=cl>localhost/pod-what-crashes                       testing        327968c09d20   <span class=m>6</span> minutes ago   <span class=m>149</span> MB
+</span></span></code></pre></div><p>In case you are curious to see how the environment looks like:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo podman run -it --rm --entrypoint /bin/bash localhost/pod-what-crashes:testing
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>[</span>pod-what-crashes@f46dbd39028e /<span class=o>]</span>$ whoami
+</span></span><span class=line><span class=cl>pod-what-crashes
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>[</span>pod-what-crashes@f46dbd39028e /<span class=o>]</span>$ id
+</span></span><span class=line><span class=cl><span class=nv>uid</span><span class=o>=</span>1001<span class=o>(</span>pod-what-crashes<span class=o>)</span> <span class=nv>gid</span><span class=o>=</span>0<span class=o>(</span>root<span class=o>)</span> <span class=nv>groups</span><span class=o>=</span>0<span class=o>(</span>root<span class=o>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>[</span>pod-what-crashes@f46dbd39028e /<span class=o>]</span>$ groups
+</span></span><span class=line><span class=cl>root
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>[</span>pod-what-crashes@f46dbd39028e /<span class=o>]</span>$ cat /etc/passwd <span class=p>|</span> grep <span class=sb>`</span>whoami<span class=sb>`</span>
+</span></span><span class=line><span class=cl>pod-what-crashes:x:1001:0:pod-what-crashes user:/root:/sbin/nologin
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>[</span>pod-what-crashes@f46dbd39028e /<span class=o>]</span>$ ls -lh /usr/local/bin
+</span></span><span class=line><span class=cl>total 40M
+</span></span><span class=line><span class=cl>-rwxr-xr-x. <span class=m>1</span> root root  <span class=m>34</span> Feb <span class=m>24</span> 17:12 entrypoint
+</span></span><span class=line><span class=cl>-rwxr-xr-x. <span class=m>1</span> root root 40M Feb <span class=m>25</span> 01:51 pod-what-crashes
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>[</span>pod-what-crashes@f46dbd39028e /<span class=o>]</span>$ ls -ld <span class=nv>$HOME</span>
+</span></span><span class=line><span class=cl>drwxrwx---. <span class=m>1</span> pod-what-crashes root <span class=m>6</span> Jan <span class=m>29</span> 19:42 /root
+</span></span></code></pre></div><p>Then exit from the conainer by typing <code>exit</code> and also exit from the VM, by typing again <code>exit</code>.</p><h2 id=deploy-to-k8s>Deploy to k8s</h2><p>We will create:</p><ul><li>a namespace</li><li>a serviceaccount</li><li>a clusterrole</li><li>a clusterrolebinding</li><li>a deployment</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Namespace</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>my-controller</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nn>---</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ServiceAccount</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>pod-what-crashes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>my-controller</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nn>---</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>rbac.authorization.k8s.io/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ClusterRole</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>pod-what-crashes-role</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>my-controller</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>rules</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>apiGroups</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;&#34;</span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>resources</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;pods&#34;</span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>verbs</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;*&#34;</span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nn>---</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ClusterRoleBinding</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>rbac.authorization.k8s.io/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>pod-what-crashes-access</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>my-controller</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>subjects</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ServiceAccount</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>pod-what-crashes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>my-controller</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>roleRef</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ClusterRole</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>pod-what-crashes-role</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>apiGroup</span><span class=p>:</span><span class=w> </span><span class=l>rbac.authorization.k8s.io</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nn>---</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>apps/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>pod-what-crashes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>my-controller</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>k8s-app</span><span class=p>:</span><span class=w> </span><span class=l>pod-what-crashes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>k8s-app</span><span class=p>:</span><span class=w> </span><span class=l>pod-what-crashes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>k8s-app</span><span class=p>:</span><span class=w> </span><span class=l>pod-what-crashes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>serviceAccountName</span><span class=p>:</span><span class=w> </span><span class=l>pod-what-crashes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>pod-what-crashes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>localhost/pod-what-crashes:testing</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>imagePullPolicy</span><span class=p>:</span><span class=w> </span><span class=l>Never</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>limits</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=l>200m</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>300Mi</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=l>150m</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>250Mi</span><span class=w>
+</span></span></span></code></pre></div><p>Run:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ kubectl create -f deployment.yaml 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>namespace/my-controller created
+</span></span><span class=line><span class=cl>serviceaccount/pod-what-crashes created
+</span></span><span class=line><span class=cl>clusterrole.rbac.authorization.k8s.io/pod-what-crashes-role created
+</span></span><span class=line><span class=cl>clusterrolebinding.rbac.authorization.k8s.io/pod-what-crashes-access created
+</span></span><span class=line><span class=cl>deployment.apps/pod-what-crashes created
+</span></span></code></pre></div><p>Check the controller is running on the cluster:</p><pre tabindex=0><code class=language-k data-lang=k>$ kubectl -n my-controller get pods
+NAME                               READY   STATUS    RESTARTS   AGE
+pod-what-crashes-b9855667b-pnj28   1/1     Running   0          24s
+</code></pre><p>You can see the logs like this:</p><pre tabindex=0><code class=language-k data-lang=k>$ kubectl -n my-controller logs -l k8s-app=pod-what-crashes -f
+{&#34;level&#34;:&#34;info&#34;,&#34;logger&#34;:&#34;pod-what-crashes&#34;,&#34;msg&#34;:&#34;Setting up the Manager&#34;}
+{&#34;level&#34;:&#34;info&#34;,&#34;logger&#34;:&#34;pod-what-crashes&#34;,&#34;msg&#34;:&#34;Starting up the Manager&#34;}
+</code></pre><p>Notice that we are using a <code>clusterRole</code> and a <code>clusterRoleBinding</code> instead of a <code>Role</code> or a <code>RoleBinding</code>.
+Otherwise, our controller would not be able to list resources for all the Pods in the cluster in every namespace.
+We would most probably have ended up with this error message:</p><pre tabindex=0><code class=language-k data-lang=k>kubectl logs pod-what-crashes-5f9bc86dbd-l6849
+
+E0224 18:08:27.976036       1 reflector.go:153] pkg/mod/k8s.io/client-go@v0.17.2/tools/cache/reflector.go:105: Failed to list *v1.Pod: pods is forbidden: User &#34;system:serviceaccount:my-controller:pod-what-crashes&#34; cannot list resource &#34;pods&#34; in API group &#34;&#34; at the cluster scope
+</code></pre><p>If we wanted to look for stuff happening only in its own namespace, then we could have modified the manager:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=nx>namespace</span> <span class=o>:=</span> <span class=s>&#34;my-controller&#34;</span>
+</span></span><span class=line><span class=cl><span class=nx>mgr</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>manager</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span><span class=nx>cfg</span><span class=p>,</span> <span class=nx>manager</span><span class=p>.</span><span class=nx>Options</span><span class=p>{</span><span class=nx>Namespace</span><span class=p>:</span> <span class=nx>namespace</span><span class=p>})</span>
+</span></span></code></pre></div><p>In case you want to remove the image from the VM:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo podman rmi localhost/pod-what-crashes:testing
+</span></span><span class=line><span class=cl>Untagged: localhost/pod-what-crashes:testing
+</span></span><span class=line><span class=cl>Deleted: 0f10cf2c88e9f6943385543e6e324223ec1f470b19367945d708737c1dbfc18c
+</span></span></code></pre></div><p>I will continue this tutorial by adding a CRD and CR.</p></div></article></section></main></body></html>

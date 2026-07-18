@@ -1,0 +1,834 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Write a Google GCP client with Go | drpaneas</title><meta name=author content="Panos Georgiadis"><meta name=description content="Not all those who wander are lost"><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel=stylesheet><link rel=stylesheet href=/css/main.min.637569fc4ac9f9fcf4e51e2a2d9a7953c10570ef9a7f6ac4e5c438b528d987ff.css></head><body><main class=workspace-page><section class=workspace-shell><div class=workspace-topbar><a class=topbar-tab href=/>1:home</a>
+<a class=topbar-tab href=/post/>2:posts*</a>
+<a class=topbar-tab href=/tags/>3:tags</a>
+<a class=topbar-tab href=/about/>4:about</a>
+<span class=workspace-session>[session: drpaneas]</span></div><article class="pane article-pane"><nav class=breadcrumb-back aria-label=Breadcrumb><a href=/>workspace</a>
+/ <a href=/post/>posts</a>
+/ <span>googleclient.md</span></nav><div class=pane-title>article / googleclient.md</div><h1>Write a Google GCP client with Go</h1><p class=post-meta>2020-03-15 / 16 min
+/ tags:
+<a href=/tags/kubernetes/>kubernetes</a>
+,
+<a href=/tags/controllers/>controllers</a>
+,
+<a href=/tags/golang/>golang</a>
+,
+<a href=/tags/google/>google</a>
+,
+<a href=/tags/api/>api</a></p><div class=post-content><p>In this article I will explain the mechanics of writing a client for Google GCP, pretty similar like <code>gcloud</code>.
+The purpose is to not write a full-featured client (that would make no sense, since you can use <code>gcloud</code> already) but to learn the how to communicate with Google&rsquo;s GCP API using Go.
+Such a <code>pkg</code> can be useful in small projects where you need to talk to Google GCP API, like the <a href=https://github.com/openshift/gcp-project-operator>OpenShift&rsquo;s GCP Operator</a>.
+Writing a Kubernetes operator for Google GCP, you need to teach your controllers to do basic CRUD (Create, Read, Update, Destroy) operations on the Google cloud.
+Having an individual project (like this one) it make your developer-life easier, since for testing your communication with Google, you wont have to setup any environment or CRDs.</p><h2 id=create-the-struct>Create the struct</h2><p>First of all we need to create the struct that represents the type of our client.
+Since we are going to interact with Google GCP cloud, pick a relevant name, for example we are going to name it <code>GoogleGCPClient</code>.</p><p>Later we have to read how to setup authentication and authorization.</p><blockquote><p>Authentication identifies who you are, and authorization determines what you can do.
+Grab a coffee and <a href=https://cloud.google.com/docs/authentication/production#obtaining_and_providing_service_account_credentials_manually>start reading this article</a></p></blockquote><h3 id=create-a-service-account>Create A Service Account</h3><ol><li><p>In the Cloud Console, go to the <a href=https://console.cloud.google.com/apis/credentials/serviceaccountkey>Create service account key</a> page.</p></li><li><p>From the <strong>Service Account</strong> list, select <strong>New service account</strong></p></li><li><p>In the <strong>Service account name</strong> field, enter a name.</p></li><li><p>From the <strong>Role</strong> list, select <strong>Project > Owner</strong>.</p></li><li><p>Click <strong>Create</strong>. A JSON file that contains your key downloads to your computer.</p></li></ol><p>I have saved this file to my <code>$HOME</code> directory and named it <code>mypersonalgcpjsonkey.json</code>.</p><h3 id=pass-the-credentials>Pass the credentials</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// Credentials
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>projectID</span> <span class=p>=</span> <span class=s>&#34;hidden-howl-252922&#34;</span>                                         <span class=c1>// Your ProjectID, replace it with yours
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>jsonPath</span> <span class=p>=</span> <span class=nx>filepath</span><span class=p>.</span><span class=nf>Join</span><span class=p>(</span><span class=nx>os</span><span class=p>.</span><span class=nf>Getenv</span><span class=p>(</span><span class=s>&#34;HOME&#34;</span><span class=p>),</span> <span class=s>&#34;mypersonalgcpjsonkey.json&#34;</span><span class=p>)</span> <span class=c1>// path to your JSON file, replace it with yours
+</span></span></span></code></pre></div><h3 id=client-for-cloud-resource-manager>Client for Cloud Resource Manager</h3><p>The package <a href=google.golang.org/api/cloudresourcemanager/v1>cloudresourcemanager</a> provides access to the (Cloud Resource Manager API)[https://cloud.google.com/resource-manager/docs].
+It is used to create, read, and update metadata for Google Cloud Platform resource containers.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;context&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;log&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;path/filepath&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/option&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// Credentials
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>projectID</span> <span class=p>=</span> <span class=s>&#34;hidden-howl-252922&#34;</span>                                         <span class=c1>// Your ProjectID
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>jsonPath</span> <span class=p>=</span> <span class=nx>filepath</span><span class=p>.</span><span class=nf>Join</span><span class=p>(</span><span class=nx>os</span><span class=p>.</span><span class=nf>Getenv</span><span class=p>(</span><span class=s>&#34;HOME&#34;</span><span class=p>),</span> <span class=s>&#34;mypersonalgcpjsonkey.json&#34;</span><span class=p>)</span> <span class=c1>// path to your JSON file
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ctx</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=nx>cloudresourcemanagerService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>cloudresourcemanagerService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><p>As a verification that our credentials work, this will print the following:</p><pre tabindex=0><code>2020/03/12 23:38:57 https://cloudresourcemanager.googleapis.com/
+</code></pre><h3 id=client-for-the-iam>Client for the IAM</h3><p>IAM lets admins to authorize <strong>who</strong> can take <strong>actions</strong> on <strong>specific resources</strong>.
+The <strong>who</strong> part is obviously our ServiceAccount.
+The <strong>actions</strong> part, is a primitive role, the project&rsquo;s Owner.
+For that we will use the <a href=google.golang.org/api/iam/v1>iam</a> package that provides access to the <a href=https://cloud.google.com/iam/>Identity and Access Management (IAM) API</a>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;context&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;log&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;path/filepath&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/iam/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/option&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// Credentials
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>projectID</span> <span class=p>=</span> <span class=s>&#34;hidden-howl-252922&#34;</span>                                         <span class=c1>// Your ProjectID
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>jsonPath</span> <span class=p>=</span> <span class=nx>filepath</span><span class=p>.</span><span class=nf>Join</span><span class=p>(</span><span class=nx>os</span><span class=p>.</span><span class=nf>Getenv</span><span class=p>(</span><span class=s>&#34;HOME&#34;</span><span class=p>),</span> <span class=s>&#34;mypersonalgcpjsonkey.json&#34;</span><span class=p>)</span> <span class=c1>// path to your JSON file
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ctx</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Resource Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudresourcemanagerService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>cloudresourcemanagerService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for IAM
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>iamService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>iam</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>iamService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><p>For verification purposes this is going to print:</p><pre tabindex=0><code>2020/03/12 23:45:45 https://cloudresourcemanager.googleapis.com/
+2020/03/12 23:45:45 https://iam.googleapis.com/
+</code></pre><h3 id=client-for-service-infrastructure-management>Client for Service Infrastructure Management</h3><p><a href=https://cloud.google.com/service-infrastructure/docs>Service Infrastructure</a> is Google&rsquo;s foundational platform for creating, managing, and consuming APIs and services.
+It is used by Google APIs, Google Cloud APIs, and Cloud Endpoints. Service Infrastructure provides a wide range of features to service consumers and service producers, including authentication, authorization, auditing, rate limiting, billing, logging, and monitoring.</p><p>We are going to use the <a href=google.golang.org/api/servicemanagement/v1>servicemanagement</a> package which provides access to the Service Management API.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;context&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;log&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;path/filepath&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/iam/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/option&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/servicemanagement/v1&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// Credentials
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>projectID</span> <span class=p>=</span> <span class=s>&#34;hidden-howl-252922&#34;</span>                                         <span class=c1>// Your ProjectID
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>jsonPath</span> <span class=p>=</span> <span class=nx>filepath</span><span class=p>.</span><span class=nf>Join</span><span class=p>(</span><span class=nx>os</span><span class=p>.</span><span class=nf>Getenv</span><span class=p>(</span><span class=s>&#34;HOME&#34;</span><span class=p>),</span> <span class=s>&#34;mypersonalgcpjsonkey.json&#34;</span><span class=p>)</span> <span class=c1>// path to your JSON file
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ctx</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Resource Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudresourcemanagerService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>cloudresourcemanagerService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for IAM
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>iamService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>iam</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>iamService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Service Infrastructure Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>servicemanagementService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>servicemanagement</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>servicemanagementService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><p>For verification:</p><pre tabindex=0><code>2020/03/12 23:53:11 https://cloudresourcemanager.googleapis.com/
+2020/03/12 23:53:11 https://iam.googleapis.com/
+2020/03/12 23:53:11 https://servicemanagement.googleapis.com/
+</code></pre><h3 id=client-for-cloud-billing>Client for Cloud Billing</h3><p>A <a href=https://cloud.google.com/billing/docs>Cloud Billing</a> account defines who pays for a given set of Google Cloud resources, and you can link the account to one or more projects.
+Your project usage is charged to the linked Cloud Billing account.
+To use Google Cloud services, you must have a <strong>valid</strong> Cloud Billing account linked to your project.
+You must have a valid Cloud Billing account even if you are in your free trial period or if you choose to only use Google Cloud resources that are covered by the Always Free program.</p><p>We will use the <a href=google.golang.org/api/cloudbilling/v1>cloudbilling</a> package which provides access to the Cloud Billing API.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;context&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;log&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;path/filepath&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudbilling/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/iam/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/option&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/servicemanagement/v1&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// Credentials
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>projectID</span> <span class=p>=</span> <span class=s>&#34;hidden-howl-252922&#34;</span>                                         <span class=c1>// Your ProjectID
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>jsonPath</span> <span class=p>=</span> <span class=nx>filepath</span><span class=p>.</span><span class=nf>Join</span><span class=p>(</span><span class=nx>os</span><span class=p>.</span><span class=nf>Getenv</span><span class=p>(</span><span class=s>&#34;HOME&#34;</span><span class=p>),</span> <span class=s>&#34;mypersonalgcpjsonkey.json&#34;</span><span class=p>)</span> <span class=c1>// path to your JSON file
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ctx</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Resource Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudresourcemanagerService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>cloudresourcemanagerService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for IAM
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>iamService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>iam</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>iamService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Service Infrastructure Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>servicemanagementService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>servicemanagement</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>servicemanagementService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Billing
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudbillingService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudbilling</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>cloudbillingService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><h3 id=client-for-cloud-dns>Client for Cloud DNS</h3><p>The Google Cloud DNS is reliable, resilient and it provides low-latency DNS serving from Google&rsquo;s worldwide network.
+You can publish your domain names by using Google&rsquo;s infrastructure for production-quality, high-volume DNS services.
+Google&rsquo;s global network of anycast name servers provide reliable, low-latency, authoritative name lookups for your domains from anywhere in the world.</p><p>For that we will use the <a href=google.golang.org/api/dns/v1>dns</a> package.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;context&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;log&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;path/filepath&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudbilling/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/dns/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/iam/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/option&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/servicemanagement/v1&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// Credentials
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>projectID</span> <span class=p>=</span> <span class=s>&#34;hidden-howl-252922&#34;</span>                                         <span class=c1>// Your ProjectID
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>jsonPath</span> <span class=p>=</span> <span class=nx>filepath</span><span class=p>.</span><span class=nf>Join</span><span class=p>(</span><span class=nx>os</span><span class=p>.</span><span class=nf>Getenv</span><span class=p>(</span><span class=s>&#34;HOME&#34;</span><span class=p>),</span> <span class=s>&#34;mypersonalgcpjsonkey.json&#34;</span><span class=p>)</span> <span class=c1>// path to your JSON file
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ctx</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Resource Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudresourcemanagerService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>cloudresourcemanagerService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for IAM
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>iamService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>iam</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>iamService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Service Infrastructure Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>servicemanagementService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>servicemanagement</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>servicemanagementService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Billing
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudbillingService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudbilling</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>cloudbillingService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Google Cloud DNS API
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>dnsService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>dns</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>dnsService</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><p>The output will be:</p><pre tabindex=0><code>2020/03/13 00:30:17 https://cloudresourcemanager.googleapis.com/
+2020/03/13 00:30:17 https://iam.googleapis.com/
+2020/03/13 00:30:17 https://servicemanagement.googleapis.com/
+2020/03/13 00:30:17 https://cloudbilling.googleapis.com/
+2020/03/13 00:30:17 https://dns.googleapis.com/dns/v1/projects/
+</code></pre><h2 id=create-a-wrapper-for-all-of-those-clients>Create a wrapper for all of those clients</h2><p>Our intention is to make the code cleaner and more concise.
+For that we will group all of those different clients into an object.
+Later we will create an instance of this object, so we can use it.</p><h3 id=create-the-struct-1>Create the struct</h3><p>We will create a new client object for interacting with Google Cloud:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// GoogleCloudClient is a generic wrapper for talking with individual services inside Google Cloud
+</span></span></span><span class=line><span class=cl><span class=c1>// such as Cloud Resource Manager, IAM, Services, Billing and DNS
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>type</span> <span class=nx>GoogleCloudClient</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// Structs from Google library
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>Resource</span> <span class=o>*</span><span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>	<span class=nx>IAM</span>      <span class=o>*</span><span class=nx>iam</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>	<span class=nx>Service</span>  <span class=o>*</span><span class=nx>servicemanagement</span><span class=p>.</span><span class=nx>APIService</span>
+</span></span><span class=line><span class=cl>	<span class=nx>Billing</span>  <span class=o>*</span><span class=nx>cloudbilling</span><span class=p>.</span><span class=nx>APIService</span>
+</span></span><span class=line><span class=cl>	<span class=nx>DNS</span>      <span class=o>*</span><span class=nx>dns</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Required user input
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>ProjectID</span> <span class=kt>string</span>
+</span></span><span class=line><span class=cl>	<span class=nx>JSONPath</span>  <span class=kt>string</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><h3 id=create-an-instance>Create an instance</h3><p>The preferred method is to use a factory function in order to ensure that the new instance of <code>GoogleCloudClient</code> struct will be constructed with the required arguments.</p><p>The only input from the user is going to be the <code>ProjectID</code> and the <code>JSONPath</code>.
+We want to give those arguments and take back a ready-to-use instance of <code>GoogleCloudClient</code>.
+To be more precise, we will return a <strong>pointer</strong> to the <code>GoogleCloudClient</code> instance.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// NewGoogleCloudClient returns a pointer to the `GoogleCloudClient` instance
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>func</span> <span class=nf>NewGoogleCloudClient</span><span class=p>(</span><span class=nx>projectID</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>json</span> <span class=kt>string</span><span class=p>)</span> <span class=p>(</span><span class=o>*</span><span class=nx>GoogleCloudClient</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ctx</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Resource Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudresourcemanagerService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with Cloud Resource Manager Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for IAM
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>iamService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>iam</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the IAM Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Service Infrastructure Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>servicemanagementService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>servicemanagement</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Service Management Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Billing
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudbillingService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudbilling</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Cloud Billing Account: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Google Cloud DNS API
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>dnsService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>dns</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Cloud DNS: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=o>&amp;</span><span class=nx>GoogleCloudClient</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Resource</span><span class=p>:</span>  <span class=nx>cloudresourcemanagerService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>IAM</span><span class=p>:</span>       <span class=nx>iamService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Service</span><span class=p>:</span>   <span class=nx>servicemanagementService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Billing</span><span class=p>:</span>   <span class=nx>cloudbillingService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>DNS</span><span class=p>:</span>       <span class=nx>dnsService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>ProjectID</span><span class=p>:</span> <span class=nx>projectID</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>JSONPath</span><span class=p>:</span>  <span class=nx>json</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>	<span class=p>},</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><h3 id=use-the-instance>Use the instance</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;context&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;fmt&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;log&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;path/filepath&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudbilling/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/dns/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/iam/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/option&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/servicemanagement/v1&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// Credentials
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>projectID</span> <span class=p>=</span> <span class=s>&#34;hidden-howl-252922&#34;</span>                                         <span class=c1>// Your ProjectID
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>jsonPath</span> <span class=p>=</span> <span class=nx>filepath</span><span class=p>.</span><span class=nf>Join</span><span class=p>(</span><span class=nx>os</span><span class=p>.</span><span class=nf>Getenv</span><span class=p>(</span><span class=s>&#34;HOME&#34;</span><span class=p>),</span> <span class=s>&#34;mypersonalgcpjsonkey.json&#34;</span><span class=p>)</span> <span class=c1>// path to your JSON file
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl><span class=c1>// GoogleCloudClient is a generic wrapper for talking with individual services inside Google Cloud
+</span></span></span><span class=line><span class=cl><span class=c1>// such as Cloud Resource Manager, IAM, Services, Billing and DNS
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>type</span> <span class=nx>GoogleCloudClient</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// Structs from Google library
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>Resource</span> <span class=o>*</span><span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>	<span class=nx>IAM</span>      <span class=o>*</span><span class=nx>iam</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>	<span class=nx>Service</span>  <span class=o>*</span><span class=nx>servicemanagement</span><span class=p>.</span><span class=nx>APIService</span>
+</span></span><span class=line><span class=cl>	<span class=nx>Billing</span>  <span class=o>*</span><span class=nx>cloudbilling</span><span class=p>.</span><span class=nx>APIService</span>
+</span></span><span class=line><span class=cl>	<span class=nx>DNS</span>      <span class=o>*</span><span class=nx>dns</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Required user input
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>ProjectID</span> <span class=kt>string</span>
+</span></span><span class=line><span class=cl>	<span class=nx>JSONPath</span>  <span class=kt>string</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// NewGoogleCloudClient returns a pointer to the `GoogleCloudClient` instance
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>func</span> <span class=nf>NewGoogleCloudClient</span><span class=p>(</span><span class=nx>projectID</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>json</span> <span class=kt>string</span><span class=p>)</span> <span class=p>(</span><span class=o>*</span><span class=nx>GoogleCloudClient</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ctx</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Resource Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudresourcemanagerService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with Cloud Resource Manager Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for IAM
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>iamService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>iam</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the IAM Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Service Infrastructure Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>servicemanagementService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>servicemanagement</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Service Management Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Billing
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudbillingService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudbilling</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Cloud Billing Account: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Google Cloud DNS API
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>dnsService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>dns</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Cloud DNS: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=o>&amp;</span><span class=nx>GoogleCloudClient</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Resource</span><span class=p>:</span>  <span class=nx>cloudresourcemanagerService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>IAM</span><span class=p>:</span>       <span class=nx>iamService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Service</span><span class=p>:</span>   <span class=nx>servicemanagementService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Billing</span><span class=p>:</span>   <span class=nx>cloudbillingService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>DNS</span><span class=p>:</span>       <span class=nx>dnsService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>ProjectID</span><span class=p>:</span> <span class=nx>projectID</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>JSONPath</span><span class=p>:</span>  <span class=nx>json</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>	<span class=p>},</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>gcpClient</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nf>NewGoogleCloudClient</span><span class=p>(</span><span class=nx>projectID</span><span class=p>,</span> <span class=nx>jsonPath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>Resource</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>IAM</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>Service</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>Billing</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>DNS</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><p>The output for verification should be:</p><pre tabindex=0><code>https://cloudresourcemanager.googleapis.com/
+https://iam.googleapis.com/
+https://servicemanagement.googleapis.com/
+https://cloudbilling.googleapis.com/
+https://dns.googleapis.com/dns/v1/projects/
+</code></pre><h2 id=do-stuff-with-the-cloud-resource-manager>Do stuff with the Cloud Resource Manager</h2><p>That it is.
+Now you have established a secure connection with Google GCP and you can start using its API.
+I will show you some basic examples, so you can get an idea.</p><h3 id=list-projects>List Projects</h3><p>Read: <a href=https://cloud.google.com/resource-manager/reference/rest/v1/projects/list>Method: projects.list</a></p><p>You need to have Cloud Resource Manager API in your project. To do that:</p><ol><li>Go to the webpage that says <a href=https://console.developers.google.com/apis/library/cloudresourcemanager.googleapis.com>Cloud Resource Manager API</a></li><li>Click <strong>Enable</strong>.</li><li>Wait a little bit to get it enabled.</li></ol><p>We will use the function <code>*cloudresourcemanager.Service.Projects.List().Do()</code> which returns two things:</p><ul><li><code>*cloudresourcemanager.ListProjectsResponse</code></li><li><code>error</code></li></ul><p>So what is this <code>*cloudresourcemanager.ListProjectsResponse</code>?
+This is a pointer to a struct <code>ListProjectsResponse</code> that looks like this:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kd>type</span> <span class=nx>ListProjectsResponse</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// Pagination tokens have a limited lifetime.
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>NextPageToken</span> <span class=kt>string</span> <span class=s>`json:&#34;nextPageToken,omitempty&#34;`</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Projects: The list of Projects that matched the list filter. This list can be paginated.
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>Projects</span> <span class=p>[]</span><span class=o>*</span><span class=nx>Project</span> <span class=s>`json:&#34;projects,omitempty&#34;`</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// ServerResponse contains the HTTP response code and headers from the server.
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>googleapi</span><span class=p>.</span><span class=nx>ServerResponse</span> <span class=s>`json:&#34;-&#34;`</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>/// and others
+</span></span></span></code></pre></div><p>We are interested into the <code>Projects</code> field which is a list of another struct called <code>Project</code> which looks like this:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kd>type</span> <span class=nx>Project</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>CreateTime</span> <span class=kt>string</span> <span class=s>`json:&#34;createTime,omitempty&#34;`</span>
+</span></span><span class=line><span class=cl>	<span class=nx>Labels</span> <span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=kt>string</span> <span class=s>`json:&#34;labels,omitempty&#34;`</span>
+</span></span><span class=line><span class=cl>	<span class=nx>LifecycleState</span> <span class=kt>string</span> <span class=s>`json:&#34;lifecycleState,omitempty&#34;`</span>
+</span></span><span class=line><span class=cl>	<span class=nx>Name</span> <span class=kt>string</span> <span class=s>`json:&#34;name,omitempty&#34;`</span>
+</span></span><span class=line><span class=cl>	<span class=nx>Parent</span> <span class=o>*</span><span class=nx>ResourceId</span> <span class=s>`json:&#34;parent,omitempty&#34;`</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ProjectId</span> <span class=kt>string</span> <span class=s>`json:&#34;projectId,omitempty&#34;`</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ProjectNumber</span> <span class=kt>int64</span> <span class=s>`json:&#34;projectNumber,omitempty,string&#34;`</span>
+</span></span><span class=line><span class=cl>	<span class=nx>googleapi</span><span class=p>.</span><span class=nx>ServerResponse</span> <span class=s>`json:&#34;-&#34;`</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ForceSendFields</span> <span class=p>[]</span><span class=kt>string</span> <span class=s>`json:&#34;-&#34;`</span>
+</span></span><span class=line><span class=cl>	<span class=nx>NullFields</span> <span class=p>[]</span><span class=kt>string</span> <span class=s>`json:&#34;-&#34;`</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><p>To keep it simple, we are interested particularly for the <code>Name</code> and the <code>ProjectID</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl>	<span class=c1>// Fetch ListProjectsResponse
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>projectsList</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>gcpClient</span><span class=p>.</span><span class=nx>Resource</span><span class=p>.</span><span class=nx>Projects</span><span class=p>.</span><span class=nf>List</span><span class=p>().</span><span class=nf>Do</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// From every Project of the ListProjectsResponse print the Name and the ProjectID
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>value</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>projectsList</span><span class=p>.</span><span class=nx>Projects</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Printf</span><span class=p>(</span><span class=s>&#34;Project Name: %s\tProjectID: %s\r\n&#34;</span><span class=p>,</span> <span class=nx>value</span><span class=p>.</span><span class=nx>Name</span><span class=p>,</span> <span class=nx>value</span><span class=p>.</span><span class=nx>ProjectId</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span></code></pre></div><p>The output is:</p><pre tabindex=0><code>Project Name: My First Project  ProjectID: hidden-howl-252922
+</code></pre><h4 id=make-a-method>Make a method</h4><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;context&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;fmt&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;log&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;path/filepath&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudbilling/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/dns/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/iam/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/option&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/servicemanagement/v1&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// Credentials
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>projectID</span> <span class=p>=</span> <span class=s>&#34;hidden-howl-252922&#34;</span>                                         <span class=c1>// Your ProjectID
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>jsonPath</span> <span class=p>=</span> <span class=nx>filepath</span><span class=p>.</span><span class=nf>Join</span><span class=p>(</span><span class=nx>os</span><span class=p>.</span><span class=nf>Getenv</span><span class=p>(</span><span class=s>&#34;HOME&#34;</span><span class=p>),</span> <span class=s>&#34;mypersonalgcpjsonkey.json&#34;</span><span class=p>)</span> <span class=c1>// path to your JSON file
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl><span class=c1>// GoogleCloudClient is a generic wrapper for talking with individual services inside Google Cloud
+</span></span></span><span class=line><span class=cl><span class=c1>// such as Cloud Resource Manager, IAM, Services, Billing and DNS
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>type</span> <span class=nx>GoogleCloudClient</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// Structs from Google library
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>Resource</span> <span class=o>*</span><span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>	<span class=nx>IAM</span>      <span class=o>*</span><span class=nx>iam</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>	<span class=nx>Service</span>  <span class=o>*</span><span class=nx>servicemanagement</span><span class=p>.</span><span class=nx>APIService</span>
+</span></span><span class=line><span class=cl>	<span class=nx>Billing</span>  <span class=o>*</span><span class=nx>cloudbilling</span><span class=p>.</span><span class=nx>APIService</span>
+</span></span><span class=line><span class=cl>	<span class=nx>DNS</span>      <span class=o>*</span><span class=nx>dns</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Required user input
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>ProjectID</span> <span class=kt>string</span>
+</span></span><span class=line><span class=cl>	<span class=nx>JSONPath</span>  <span class=kt>string</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// NewGoogleCloudClient returns a pointer to the `GoogleCloudClient` instance
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>func</span> <span class=nf>NewGoogleCloudClient</span><span class=p>(</span><span class=nx>projectID</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>json</span> <span class=kt>string</span><span class=p>)</span> <span class=p>(</span><span class=o>*</span><span class=nx>GoogleCloudClient</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ctx</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Resource Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudresourcemanagerService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with Cloud Resource Manager Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for IAM
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>iamService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>iam</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the IAM Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Service Infrastructure Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>servicemanagementService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>servicemanagement</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Service Management Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Billing
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudbillingService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudbilling</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Cloud Billing Account: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Google Cloud DNS API
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>dnsService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>dns</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Cloud DNS: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=o>&amp;</span><span class=nx>GoogleCloudClient</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Resource</span><span class=p>:</span>  <span class=nx>cloudresourcemanagerService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>IAM</span><span class=p>:</span>       <span class=nx>iamService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Service</span><span class=p>:</span>   <span class=nx>servicemanagementService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Billing</span><span class=p>:</span>   <span class=nx>cloudbillingService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>DNS</span><span class=p>:</span>       <span class=nx>dnsService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>ProjectID</span><span class=p>:</span> <span class=nx>projectID</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>JSONPath</span><span class=p>:</span>  <span class=nx>json</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>	<span class=p>},</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// ListProjects lists the Projects of a GCP service account and returns an error
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>func</span> <span class=p>(</span><span class=nx>c</span> <span class=o>*</span><span class=nx>GoogleCloudClient</span><span class=p>)</span> <span class=nf>ListProjects</span><span class=p>()</span> <span class=p>(</span><span class=o>*</span><span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nx>ListProjectsResponse</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>projectsList</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>c</span><span class=p>.</span><span class=nx>Resource</span><span class=p>.</span><span class=nx>Projects</span><span class=p>.</span><span class=nf>List</span><span class=p>().</span><span class=nf>Do</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>projectsList</span><span class=p>,</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>gcpClient</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nf>NewGoogleCloudClient</span><span class=p>(</span><span class=nx>projectID</span><span class=p>,</span> <span class=nx>jsonPath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>Resource</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>IAM</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>Service</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>Billing</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>DNS</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>resp</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>gcpClient</span><span class=p>.</span><span class=nf>ListProjects</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>project</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>resp</span><span class=p>.</span><span class=nx>Projects</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Printf</span><span class=p>(</span><span class=s>&#34;Project Name: %s\tProjectID: %s\r\n&#34;</span><span class=p>,</span> <span class=nx>project</span><span class=p>.</span><span class=nx>Name</span><span class=p>,</span> <span class=nx>project</span><span class=p>.</span><span class=nx>ProjectId</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><p>Output:</p><pre tabindex=0><code>Project Name: My First Project  ProjectID: hidden-howl-252922
+</code></pre><h4 id=get-a-project>Get a Project</h4><p>Now that you can list the projects, you can also <code>get</code> one.
+Storing a project into a variable, you can later use the <code>.</code> to access attributed of that project.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;context&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;fmt&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;log&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;path/filepath&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudbilling/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/dns/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/iam/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/option&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/servicemanagement/v1&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// Credentials
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>projectID</span> <span class=p>=</span> <span class=s>&#34;hidden-howl-252922&#34;</span>                                         <span class=c1>// Your ProjectID
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>jsonPath</span> <span class=p>=</span> <span class=nx>filepath</span><span class=p>.</span><span class=nf>Join</span><span class=p>(</span><span class=nx>os</span><span class=p>.</span><span class=nf>Getenv</span><span class=p>(</span><span class=s>&#34;HOME&#34;</span><span class=p>),</span> <span class=s>&#34;mypersonalgcpjsonkey.json&#34;</span><span class=p>)</span> <span class=c1>// path to your JSON file
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl><span class=c1>// GoogleCloudClient is a generic wrapper for talking with individual services inside Google Cloud
+</span></span></span><span class=line><span class=cl><span class=c1>// such as Cloud Resource Manager, IAM, Services, Billing and DNS
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>type</span> <span class=nx>GoogleCloudClient</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// Structs from Google library
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>Resource</span> <span class=o>*</span><span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>	<span class=nx>IAM</span>      <span class=o>*</span><span class=nx>iam</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>	<span class=nx>Service</span>  <span class=o>*</span><span class=nx>servicemanagement</span><span class=p>.</span><span class=nx>APIService</span>
+</span></span><span class=line><span class=cl>	<span class=nx>Billing</span>  <span class=o>*</span><span class=nx>cloudbilling</span><span class=p>.</span><span class=nx>APIService</span>
+</span></span><span class=line><span class=cl>	<span class=nx>DNS</span>      <span class=o>*</span><span class=nx>dns</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Required user input
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>ProjectID</span> <span class=kt>string</span>
+</span></span><span class=line><span class=cl>	<span class=nx>JSONPath</span>  <span class=kt>string</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// NewGoogleCloudClient returns a pointer to the `GoogleCloudClient` instance
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>func</span> <span class=nf>NewGoogleCloudClient</span><span class=p>(</span><span class=nx>projectID</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>json</span> <span class=kt>string</span><span class=p>)</span> <span class=p>(</span><span class=o>*</span><span class=nx>GoogleCloudClient</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ctx</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Resource Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudresourcemanagerService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with Cloud Resource Manager Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for IAM
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>iamService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>iam</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the IAM Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Service Infrastructure Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>servicemanagementService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>servicemanagement</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Service Management Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Billing
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudbillingService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudbilling</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Cloud Billing Account: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Google Cloud DNS API
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>dnsService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>dns</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Cloud DNS: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=o>&amp;</span><span class=nx>GoogleCloudClient</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Resource</span><span class=p>:</span>  <span class=nx>cloudresourcemanagerService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>IAM</span><span class=p>:</span>       <span class=nx>iamService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Service</span><span class=p>:</span>   <span class=nx>servicemanagementService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Billing</span><span class=p>:</span>   <span class=nx>cloudbillingService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>DNS</span><span class=p>:</span>       <span class=nx>dnsService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>ProjectID</span><span class=p>:</span> <span class=nx>projectID</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>JSONPath</span><span class=p>:</span>  <span class=nx>json</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>	<span class=p>},</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// ListProjects lists the Projects of a GCP service account and returns an error
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>func</span> <span class=p>(</span><span class=nx>c</span> <span class=o>*</span><span class=nx>GoogleCloudClient</span><span class=p>)</span> <span class=nf>ListProjects</span><span class=p>()</span> <span class=p>(</span><span class=o>*</span><span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nx>ListProjectsResponse</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>projectsList</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>c</span><span class=p>.</span><span class=nx>Resource</span><span class=p>.</span><span class=nx>Projects</span><span class=p>.</span><span class=nf>List</span><span class=p>().</span><span class=nf>Do</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>projectsList</span><span class=p>,</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// GetProject returns a project from GCP
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>func</span> <span class=p>(</span><span class=nx>c</span> <span class=o>*</span><span class=nx>GoogleCloudClient</span><span class=p>)</span> <span class=nf>GetProject</span><span class=p>(</span><span class=nx>projectID</span> <span class=kt>string</span><span class=p>)</span> <span class=p>(</span><span class=o>*</span><span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nx>Project</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>project</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>c</span><span class=p>.</span><span class=nx>Resource</span><span class=p>.</span><span class=nx>Projects</span><span class=p>.</span><span class=nf>Get</span><span class=p>(</span><span class=nx>projectID</span><span class=p>).</span><span class=nf>Do</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>project</span><span class=p>,</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>gcpClient</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nf>NewGoogleCloudClient</span><span class=p>(</span><span class=nx>projectID</span><span class=p>,</span> <span class=nx>jsonPath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>Resource</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>IAM</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>Service</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>Billing</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>DNS</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>resp</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>gcpClient</span><span class=p>.</span><span class=nf>ListProjects</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>project</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>resp</span><span class=p>.</span><span class=nx>Projects</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Printf</span><span class=p>(</span><span class=s>&#34;Project Name: %s\tProjectID: %s\r\n&#34;</span><span class=p>,</span> <span class=nx>project</span><span class=p>.</span><span class=nx>Name</span><span class=p>,</span> <span class=nx>project</span><span class=p>.</span><span class=nx>ProjectId</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// gcpClient.Resource.Projects.Delete(&#34;hidden-howl-252922&#34;)
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>resp1</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>gcpClient</span><span class=p>.</span><span class=nf>GetProject</span><span class=p>(</span><span class=s>&#34;hidden-howl-252922&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>resp1</span><span class=p>.</span><span class=nx>Name</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><h3 id=delete-a-project>Delete a Project</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;context&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;fmt&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;log&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;os&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;path/filepath&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudbilling/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/cloudresourcemanager/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/dns/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/iam/v1&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/option&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;google.golang.org/api/servicemanagement/v1&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// Credentials
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>projectID</span> <span class=p>=</span> <span class=s>&#34;hidden-howl-252922&#34;</span>                                         <span class=c1>// Your ProjectID
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>var</span> <span class=nx>jsonPath</span> <span class=p>=</span> <span class=nx>filepath</span><span class=p>.</span><span class=nf>Join</span><span class=p>(</span><span class=nx>os</span><span class=p>.</span><span class=nf>Getenv</span><span class=p>(</span><span class=s>&#34;HOME&#34;</span><span class=p>),</span> <span class=s>&#34;mypersonalgcpjsonkey.json&#34;</span><span class=p>)</span> <span class=c1>// path to your JSON file
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl><span class=c1>// GoogleCloudClient is a generic wrapper for talking with individual services inside Google Cloud
+</span></span></span><span class=line><span class=cl><span class=c1>// such as Cloud Resource Manager, IAM, Services, Billing and DNS
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>type</span> <span class=nx>GoogleCloudClient</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// Structs from Google library
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>Resource</span> <span class=o>*</span><span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>	<span class=nx>IAM</span>      <span class=o>*</span><span class=nx>iam</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>	<span class=nx>Service</span>  <span class=o>*</span><span class=nx>servicemanagement</span><span class=p>.</span><span class=nx>APIService</span>
+</span></span><span class=line><span class=cl>	<span class=nx>Billing</span>  <span class=o>*</span><span class=nx>cloudbilling</span><span class=p>.</span><span class=nx>APIService</span>
+</span></span><span class=line><span class=cl>	<span class=nx>DNS</span>      <span class=o>*</span><span class=nx>dns</span><span class=p>.</span><span class=nx>Service</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Required user input
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>ProjectID</span> <span class=kt>string</span>
+</span></span><span class=line><span class=cl>	<span class=nx>JSONPath</span>  <span class=kt>string</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// NewGoogleCloudClient returns a pointer to the `GoogleCloudClient` instance
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>func</span> <span class=nf>NewGoogleCloudClient</span><span class=p>(</span><span class=nx>projectID</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>json</span> <span class=kt>string</span><span class=p>)</span> <span class=p>(</span><span class=o>*</span><span class=nx>GoogleCloudClient</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ctx</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Resource Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudresourcemanagerService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with Cloud Resource Manager Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for IAM
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>iamService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>iam</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the IAM Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Service Infrastructure Manager
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>servicemanagementService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>servicemanagement</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Service Management Service: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Cloud Billing
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>cloudbillingService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>cloudbilling</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Cloud Billing Account: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Client for Google Cloud DNS API
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>dnsService</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>dns</span><span class=p>.</span><span class=nf>NewService</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>option</span><span class=p>.</span><span class=nf>WithCredentialsFile</span><span class=p>(</span><span class=nx>jsonPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Error with the Cloud DNS: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=o>&amp;</span><span class=nx>GoogleCloudClient</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Resource</span><span class=p>:</span>  <span class=nx>cloudresourcemanagerService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>IAM</span><span class=p>:</span>       <span class=nx>iamService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Service</span><span class=p>:</span>   <span class=nx>servicemanagementService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Billing</span><span class=p>:</span>   <span class=nx>cloudbillingService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>DNS</span><span class=p>:</span>       <span class=nx>dnsService</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>ProjectID</span><span class=p>:</span> <span class=nx>projectID</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>JSONPath</span><span class=p>:</span>  <span class=nx>json</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>	<span class=p>},</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// ListProjects lists the Projects of a GCP service account and returns an error
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>func</span> <span class=p>(</span><span class=nx>c</span> <span class=o>*</span><span class=nx>GoogleCloudClient</span><span class=p>)</span> <span class=nf>ListProjects</span><span class=p>()</span> <span class=p>(</span><span class=o>*</span><span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nx>ListProjectsResponse</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>projectsList</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>c</span><span class=p>.</span><span class=nx>Resource</span><span class=p>.</span><span class=nx>Projects</span><span class=p>.</span><span class=nf>List</span><span class=p>().</span><span class=nf>Do</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>projectsList</span><span class=p>,</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// GetProject returns a project from GCP
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>func</span> <span class=p>(</span><span class=nx>c</span> <span class=o>*</span><span class=nx>GoogleCloudClient</span><span class=p>)</span> <span class=nf>GetProject</span><span class=p>(</span><span class=nx>projectID</span> <span class=kt>string</span><span class=p>)</span> <span class=p>(</span><span class=o>*</span><span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nx>Project</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>project</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>c</span><span class=p>.</span><span class=nx>Resource</span><span class=p>.</span><span class=nx>Projects</span><span class=p>.</span><span class=nf>Get</span><span class=p>(</span><span class=nx>projectID</span><span class=p>).</span><span class=nf>Do</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>project</span><span class=p>,</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// DeleteProject deletes a project from GCP
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>func</span> <span class=p>(</span><span class=nx>c</span> <span class=o>*</span><span class=nx>GoogleCloudClient</span><span class=p>)</span> <span class=nf>DeleteProject</span><span class=p>(</span><span class=nx>projectID</span> <span class=kt>string</span><span class=p>)</span> <span class=p>(</span><span class=o>*</span><span class=nx>cloudresourcemanager</span><span class=p>.</span><span class=nx>Empty</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>project</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>c</span><span class=p>.</span><span class=nx>Resource</span><span class=p>.</span><span class=nx>Projects</span><span class=p>.</span><span class=nf>Delete</span><span class=p>(</span><span class=nx>projectID</span><span class=p>).</span><span class=nf>Do</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>project</span><span class=p>,</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>gcpClient</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nf>NewGoogleCloudClient</span><span class=p>(</span><span class=nx>projectID</span><span class=p>,</span> <span class=nx>jsonPath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>Resource</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>IAM</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>Service</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>Billing</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>gcpClient</span><span class=p>.</span><span class=nx>DNS</span><span class=p>.</span><span class=nx>BasePath</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Get a List of Projects
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>resp</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>gcpClient</span><span class=p>.</span><span class=nf>ListProjects</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>project</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>resp</span><span class=p>.</span><span class=nx>Projects</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>fmt</span><span class=p>.</span><span class=nf>Printf</span><span class=p>(</span><span class=s>&#34;Project Name: %s\tProjectID: %s\r\n&#34;</span><span class=p>,</span> <span class=nx>project</span><span class=p>.</span><span class=nx>Name</span><span class=p>,</span> <span class=nx>project</span><span class=p>.</span><span class=nx>ProjectId</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Get a Project
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>resp1</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>gcpClient</span><span class=p>.</span><span class=nf>GetProject</span><span class=p>(</span><span class=s>&#34;hidden-howl-252922&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Use the . to access the attributes of this project
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>resp1</span><span class=p>.</span><span class=nx>Name</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Printf</span><span class=p>(</span><span class=s>&#34;The lifecycle state of %s project is %s:&#34;</span><span class=p>,</span> <span class=nx>resp1</span><span class=p>.</span><span class=nx>Name</span><span class=p>,</span> <span class=nx>resp1</span><span class=p>.</span><span class=nx>LifecycleState</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>// Delete a Project
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>resp2</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>gcpClient</span><span class=p>.</span><span class=nf>DeleteProject</span><span class=p>(</span><span class=s>&#34;hidden-howl-252922&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>resp2</span><span class=p>.</span><span class=nx>ServerResponse</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div></div></article></section></main></body></html>

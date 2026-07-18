@@ -1,0 +1,303 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Deploy openSUSE Leap15 VM in Kubernetes using KubeVirt | drpaneas</title><meta name=author content="Panos Georgiadis"><meta name=description content="Not all those who wander are lost"><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel=stylesheet><link rel=stylesheet href=/css/main.min.637569fc4ac9f9fcf4e51e2a2d9a7953c10570ef9a7f6ac4e5c438b528d987ff.css></head><body><main class=workspace-page><section class=workspace-shell><div class=workspace-topbar><a class=topbar-tab href=/>1:home</a>
+<a class=topbar-tab href=/post/>2:posts*</a>
+<a class=topbar-tab href=/tags/>3:tags</a>
+<a class=topbar-tab href=/about/>4:about</a>
+<span class=workspace-session>[session: drpaneas]</span></div><article class="pane article-pane"><nav class=breadcrumb-back aria-label=Breadcrumb><a href=/>workspace</a>
+/ <a href=/post/>posts</a>
+/ <span>kubernetes_kubevirt_leap15.md</span></nav><div class=pane-title>article / kubernetes_kubevirt_leap15.md</div><h1>Deploy openSUSE Leap15 VM in Kubernetes using KubeVirt</h1><p class=post-meta>2018-03-15 / 10 min
+/ tags:
+<a href=/tags/tutorial/>tutorial</a>
+,
+<a href=/tags/kubernetes/>kubernetes</a>
+,
+<a href=/tags/kubevirt/>kubevirt</a>
+,
+<a href=/tags/minikube/>minikube</a>
+,
+<a href=/tags/kvm/>kvm</a></p><div class=post-content><h2 id=introduction>Introduction</h2><p>If you think that Kubernetes is a cluster for managing
+containers, then you are dead wrong. Kubernetes is a cluster
+for managing <code>Pods</code>. In most cases, a Pod is considered to be
+an abstraction of an container object, so Pod talks to
+Docker and they know each other. What happens though when
+we introduce a new guy called libvirt and we learn Pod
+to talk to it? We have <strong>KubeVirt</strong>. KubeVirt is the
+technology that allows Kubernetes to be a cluster for
+both containers <strong>and</strong> virtual-machines!</p><h3 id=whats-the-use-case>What&rsquo;s the use-case?</h3><p>In the next 5 years it&rsquo;s expected that lot&rsquo;s of companies
+will try to migrate their applications and services from
+monotlith into microservices. Now, we all now that for
+most of them, this is a very difficult thing to do.
+Especiall when there are services running in machines
+that they haven&rsquo;t been touched in years&mldr; So, what
+will happen is that all these companies are doomed
+to have 2 infrastractures. One infrastructure based
+on what they already do (<em>e.g. OpenStack</em>) and one
+with containers and Kubernetes. Now, this project,
+KubeVirt comes into play and tells them that you just
+need one infrastructure in Kubernetes. In case you
+have any VM, they can easily be migrated to run
+in Kubernetes &ndash; that&rsquo;s it.</p><h2 id=install-minikube>Install Minikube</h2><h3 id=wait-why>Wait&mldr; why?</h3><p>In this guide, I am going to use <strong>minikube</strong> simply
+because this is the fastest way to deploy a <em>k8s</em> cluster
+and do some dirty testing. Now, this is not just my opinion
+but in general, <em>minikube</em> is considered to be the
+<em>hello-world</em> of Kubernetes. Actually, it&rsquo;s nothing
+more than a toolbox which we are using via the command
+line in order to setup a local k8s cluster. However,
+this is not going to be a cluster similar to the ones
+of AWS or Azure, but a small single-node cluster
+for educational purposes &ndash; which seems to be quite
+enough for someone who wants just to have a taste of
+Kubernetes or test his own apps locally.</p><p>Since, the purpose of this article is not to show you
+the features of Kubernetes which are related to the
+management of applications in a multi-node environment,
+it&rsquo;s sure more than enough to demo the basic functionality
+of <strong>KubeVirt</strong>. Also another reason I prefered to use
+<em>minikube</em> in this article is simply because it&rsquo;s
+<em>cross-platform</em>. So, if you are using Mac or Windows PC,
+you can still follow this guide. Last thing, is that with
+minikube our Kubernetes cluster is always running with the
+latest bleeding-edge version of Kubernetes, so you can be
+up to date with the modern stuff and also keep an eye on
+the documentation. So, if we can be updated and also learn
+something in the meantime, then <em>why-not?</em></p><h3 id=kvm-configuration-you-should-have-but-you-never-did>KVM Configuration (you should have but you never did)</h3><p>As I said, there are many ways that someone can install
+a Kubernetes cluster. Everyone nowadays <em>re</em>-invents
+the wheel by offering their own <em>N-th</em>-kubernetes
+installer. Anyway, in this article I have decided we are
+going to use Minikube <strong>purely because of lazyness</strong>, so if
+you feel more adventourus than me, feel free to deploy
+Kubernetes in whatever way makes you happy.</p><p>Minikube requires some
+kind of virtualization technology to be present, so since
+we are in Linux, there&rsquo;s no better choice than <em>KVM</em>. To
+install <em>KVM</em> in openSUSE, do the following in <em>YaST</em>:</p><ul><li><p>Start <em>YaST</em> and choose <em>Virtualization</em>. Install
+<em>Hypervisor and Tools</em>.</p></li><li><p>Select <em>KVM server</em> and <em>KVM tools</em> because we
+want to have a libvirt based management stack. Confirm with
+<em>Accept</em>.</p></li><li><p>To enable normal networking for the VM Guest, using
+a network bridge is recommended. YaST offers to automatically
+configure a bridge on the VM Host Server. Agree to do so by
+choosing <em>Yes</em>. In case you have problems with setting up your
+bridge, use my <a href=https://github.com/drpaneas/uzful-scripts>create_bridge</a>
+script.</p></li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>~/github/uzful-scripts <span class=c1># ./create_bridge.sh </span>
+</span></span><span class=line><span class=cl>Main Interface: enp0s25
+</span></span><span class=line><span class=cl>YaST Interface ID: <span class=m>0</span>
+</span></span><span class=line><span class=cl>Creating bridge...
+</span></span><span class=line><span class=cl>Bridge Interface: br0
+</span></span><span class=line><span class=cl>YaST bridge ID: <span class=m>2</span>
+</span></span><span class=line><span class=cl><span class=c1># To restore back to the original state, do:</span>
+</span></span><span class=line><span class=cl>yast lan delete <span class=nv>id</span><span class=o>=</span><span class=m>2</span>
+</span></span><span class=line><span class=cl>yast lan edit <span class=nv>id</span><span class=o>=</span><span class=m>0</span> <span class=nv>bootproto</span><span class=o>=</span><span class=s1>&#39;dhcp&#39;</span>
+</span></span></code></pre></div><p>By now, you should have installed the following packages:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>rpm -q libvirt-daemon-qemu qemu-kvm
+</span></span></code></pre></div><p>and also a perfectly working bridge interface:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>br0: <span class=nv>flags</span><span class=o>=</span>4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu <span class=m>1500</span>
+</span></span><span class=line><span class=cl>        inet 192.168.178.136  netmask 255.255.255.0  broadcast 192.168.178.255
+</span></span><span class=line><span class=cl>        ether d0:50:99:83:db:5f  txqueuelen <span class=m>1000</span>  <span class=o>(</span>Ethernet<span class=o>)</span>
+</span></span><span class=line><span class=cl>        RX packets <span class=m>192</span>  bytes <span class=m>29515</span> <span class=o>(</span>28.8 KiB<span class=o>)</span>
+</span></span><span class=line><span class=cl>        RX errors <span class=m>0</span>  dropped <span class=m>39</span>  overruns <span class=m>0</span>  frame <span class=m>0</span>
+</span></span><span class=line><span class=cl>        TX packets <span class=m>123</span>  bytes <span class=m>12889</span> <span class=o>(</span>12.5 KiB<span class=o>)</span>
+</span></span><span class=line><span class=cl>        TX errors <span class=m>0</span>  dropped <span class=m>0</span> overruns <span class=m>0</span>  carrier <span class=m>0</span>  collisions <span class=m>0</span>
+</span></span></code></pre></div><p>Then let&rsquo;s make sure that any normal user is able
+to connect and interact with libvirt, without any
+need for <em>root</em> priviledges. First off, we
+configure the sockets to be owned and
+be accessible by a certain group (<em>e.g.</em> libvirt group).
+Before doing that, make sure that the group <em>libvirt</em>
+already exists in your system:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>getent group <span class=p>|</span> grep libvirt
+</span></span><span class=line><span class=cl>libvirt:x:462
+</span></span></code></pre></div><p>If it doesn&rsquo;t exist, then just create it:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>root <span class=c1># groupadd libvirt</span>
+</span></span></code></pre></div><p>Now, make your normal user is part of <em>libvirt</em> group:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo usermod --append --groups libvirt <span class=k>$(</span>whoami<span class=k>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Verification:</span>
+</span></span><span class=line><span class=cl>grep <span class=k>$(</span>whoami<span class=k>)</span> /etc/group <span class=p>|</span> grep libvirt
+</span></span><span class=line><span class=cl>libvirt:x:462:drpaneas
+</span></span></code></pre></div><p>Also, we need to change the configuration which is
+related to the access of the Unix socket. The group
+ownership should be <code>libvirt</code>, the permissions for the
+socket should be <code>srwxrwx---</code> and lasty disable other
+authentication methods in order to handle this solely
+by the socket permissions itself. To do all of those,
+change the configuration in <code>/etc/libvirt/libvirtd.conf</code>
+as follows:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># grep  ^[^#]  /etc/libvirt/libvirtd.conf</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nv>unix_sock_group</span> <span class=o>=</span> <span class=s2>&#34;libvirt&#34;</span>
+</span></span><span class=line><span class=cl><span class=nv>unix_sock_dir</span> <span class=o>=</span> <span class=s2>&#34;/var/run/libvirt&#34;</span>
+</span></span><span class=line><span class=cl><span class=nv>auth_unix_rw</span> <span class=o>=</span> <span class=s2>&#34;none&#34;</span>
+</span></span></code></pre></div><p>After configuring the socket. Let&rsquo;s do the same
+for <code>qemu</code>. Edit <code>/etc/libvirt/qemu.conf</code> and change the
+configuration as follows:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># grep ^[^#] /etc/libvirt/qemu.conf</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nv>security_default_confined</span> <span class=o>=</span> <span class=m>0</span>
+</span></span><span class=line><span class=cl><span class=nv>user</span> <span class=o>=</span> <span class=s2>&#34;drpaneas&#34;</span>	<span class=c1># &lt;--- put your normal user username</span>
+</span></span><span class=line><span class=cl><span class=nv>group</span> <span class=o>=</span> <span class=s2>&#34;libvirt&#34;</span>
+</span></span><span class=line><span class=cl><span class=nv>dynamic_ownership</span> <span class=o>=</span> <span class=m>1</span>
+</span></span></code></pre></div><p>Then, make your normal user a member of
+the group <code>kvm</code>:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>usermod --append --groups kvm <span class=k>$(</span>whoami<span class=k>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Verification</span>
+</span></span><span class=line><span class=cl>grep <span class=k>$(</span>whoami<span class=k>)</span> /etc/group <span class=p>|</span> grep kvm
+</span></span><span class=line><span class=cl>kvm:x:484:qemu,drpaneas
+</span></span></code></pre></div><p>This step is needed to grant access to <code>/dev/kvm</code>,
+which is required to start VM Guests as <em>drpaneas</em>.</p><p>To take the changes into effect, restart libvirtd:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>root <span class=c1># systemctl restart libvirtd</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Verification</span>
+</span></span><span class=line><span class=cl>root <span class=c1># systemctl is-active libvirtd</span>
+</span></span><span class=line><span class=cl>active
+</span></span></code></pre></div><p>From now on, <code>drpaneas</code> is able to communicate with
+<em>virsh</em>. You can test this, to make sure of it:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>drpaneas@localhost:~&gt; virsh -c <span class=s1>&#39;qemu:///system&#39;</span> list
+</span></span><span class=line><span class=cl> Id    Name                           State
+</span></span><span class=line><span class=cl>----------------------------------------------------
+</span></span></code></pre></div><h3 id=install-kvm2-driver-plugin-for-docker-machine>Install KVM2 driver plugin for docker machine</h3><p>Typically, we would use <code>kvm driver</code> but by the time of writing this
+blogspot, it&rsquo;s considered deprecated. This is why we are going to use
+the new modern <strong>kvm2 driver</strong>. To install it, type the following:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl -LO https://storage.googleapis.com/minikube/releases/latest/docker-machine-driver-kvm2 <span class=o>&amp;&amp;</span> chmod +x docker-machine-driver-kvm2 <span class=o>&amp;&amp;</span> sudo mv docker-machine-driver-kvm2 /usr/bin/
+</span></span></code></pre></div><p>Make no mistake here: this is not a binary, but a docker machine plugin.
+These are not intended to be invoked directly, but use them through the
+main <code>docker-machine</code> binary. This is the one that <em>minikube</em> uses.</p><h3 id=install-minikube-1>Install Minikube</h3><p>Unfortunatelly, there is no <em>minikube</em> package in our official repositories.
+The <em>Containers Team</em> is building one, which you can use it if you add their
+repository &ndash; however I would strongly advise you to avoid it. Simply because
+the version that is maintained there is quite old compared to the upstream.
+So, the only option in that case is to pick-up the upstream binary directly:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 <span class=o>&amp;&amp;</span> chmod +x minikube <span class=o>&amp;&amp;</span> sudo mv minikube /usr/local/bin/
+</span></span></code></pre></div><h2 id=deploy-kubernetes-19-or-later>Deploy Kubernetes 1.9 or later</h2><p>Using <em>minikube</em> we are going to deploy a Kubernetes cluster. This will utilize
+<em>KVM</em> and run a single-node cluster inside a virtual-machine.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>drpaneas@localhost:~&gt; minikube start --vm-driver<span class=o>=</span>kvm2
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Starting <span class=nb>local</span> Kubernetes v1.9.0 cluster...
+</span></span><span class=line><span class=cl>Starting VM...
+</span></span><span class=line><span class=cl>Downloading Minikube ISO
+</span></span><span class=line><span class=cl> 142.22 MB / 142.22 MB <span class=o>[============================================]</span> 100.00% 0s
+</span></span><span class=line><span class=cl>Getting VM IP address...
+</span></span><span class=line><span class=cl>Moving files into cluster...
+</span></span><span class=line><span class=cl>Downloading localkube binary
+</span></span><span class=line><span class=cl> 162.41 MB / 162.41 MB <span class=o>[============================================]</span> 100.00% 0s
+</span></span><span class=line><span class=cl> <span class=m>0</span> B / <span class=m>65</span> B <span class=o>[</span>----------------------------------------------------------<span class=o>]</span>   0.00%
+</span></span><span class=line><span class=cl> <span class=m>65</span> B / <span class=m>65</span> B <span class=o>[======================================================]</span> 100.00% 0sSetting up certs...
+</span></span><span class=line><span class=cl>Connecting to cluster...
+</span></span><span class=line><span class=cl>Setting up kubeconfig...
+</span></span><span class=line><span class=cl>Starting cluster components...
+</span></span><span class=line><span class=cl>Kubectl is now configured to use the cluster.
+</span></span><span class=line><span class=cl>Loading cached images from config file.
+</span></span></code></pre></div><p>If everything went smoothly, you should be able to see your <em>minikube</em>
+virtual-machine running:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>drpaneas@localhost:~&gt; virsh -c <span class=s1>&#39;qemu:///system&#39;</span> list
+</span></span><span class=line><span class=cl> Id    Name                           State
+</span></span><span class=line><span class=cl>----------------------------------------------------
+</span></span><span class=line><span class=cl> <span class=m>2</span>     minikube                       running
+</span></span></code></pre></div><p>JFYI whenever you want to get rid of it:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># minikube stop</span>
+</span></span><span class=line><span class=cl>Stopping <span class=nb>local</span> Kubernetes cluster...
+</span></span><span class=line><span class=cl>Machinestopped.
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># minikube delete</span>
+</span></span><span class=line><span class=cl>Deleting <span class=nb>local</span> Kubernetes cluster...
+</span></span><span class=line><span class=cl>Machine deleted
+</span></span></code></pre></div><h2 id=talk-with-the-cluster>Talk with the cluster</h2><p>In order to communicate and interact with the Kubernetes cluster,
+we need <code>kubectl</code> &ndash; kubecontrol, which is nothing more than just
+a client which talks with our cluster using the command-line. This
+time, openSUSE does provide a package, so let&rsquo;s trust our maintainers
+in this:</p><h3 id=install-kubectl>Install Kubectl</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>zypper -n install kubernetes-client
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># kubectl cluster-info</span>
+</span></span><span class=line><span class=cl>Kubernetes master is running at https://192.168.39.11:8443
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>To further debug and diagnose cluster problems, use <span class=s1>&#39;kubectl cluster-info dump&#39;</span>.
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># kubectl get nodes</span>
+</span></span><span class=line><span class=cl>NAME       STATUS    ROLES     AGE       VERSION
+</span></span><span class=line><span class=cl>minikube   Ready     &lt;none&gt;    4m        v1.9.0
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>drpaneas@localhost:~&gt; kubectl get --all-namespaces pods
+</span></span><span class=line><span class=cl>NAMESPACE     NAME                                    READY     STATUS    RESTARTS   AGE
+</span></span><span class=line><span class=cl>kube-system   kube-addon-manager-minikube             1/1       Running   <span class=m>0</span>          5m
+</span></span><span class=line><span class=cl>kube-system   kube-dns-54cccfbdf8-89c9t               3/3       Running   <span class=m>0</span>          5m
+</span></span><span class=line><span class=cl>kube-system   kubernetes-dashboard-77d8b98585-hml7r   1/1       Running   <span class=m>0</span>          5m
+</span></span><span class=line><span class=cl>kube-system   storage-provisioner                     1/1       Running   <span class=m>0</span>          5m
+</span></span></code></pre></div><p>In case you are more of a visual guy, open the Kubernetes Dashboard:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>minikube dashboard
+</span></span><span class=line><span class=cl>Opening kubernetes dashboard in default browser...
+</span></span></code></pre></div><h2 id=deploy-kubevirt>Deploy KubeVirt</h2><p>With minikube running, you can easily deploy KubeVirt.
+If you want to know more about it just read the
+<a href=https://kubevirt.gitbooks.io/user-guide/>online documentation</a></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ <span class=nb>export</span> <span class=nv>VERSION</span><span class=o>=</span>v0.3.0
+</span></span><span class=line><span class=cl>$ kubectl create -f https://github.com/kubevirt/kubevirt/releases/download/<span class=nv>$VERSION</span>/kubevirt.yaml
+</span></span></code></pre></div><blockquote><p><strong>Note:</strong> The initial deployment to a new minikube instance can take
+a long time, because a number of containers have to be pulled from the
+internet. Use <code>watch kubectl get --all-namespaces pods</code> to monitor the progress.</p></blockquote><p>Expected output:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>clusterrole <span class=s2>&#34;kubevirt-controller&#34;</span> created
+</span></span><span class=line><span class=cl>serviceaccount <span class=s2>&#34;kubevirt-controller&#34;</span> created
+</span></span><span class=line><span class=cl>serviceaccount <span class=s2>&#34;kubevirt-privileged&#34;</span> created
+</span></span><span class=line><span class=cl>clusterrolebinding <span class=s2>&#34;kubevirt-controller&#34;</span> created
+</span></span><span class=line><span class=cl>clusterrolebinding <span class=s2>&#34;kubevirt-controller-cluster-admin&#34;</span> created
+</span></span><span class=line><span class=cl>clusterrolebinding <span class=s2>&#34;kubevirt-privileged-cluster-admin&#34;</span> created
+</span></span><span class=line><span class=cl>customresourcedefinition <span class=s2>&#34;virtualmachines.kubevirt.io&#34;</span> created
+</span></span><span class=line><span class=cl>customresourcedefinition <span class=s2>&#34;virtualmachinereplicasets.kubevirt.io&#34;</span> created
+</span></span><span class=line><span class=cl>deployment <span class=s2>&#34;virt-controller&#34;</span> created
+</span></span><span class=line><span class=cl>daemonset <span class=s2>&#34;virt-handler&#34;</span> created
+</span></span><span class=line><span class=cl>customresourcedefinition <span class=s2>&#34;virtualmachinepresets.kubevirt.io&#34;</span> created
+</span></span><span class=line><span class=cl>customresourcedefinition <span class=s2>&#34;offlinevirtualmachines.kubevirt.io&#34;</span> created
+</span></span></code></pre></div><p>At the end you should have these extra pods:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kube-system   virt-controller-5c74754ddd-clshx        1/1       Running   <span class=m>0</span>          50s
+</span></span><span class=line><span class=cl>kube-system   virt-controller-5c74754ddd-xgk7m        0/1       Running   <span class=m>0</span>          50s
+</span></span><span class=line><span class=cl>kube-system   virt-handler-5bcl4                      1/1       Running   <span class=m>0</span>          50s
+</span></span></code></pre></div><p>Please notice that <code>virt-controller-5c74754ddd-xgk7m</code> is not running
+and this is OK. This is because this controller is just a hot-standby
+in case that the primary controller (<code>virt-controller-5c74754ddd-clshx</code>)
+has an issue.</p><h3 id=download-opensuse-leap-15>Download openSUSE Leap 15</h3><p>Go to the official openSUSE website and download the new
+Leap 15 ISO:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>wget https://download.opensuse.org/distribution/leap/15.0/iso/openSUSE-Leap-15.0-DVD-x86_64-Current.iso
+</span></span></code></pre></div><h3 id=install-the-pvc-plugin>Install the PVC plugin</h3><p>KubeVirt works using PVCs &ndash; Persistent Volume Claim &ndash; and the easiest
+way to create them is by using <a href=https://twitter.com/dummdida>fabian&rsquo;s</a>
+plugin:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl -L https://github.com/fabiand/kubectl-plugin-pvc/raw/master/install.sh <span class=p>|</span> bash
+</span></span></code></pre></div><h3 id=create-leap15-pvc>Create leap15 PVC</h3><p>In order to create a new PVC called <code>leap15</code> with a size of 10Gi and copy the local ISO into a file called <code>disk.img</code> on the new PVC.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ kubectl plugin pvc create leap15 1Gi <span class=nv>$PWD</span>/openSUSE-Leap-15.0-DVD-x86_64-Current.iso disk.img
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Creating PVC
+</span></span><span class=line><span class=cl>persistentvolumeclaim <span class=s2>&#34;leap15&#34;</span> created
+</span></span><span class=line><span class=cl>Populating PVC
+</span></span><span class=line><span class=cl>pod <span class=s2>&#34;leap15&#34;</span> created
+</span></span><span class=line><span class=cl>total <span class=m>3168260</span>
+</span></span><span class=line><span class=cl><span class=m>3168260</span> -rw-r--r--    <span class=m>1</span> <span class=m>1000</span>     users       3.0G Mar <span class=m>13</span> 17:12 disk.img
+</span></span><span class=line><span class=cl>Cleanup
+</span></span><span class=line><span class=cl>pod <span class=s2>&#34;leap15&#34;</span> deleted
+</span></span></code></pre></div><h3 id=upload-the-vm>Upload the VM</h3><p>Create the object <code>leap15.yaml</code>:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>kubevirt.io/v1alpha1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>VirtualMachinePreset</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>large</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>kubevirt.io/size</span><span class=p>:</span><span class=w> </span><span class=l>large</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>domain</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>8Gi</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nn>---</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>kubevirt.io/v1alpha1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>OfflineVirtualMachine</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>leap</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>running</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>guest</span><span class=p>:</span><span class=w> </span><span class=l>leap</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>guest</span><span class=p>:</span><span class=w> </span><span class=l>leap</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>kubevirt.io/size</span><span class=p>:</span><span class=w> </span><span class=l>large</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>domain</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>devices</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>disks</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>leap</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>volumeName</span><span class=p>:</span><span class=w> </span><span class=l>leap</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>disk</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=nt>bus</span><span class=p>:</span><span class=w> </span><span class=l>virtio</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>leap</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>persistentVolumeClaim</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>claimName</span><span class=p>:</span><span class=w> </span><span class=l>leap15</span><span class=w>
+</span></span></span></code></pre></div><p>Now apply this object specification using <code>kubectl</code>:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl apply -f leap15.yaml
+</span></span></code></pre></div><h2 id=connect-to-your-virtual-machine>Connect to your Virtual-Machine</h2><p>That&rsquo;s it, your VM should now be online, converted
+into a Kubernetes Pod object:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>drpaneas@localhost:~/Documents&gt; kubectl get pods
+</span></span><span class=line><span class=cl>NAME                       READY     STATUS    RESTARTS   AGE
+</span></span><span class=line><span class=cl>virt-launcher-leap-ht7zb   1/1       Running   <span class=m>0</span>          24m
+</span></span></code></pre></div><h3 id=download-virtctl>Download virtctl</h3><p>To connect to our VM, we need VNC, and especially <code>virtctl</code>:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>export</span> <span class=nv>VERSION</span><span class=o>=</span>v0.3.0
+</span></span><span class=line><span class=cl>curl -L -o virtctl https://github.com/kubevirt/kubevirt/releases/download/<span class=nv>$VERSION</span>/virtctl-<span class=nv>$VERSION</span>-linux-amd64
+</span></span><span class=line><span class=cl>chmod +x virtctl
+</span></span></code></pre></div><p>Now, try to connect:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Connect to the serial console</span>
+</span></span><span class=line><span class=cl>$ ./virtctl console --kubeconfig ~/.kube/config leap
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Connect to the graphical display</span>
+</span></span><span class=line><span class=cl>$ ./virtctl vnc --kubeconfig ~/.kube/config leap
+</span></span></code></pre></div><p><img src=https://i.imgur.com/J3QE8FV.png alt="Leap 15 VM on Kubernetes"></p><p>To sum up, this is just a project in a <strong>very early stage</strong>. The
+virtual-machines are running in <strong>emulation mode</strong>, which makes
+them <strong>horribly slow</strong>. However, performance drop is affected
+by a regression due to refactoring &ndash; but they will soon
+<a href=https://t.co/qGiviRL5I9>fix</a> it, so stay tuned!</p><p>In the end of it, I hope you
+guys liked that project and go over <a href=https://github.com/kubevirt/kubevirt>KubeVirt</a>
+GitHub page and <em>click at Star</em> to support the devs.</p><p>Have fun,
+Panos</p></div></article></section></main></body></html>

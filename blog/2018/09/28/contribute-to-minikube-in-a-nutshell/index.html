@@ -1,0 +1,85 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Contribute to minikube in a nutshell | drpaneas</title><meta name=author content="Panos Georgiadis"><meta name=description content="Not all those who wander are lost"><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel=stylesheet><link rel=stylesheet href=/css/main.min.637569fc4ac9f9fcf4e51e2a2d9a7953c10570ef9a7f6ac4e5c438b528d987ff.css></head><body><main class=workspace-page><section class=workspace-shell><div class=workspace-topbar><a class=topbar-tab href=/>1:home</a>
+<a class=topbar-tab href=/post/>2:posts*</a>
+<a class=topbar-tab href=/tags/>3:tags</a>
+<a class=topbar-tab href=/about/>4:about</a>
+<span class=workspace-session>[session: drpaneas]</span></div><article class="pane article-pane"><nav class=breadcrumb-back aria-label=Breadcrumb><a href=/>workspace</a>
+/ <a href=/post/>posts</a>
+/ <span>packaging_minkube.md</span></nav><div class=pane-title>article / packaging_minkube.md</div><h1>Contribute to minikube in a nutshell</h1><p class=post-meta>2018-09-28 / 2 min
+/ tags:
+<a href=/tags/tutorial/>tutorial</a>
+,
+<a href=/tags/minikube/>minikube</a>
+,
+<a href=/tags/packaging/>packaging</a>
+,
+<a href=/tags/cron/>cron</a>
+,
+<a href=/tags/opensuse/>opensuse</a></p><div class=post-content><p>It&rsquo;s very easy to contribute to minikube (and other similar packages) when the only thing
+that is needed is just a version bump in the <em>spec</em> file. You first need to install these:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># zypper in osc spec-cleaner</span>
+</span></span></code></pre></div><p>Configure your <em>~/.oscrc</em> file:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=o>[</span>general<span class=o>]</span>
+</span></span><span class=line><span class=cl><span class=nv>no_verify</span> <span class=o>=</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl>extra-pkgs <span class=o>=</span> vim less mc
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>[</span>https://api.opensuse.org<span class=o>]</span>
+</span></span><span class=line><span class=cl><span class=nv>user</span><span class=o>=</span>pgeorgiadis           <span class=c1># CHANGE</span>
+</span></span><span class=line><span class=cl><span class=nv>email</span><span class=o>=</span>pgeorgiadis@suse.com <span class=c1># CHANGE</span>
+</span></span><span class=line><span class=cl><span class=nv>pass</span><span class=o>=</span><span class=m>123456789</span>             <span class=c1># CHANGE</span>
+</span></span><span class=line><span class=cl><span class=nv>trusted_prj</span><span class=o>=</span>SUSE:SLE-12:GA openSUSE:13.2 openSUSE:Leap:42.3 openSUSE:Factory Base:System Virtualization:containers SUSE:SLE-12-SP3:GA SUSE:SLE-12:SLE-Module-Containers SUSE:Templates:Images:SLE-12-SP3:Base SUSE:SLE-12-SP3:Update openSUSE:Leap:42.3:Update
+</span></span><span class=line><span class=cl><span class=nv>aliases</span><span class=o>=</span>obs
+</span></span><span class=line><span class=cl><span class=nv>build_repository</span> <span class=o>=</span> openSUSE_Tumbleweed
+</span></span></code></pre></div><h2 id=contributing-in-a-nutshell>Contributing in a nutshell</h2><p>This is pkg that somebody else has prepared already. We are going just to bump the version:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Create a dir to work inside</span>
+</span></span><span class=line><span class=cl>mkdir packaging
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Branch and checkout the package</span>
+</span></span><span class=line><span class=cl>osc bco minikube
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Change directory into it</span>
+</span></span><span class=line><span class=cl><span class=nb>cd</span> home<span class=se>\:</span>pgeorgiadis<span class=se>\:</span>branches<span class=se>\:</span>Virtualization<span class=se>\:</span>containers/minikube/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Change the version number to the current one</span>
+</span></span><span class=line><span class=cl>vi minikube.spec
+</span></span><span class=line><span class=cl><span class=c1># example:</span>
+</span></span><span class=line><span class=cl><span class=c1># -Version:        0.28.2</span>
+</span></span><span class=line><span class=cl><span class=c1># +Version:        0.29.0</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Download the new sources</span>
+</span></span><span class=line><span class=cl>oscsd
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Clean the spec file</span>
+</span></span><span class=line><span class=cl>spec-cleaner -i minikube.spec
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Add the new tarball</span>
+</span></span><span class=line><span class=cl>osc add v0.29.0.tar.gz
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Remove the old tarball </span>
+</span></span><span class=line><span class=cl>osc rm v0.28.2.tar.gz
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Write the changelog</span>
+</span></span><span class=line><span class=cl>osc vc
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Commit the changes</span>
+</span></span><span class=line><span class=cl>osc ci
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Send the changes</span>
+</span></span><span class=line><span class=cl>osc sr
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Monitor the building with your browser</span>
+</span></span><span class=line><span class=cl>Firefox https://build.opensuse.org/package/show/home:pgeorgiadis:branches:Virtualization:containers/minikube
+</span></span></code></pre></div><h3 id=get-notified-via-mail>Get notified via mail</h3><p>Now what would be cool is to get a notification when a new version is available:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>cat /root/minikube_version.sh
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>#!/bin/bash</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nv>OLD</span><span class=o>=</span><span class=s2>&#34;v0.29.0&#34;</span>
+</span></span><span class=line><span class=cl>curl --silent https://github.com/kubernetes/minikube/releases/latest <span class=p>|</span> grep <span class=s2>&#34;</span><span class=nv>$OLD</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nv>RC</span><span class=o>=</span><span class=s2>&#34;</span><span class=nv>$?</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>[</span> <span class=nv>$RC</span> -ne <span class=m>0</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nv>NEW</span><span class=o>=</span><span class=k>$(</span>curl --silent https://github.com/kubernetes/minikube/releases/latest <span class=p>|</span> awk -F <span class=s2>&#34;tag/&#34;</span> <span class=s1>&#39;{print $2}&#39;</span> <span class=p>|</span> awk -F <span class=s1>&#39;&#34;&#39;</span> <span class=s1>&#39;{ print $1 }&#39;</span><span class=k>)</span>
+</span></span><span class=line><span class=cl>    <span class=nv>CHANGELOG</span><span class=o>=</span><span class=s2>&#34;https://github.com/kubernetes/minikube/blob/master/CHANGELOG.md&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;New Version </span><span class=nv>$NEW</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;Read the changelog at </span><span class=nv>$CHANGELOG</span><span class=s2>&#34;</span> <span class=p>|</span>  mail -s <span class=s2>&#34;Minikube </span><span class=nv>$NEW</span><span class=s2> version released&#34;</span> pgeorgiadis@suse.de
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span></code></pre></div><p>Run it every day at 14:00:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>crontab -e
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># add this:</span>
+</span></span><span class=line><span class=cl><span class=m>0</span> <span class=m>14</span> * * * /root/minikube_version.sh
+</span></span></code></pre></div><p>Have fun, Panos</p></div></article></section></main></body></html>
